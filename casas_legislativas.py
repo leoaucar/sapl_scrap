@@ -23,10 +23,9 @@ def teste_url_ativa(casas):
 #vou alterar essa função pra retornar um resultado rápido
 #retornar também lista de casas OK (lista de bools)
 
-testes = ['genero','ideologia','orçamento']
-def teste_conteudo_atualizado(casas):
+def teste_conteudo_atualizado(casas, palavras):
     for casa in casas:
-        for palavra in testes:
+        for palavra in palavras:
             response = requests.get(casa + 'sistema/search/?q=' + palavra)
             #talvez usar um objeto de resultado
             if response.text > 5:

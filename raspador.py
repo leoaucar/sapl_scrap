@@ -1,5 +1,7 @@
 from bs4 import BeautifulSoup
+import requests
 import pandas as pd
+
 
 def raspar_resultados(tabela):
     #loopa pelas paginas selecionadno os conteudos

@@ -2,20 +2,24 @@ import pandas as pd
 import requests
 
 def importar_casas():
-    df = pd.read_csv('./casas_legislativas.csv')
-    casas = df['casas']
+    df = pd.read_excel('./casas_legislativas.xlsx')
+    casas = df['URL do serviço']
     #talvez aqui possamos usar os testes
     #garantir que só importaremos casas OK
     return casas
 
 def teste_url_ativa(casas):
+    resultado_casas = []
     for casa in casas:
-        response = requests.get(casa)
-        if response.status_code == 200:
-            print('ok')
-        else:
-            print('não ok')
-    return casas
+        try:
+            response = requests.get(casa, timeout=10)
+            if response.status_code == 200:
+                resultado_casas.append((casa,True))
+            else:
+                resultado_casas.append((casa,False))
+        except:
+            continue
+    return resultado_casas
 #vou alterar essa função pra retornar um resultado rápido
 #retornar também lista de casas OK (lista de bools)
 

@@ -1,8 +1,8 @@
 import pandas as pd
 
 def importar_palavras():
-    df = pd.read_csv('./casas_legislativas.csv')
-    palavras = df['palavras']
+    df = pd.read_csv('./palavras_chave.csv', header=0)
+    palavras = df['Palavras']
 
     return palavras
 

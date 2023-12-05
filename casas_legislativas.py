@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 
 def importar_casas():
-    df = pd.read_excel('./casas_legislativas.xlsx')
+    df = pd.read_excel('./arquivos_csv/casas_legislativas.xlsx')
     casas = df['URL do serviço']
     #talvez aqui possamos usar os testes
     #garantir que só importaremos casas OK

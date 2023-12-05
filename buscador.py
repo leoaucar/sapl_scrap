@@ -10,21 +10,35 @@ lista_casas = importar_casas()
 
 #validacao das casas legislativas online
 casas_resultado = teste_url_ativa(lista_casas[0:20]) #limitado 20 para teste
-print(casas_resultado)
+#print(casas_resultado)
 
 #validacao das palavras chave
 palavras = importar_palavras()
-print(palavras)
+#print(palavras)
+
+montar_tabela('projeto')
 
 #realizando a busca em casas legislativas
 for casa in casas_resultado: #limitado a 5 para teste
+    indice = 0
     if casa[1] == True:
         #print(casa[1])
         #aqui recupero os resultados de cada busca no sistema
         for i in palavras:
-            response = requests.get(casa[0] + 'sistema/search/?q=' + i)
-            soup = BeautifulSoup(response.text)
-            print(soup.prettify())
+            pagina = 1
+            while pagina < 10: #mantendo paginas limitadas a 10 para teste
+                url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + i
+                print(url)
+                response = requests.get(url)
+                soup = BeautifulSoup(response.text)
+                if response.status_code == 200:
+                    print('ok')
+                    #print(soup.prettify())
+                else:
+                    break
+                #print(response.status_code)
+                indice = indice + 1
+                pagina = pagina + 1
     else:
         continue
 #necessario agora permitir que o buscador loope pelos resultados usando a funöäao de raspagem

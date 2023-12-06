@@ -2,8 +2,11 @@ import requests
 from palavras_chave import importar_palavras
 from casas_legislativas import importar_casas, teste_url_ativa
 from raspador import raspar_resultados
-from gerenciador_projetos import montar_tabela
+from gerenciador_projetos import montar_tabela_busca
 from bs4 import BeautifulSoup
+import csv
+
+
 
 lista_casas = importar_casas()
 #print(lista_casas)
@@ -16,23 +19,32 @@ casas_resultado = teste_url_ativa(lista_casas[0:20]) #limitado 20 para teste
 palavras = importar_palavras()
 #print(palavras)
 
-montar_tabela('projeto')
+
 
 #realizando a busca em casas legislativas
+montar_tabela_busca('resultado_busca')
 for casa in casas_resultado: #limitado a 5 para teste
     indice = 0
+    urls_erro = []
     if casa[1] == True:
         #print(casa[1])
         #aqui recupero os resultados de cada busca no sistema
-        for i in palavras:
+        for palavra in palavras:
             pagina = 1
             while pagina < 10: #mantendo paginas limitadas a 10 para teste
-                url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + i
+                url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
                 print(url)
-                response = requests.get(url)
-                soup = BeautifulSoup(response.text)
+                try:
+                    response = requests.get(url)
+                    urls_erro.append(url)
+                except:
+                    continue
+                #soup = BeautifulSoup(response.text)
                 if response.status_code == 200:
-                    print('ok')
+                     #preciso separar paginas de resultados vazias das com resultados
+                     with open('arquivos_csv/resultado_busca.csv', 'a') as file:
+                        writer = csv.writer(file)
+                        writer.writerow([indice, casa, palavra, pagina,response.text])
                     #print(soup.prettify())
                 else:
                     break

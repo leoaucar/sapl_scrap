@@ -1,15 +1,13 @@
 from bs4 import BeautifulSoup
-import requests
 import pandas as pd
 
-
-def raspar_resultados(tabela):
+def raspar_resultados(tabela_busca,tabela_resultados):
     #loopa pelas paginas selecionadno os conteudos
-    resultados = tabela['conteudo']
+    resultados = tabela_busca['conteudo']
     for i in resultados:
         materia = raspar_materia_legislativa(i)
         #preciso exportar esses resultados atualizando a tabela
-    return tabela
+    return tabela_resultados
 #aqui vou precisar raspar os resultados da busca página a página
 
 def raspar_materia_legislativa(conteudo):

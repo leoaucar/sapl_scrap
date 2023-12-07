@@ -23,7 +23,3 @@ def raspar_materia_legislativa(conteudo):
     resultado = conteudo
     return resultado
 #aqui raspo o conteudo de cada matéria legislativa
-
-resultados = raspar_resultados('./arquivos_csv/resultado_busca2.csv')
-df = pd.DataFrame(resultados)
-df.to_csv("arquivos_csv/links_achados.csv")

@@ -1,23 +1,4 @@
 import requests
-from palavras_chave import importar_palavras
-from casas_legislativas import importar_casas, teste_url_ativa
-from raspador import raspar_resultados
-from gerenciador_projetos import montar_tabela_busca
-from bs4 import BeautifulSoup
-import csv
-
-
-
-lista_casas = importar_casas()
-#print(lista_casas)
-
-#validacao das casas legislativas online
-casas_resultado = teste_url_ativa(lista_casas[0:10]) #limitado 20 para teste
-#print(casas_resultado)
-
-#validacao das palavras chave
-palavras = importar_palavras()
-#print(palavras)
 
 #realizando a busca em casas legislativas
 def buscar_resultados(casas_resultado, palavras):
@@ -52,12 +33,7 @@ def buscar_resultados(casas_resultado, palavras):
             continue
     return resultados
 
-montar_tabela_busca('resultado_busca2')
-resultados = buscar_resultados(casas_resultado, palavras)
-for i in resultados:           
-    with open('arquivos_csv/resultado_busca2.csv', 'a') as file:
-        writer = csv.writer(file)
-        writer.writerow(i)
+
 #necessario agora permitir que o buscador loope pelos resultados usando a funöäao de raspagem
 #isso permitira montar a tabela de resultados
 #os resultados sao os htmls das materias legistlativas

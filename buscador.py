@@ -12,47 +12,52 @@ lista_casas = importar_casas()
 #print(lista_casas)
 
 #validacao das casas legislativas online
-casas_resultado = teste_url_ativa(lista_casas[0:20]) #limitado 20 para teste
+casas_resultado = teste_url_ativa(lista_casas[0:10]) #limitado 20 para teste
 #print(casas_resultado)
 
 #validacao das palavras chave
 palavras = importar_palavras()
 #print(palavras)
 
-
-
 #realizando a busca em casas legislativas
-montar_tabela_busca('resultado_busca')
-for casa in casas_resultado: #limitado a 5 para teste
+def buscar_resultados(casas_resultado, palavras):
     indice = 0
     urls_erro = []
-    if casa[1] == True:
-        #print(casa[1])
-        #aqui recupero os resultados de cada busca no sistema
-        for palavra in palavras:
-            pagina = 1
-            while pagina < 10: #mantendo paginas limitadas a 10 para teste
-                url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
-                print(url)
-                try:
-                    response = requests.get(url)
-                    urls_erro.append(url)
-                except:
-                    continue
-                #soup = BeautifulSoup(response.text)
-                if response.status_code == 200:
-                     #preciso separar paginas de resultados vazias das com resultados
-                     with open('arquivos_csv/resultado_busca.csv', 'a') as file:
-                        writer = csv.writer(file)
-                        writer.writerow([indice, casa, palavra, pagina,response.text])
-                    #print(soup.prettify())
-                else:
-                    break
-                #print(response.status_code)
-                indice = indice + 1
-                pagina = pagina + 1
-    else:
-        continue
+    resultados = []
+    for casa in casas_resultado: #limitado a 5 para teste
+        if casa[1] == True:
+            #print(casa[1])
+            #aqui recupero os resultados de cada busca no sistema
+            for palavra in palavras:
+                pagina = 1
+                while pagina < 10: #mantendo paginas limitadas a 10 para teste
+                    url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
+                    print(url)
+                    try:
+                        response = requests.get(url)
+                        urls_erro.append(url)
+                    except:
+                        continue
+                    #soup = BeautifulSoup(response.text)
+                    if response.status_code == 200:
+                        #preciso separar paginas de resultados vazias das com resultados
+                        resultados.append([indice, casa, palavra, pagina,response.text,url])
+                        #print(soup.prettify())
+                    else:
+                        break
+                    #print(response.status_code)
+                    indice = indice + 1
+                    pagina = pagina + 1
+        else:
+            continue
+    return resultados
+
+montar_tabela_busca('resultado_busca2')
+resultados = buscar_resultados(casas_resultado, palavras)
+for i in resultados:           
+    with open('arquivos_csv/resultado_busca2.csv', 'a') as file:
+        writer = csv.writer(file)
+        writer.writerow(i)
 #necessario agora permitir que o buscador loope pelos resultados usando a funöäao de raspagem
 #isso permitira montar a tabela de resultados
 #os resultados sao os htmls das materias legistlativas

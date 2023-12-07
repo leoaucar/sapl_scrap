@@ -1,5 +1,5 @@
 Indice,Casa,Palavra,Pagina,html,link
-0,"('https://sapl.al.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+0,https://sapl.al.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -769,7 +769,7 @@ efetivamente o processo de desenvolvimento econômico, social, político, cultural
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=1&q=gênero
-1,"('https://sapl.al.ac.leg.br/', True)",gênero,2,"<!DOCTYPE html>
+1,https://sapl.al.ac.leg.br/,gênero,2,"<!DOCTYPE html>
 
 
 
@@ -1538,7 +1538,7 @@ efetivamente o processo de desenvolvimento econômico, social, político, cultural
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=2&q=gênero
-2,"('https://sapl.al.ac.leg.br/', True)",gênero,3,"<!DOCTYPE html>
+2,https://sapl.al.ac.leg.br/,gênero,3,"<!DOCTYPE html>
 
 
 
@@ -2308,7 +2308,7 @@ art. 58, § 30, da Constituição Federal de 1988, com o apoio dos deputados estadu
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=3&q=gênero
-3,"('https://sapl.al.ac.leg.br/', True)",gênero,4,"<!DOCTYPE html>
+3,https://sapl.al.ac.leg.br/,gênero,4,"<!DOCTYPE html>
 
 
 
@@ -3080,7 +3080,7 @@ estadual de saúde.<br>
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=4&q=gênero
-4,"('https://sapl.al.ac.leg.br/', True)",gênero,5,"<!DOCTYPE html>
+4,https://sapl.al.ac.leg.br/,gênero,5,"<!DOCTYPE html>
 
 
 
@@ -3849,7 +3849,7 @@ estadual de saúde.<br>
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=5&q=gênero
-5,"('https://sapl.al.ac.leg.br/', True)",gênero,6,"<!DOCTYPE html>
+5,https://sapl.al.ac.leg.br/,gênero,6,"<!DOCTYPE html>
 
 
 
@@ -4619,7 +4619,7 @@ funções ou em razão delas, que se envolvam ou sejam implicados em casos que dema
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=6&q=gênero
-6,"('https://sapl.al.ac.leg.br/', True)",gênero,7,"<!DOCTYPE html>
+6,https://sapl.al.ac.leg.br/,gênero,7,"<!DOCTYPE html>
 
 
 
@@ -5380,7 +5380,7 @@ em território acreano, nos termos da presente lei,	e	cria	o	respectivo	programa	
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=7&q=gênero
-7,"('https://sapl.al.ac.leg.br/', True)",gênero,8,"<!DOCTYPE html>
+7,https://sapl.al.ac.leg.br/,gênero,8,"<!DOCTYPE html>
 
 
 
@@ -6131,7 +6131,7 @@ em território acreano, nos termos da presente lei,	e	cria	o	respectivo	programa	
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=8&q=gênero
-8,"('https://sapl.al.ac.leg.br/', True)",gênero,9,"<!DOCTYPE html>
+8,https://sapl.al.ac.leg.br/,gênero,9,"<!DOCTYPE html>
 
 
 
@@ -6880,7 +6880,7 @@ em território acreano, nos termos da presente lei,	e	cria	o	respectivo	programa	
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=9&q=gênero
-9,"('https://sapl.al.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+9,https://sapl.al.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -7621,7 +7621,7 @@ em território acreano, nos termos da presente lei,	e	cria	o	respectivo	programa	
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=1&q=ideologia
-10,"('https://sapl.al.ac.leg.br/', True)",ideologia,2,"<!DOCTYPE html>
+10,https://sapl.al.ac.leg.br/,ideologia,2,"<!DOCTYPE html>
 
 
 
@@ -8352,7 +8352,7 @@ em território acreano, nos termos da presente lei,	e	cria	o	respectivo	programa	
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=2&q=ideologia
-11,"('https://sapl.al.ac.leg.br/', True)",ideologia,3,"<!DOCTYPE html>
+11,https://sapl.al.ac.leg.br/,ideologia,3,"<!DOCTYPE html>
 
 
 
@@ -9077,7 +9077,7 @@ em território acreano, nos termos da presente lei,	e	cria	o	respectivo	programa	
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=3&q=ideologia
-12,"('https://sapl.al.ac.leg.br/', True)",ideologia,4,"<!DOCTYPE html>
+12,https://sapl.al.ac.leg.br/,ideologia,4,"<!DOCTYPE html>
 
 
 
@@ -9802,7 +9802,7 @@ em território acreano, nos termos da presente lei,	e	cria	o	respectivo	programa	
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=4&q=ideologia
-13,"('https://sapl.al.ac.leg.br/', True)",ideologia,5,"<!DOCTYPE html>
+13,https://sapl.al.ac.leg.br/,ideologia,5,"<!DOCTYPE html>
 
 
 
@@ -10529,7 +10529,7 @@ em território acreano, nos termos da presente lei,	e	cria	o	respectivo	programa	
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=5&q=ideologia
-14,"('https://sapl.al.ac.leg.br/', True)",ideologia,6,"<!DOCTYPE html>
+14,https://sapl.al.ac.leg.br/,ideologia,6,"<!DOCTYPE html>
 
 
 
@@ -11175,7 +11175,7 @@ SILVA DE ASSIS"".<br>
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=6&q=ideologia
-15,"('https://sapl.al.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+15,https://sapl.al.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -11940,7 +11940,7 @@ SILVA DE ASSIS"".<br>
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=1&q=orcamento
-16,"('https://sapl.al.ac.leg.br/', True)",orcamento,2,"<!DOCTYPE html>
+16,https://sapl.al.ac.leg.br/,orcamento,2,"<!DOCTYPE html>
 
 
 
@@ -12710,7 +12710,7 @@ Que o Governador do Estado do Acre, no uso da atribuição que lhe confere o artig
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=2&q=orcamento
-17,"('https://sapl.al.ac.leg.br/', True)",orcamento,3,"<!DOCTYPE html>
+17,https://sapl.al.ac.leg.br/,orcamento,3,"<!DOCTYPE html>
 
 
 
@@ -13481,7 +13481,7 @@ contabilidade, aos ocupantes dos cargos de técnico contábil aos quadros da admin
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=3&q=orcamento
-18,"('https://sapl.al.ac.leg.br/', True)",orcamento,4,"<!DOCTYPE html>
+18,https://sapl.al.ac.leg.br/,orcamento,4,"<!DOCTYPE html>
 
 
 
@@ -14255,7 +14255,7 @@ Anteprojeto de Lei Complementar de minha autoria que ""Concede aos atingidos pel
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=4&q=orcamento
-19,"('https://sapl.al.ac.leg.br/', True)",orcamento,5,"<!DOCTYPE html>
+19,https://sapl.al.ac.leg.br/,orcamento,5,"<!DOCTYPE html>
 
 
 
@@ -15030,7 +15030,7 @@ estratégias para reduzir as formas e índices de violência, proporcionando a toda
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=5&q=orcamento
-20,"('https://sapl.al.ac.leg.br/', True)",orcamento,6,"<!DOCTYPE html>
+20,https://sapl.al.ac.leg.br/,orcamento,6,"<!DOCTYPE html>
 
 
 
@@ -15801,7 +15801,7 @@ estaduais titulares de cargos efetivos, cargos em comissão ou admitidos; ativos,
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=6&q=orcamento
-21,"('https://sapl.al.ac.leg.br/', True)",orcamento,7,"<!DOCTYPE html>
+21,https://sapl.al.ac.leg.br/,orcamento,7,"<!DOCTYPE html>
 
 
 
@@ -16576,7 +16576,7 @@ rede publica e privada do Estado do Acre.<br>
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=7&q=orcamento
-22,"('https://sapl.al.ac.leg.br/', True)",orcamento,8,"<!DOCTYPE html>
+22,https://sapl.al.ac.leg.br/,orcamento,8,"<!DOCTYPE html>
 
 
 
@@ -17350,7 +17350,7 @@ Legislativa do Estado do Acre, a convocação de uma audiência pública conjunta da
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=8&q=orcamento
-23,"('https://sapl.al.ac.leg.br/', True)",orcamento,9,"<!DOCTYPE html>
+23,https://sapl.al.ac.leg.br/,orcamento,9,"<!DOCTYPE html>
 
 
 
@@ -18123,7 +18123,7 @@ outras providências.<br>
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=9&q=orcamento
-24,"('https://sapl.al.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+24,https://sapl.al.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -18460,6 +18460,26 @@ outras providências.<br>
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/12810"">Indicação nº 621 de 2022</a></br>
+                Indico a Mesa Diretora da Assembleia Legislativa do Estado do Acre, com fulcro no artigo 169, do Regimento Interno desta casa, que encaminhe expediente a direção do Detran-AC, solicitando a implantação do projeto jovem Aprendiz no Trânsito, conforme estabelecido na resolução 265 do CONTRAN.<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2022/12810/ind-n-621-gerlen_diniz.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/15149"">Indicação nº 689 de 2023</a></br>
                 Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts. 169 c/ 170, todos da Resolução n. 86/90 - 
 Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Prefeito de Rio Branco, Sebastião Bocalom Rodrigues, a seguinte indicação, para que providencie a recuperação (tapa buracos) da rua Padre Carlos Casavechia, localizado no Conjunto Adalberto Sena.<br>
@@ -18627,26 +18647,6 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15105/ind-n-571-afonso_fernandes.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/15104"">Indicação nº 670 de 2023</a></br>
-                Com arrimo no art. 169, da Resolução n. 86/90 - Regimento Interno desta Casa Legislativa - solicito à Mesa Diretora que encaminhe ao Governador do Estado esta indicação para que providencie a reforma da escota pública estadual Ruy Azevedo localizada na Av. Praia do Amapá, S/N, bairro Praia do Amapá.<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15104/ind-n-670-emerson_jarude.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -18890,7 +18890,7 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=1&q=escola
-25,"('https://sapl.al.ac.leg.br/', True)",escola,2,"<!DOCTYPE html>
+25,https://sapl.al.ac.leg.br/,escola,2,"<!DOCTYPE html>
 
 
 
@@ -19227,6 +19227,26 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/15104"">Indicação nº 670 de 2023</a></br>
+                Com arrimo no art. 169, da Resolução n. 86/90 - Regimento Interno desta Casa Legislativa - solicito à Mesa Diretora que encaminhe ao Governador do Estado esta indicação para que providencie a reforma da escota pública estadual Ruy Azevedo localizada na Av. Praia do Amapá, S/N, bairro Praia do Amapá.<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15104/ind-n-670-emerson_jarude.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/15103"">Indicação nº 669 de 2023</a></br>
                 Com arrimo no art. 169, da Resolução n. 86/90— Regimento Interno desta Casa Legislativa - solicito à Mesa Diretora que encaminhe ao Governador do Estado esta indicação para que providencie reparos na escola pública estadual Ruy Azevedo localizada na Av. Praia do Amapá, Sfl'4, bairro Praia do Amapá.<br>
 
@@ -19392,26 +19412,6 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15095/ind-n-661-emerson_jarude.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/15094"">Indicação nº 660 de 2023</a></br>
-                Com arrimo no art. 169, da Resolução n. 86/90 - Regimento Interno desta Casa Legislativa - solicito á Mesa Diretora que encaminhe ao Governador do Estado esta indicação para que providencie a aquisição de freezer para escola pública estadual Ruy Azevedo localizada na Av. Praia do Amapá, SIN, bairro Praia do Amapá. Conforme inspeção realizada in loco, constatou-se que referida escola necessita de freezer, componente essencial para armazenar alimentos perecíveis, garantido a qualidade e a segurança alimentar dentro do ambiente escolar. Além disso permitirá conservação de insumos para eventos, projetos pedagógicos e atividades extracurriculares.<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15094/ind-n-660-emerson_jarude.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -19659,7 +19659,7 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=2&q=escola
-26,"('https://sapl.al.ac.leg.br/', True)",escola,3,"<!DOCTYPE html>
+26,https://sapl.al.ac.leg.br/,escola,3,"<!DOCTYPE html>
 
 
 
@@ -19996,6 +19996,26 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/15094"">Indicação nº 660 de 2023</a></br>
+                Com arrimo no art. 169, da Resolução n. 86/90 - Regimento Interno desta Casa Legislativa - solicito á Mesa Diretora que encaminhe ao Governador do Estado esta indicação para que providencie a aquisição de freezer para escola pública estadual Ruy Azevedo localizada na Av. Praia do Amapá, SIN, bairro Praia do Amapá. Conforme inspeção realizada in loco, constatou-se que referida escola necessita de freezer, componente essencial para armazenar alimentos perecíveis, garantido a qualidade e a segurança alimentar dentro do ambiente escolar. Além disso permitirá conservação de insumos para eventos, projetos pedagógicos e atividades extracurriculares.<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15094/ind-n-660-emerson_jarude.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/15093"">Projeto de Resolução nº 7 de 2023</a></br>
                 Concede a Comenda ""Ordem do Mérito Legislativo do Estado do Acre"" ao Sr. DANILO LOVISARO DO NASCIMENTO.<br>
 
@@ -20161,26 +20181,6 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15041/pl-n-238-gene_diniz.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/15035"">Indicação nº 654 de 2023</a></br>
-                Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts. 169 c/ 170, todos da Resolução n. 86/90 - Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Governador do Estado do Acre, e o Senhor Aberson Carvalho, Secretário do Estado de Educação, a seguinte indicação, solicitando que seja providenciado a instalação de uma tola de proteção na quadra esportiva da Escola Estadual Maria Raimunda Balbino, localizada na rua Tião Natureza, bairro Palheral, no Município de Rio Branco.<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15035/ind-n-654-adailton_cruz.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -20428,7 +20428,7 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=3&q=escola
-27,"('https://sapl.al.ac.leg.br/', True)",escola,4,"<!DOCTYPE html>
+27,https://sapl.al.ac.leg.br/,escola,4,"<!DOCTYPE html>
 
 
 
@@ -20765,6 +20765,26 @@ Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Pref
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/15035"">Indicação nº 654 de 2023</a></br>
+                Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts. 169 c/ 170, todos da Resolução n. 86/90 - Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Governador do Estado do Acre, e o Senhor Aberson Carvalho, Secretário do Estado de Educação, a seguinte indicação, solicitando que seja providenciado a instalação de uma tola de proteção na quadra esportiva da Escola Estadual Maria Raimunda Balbino, localizada na rua Tião Natureza, bairro Palheral, no Município de Rio Branco.<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15035/ind-n-654-adailton_cruz.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/15034"">Indicação nº 653 de 2023</a></br>
                 Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts. 169 c/ 170, todos da Resolução n. 86/90 - 
 Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Senhor Governador do Estado do Acre, e ao Senhor Aberson Carvalho, 
@@ -20939,28 +20959,6 @@ municipais e estaduais do município<br>
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15021/ind-n-641-adailton_cruz.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/15020"">Indicação nº 640 de 2023</a></br>
-                Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts 169 c/ 170, todos da Resolução 
-86I90 - Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Prefeito Municipal de Plácido de Castro Camilo, a seguinte indicação, para que seja realizado a analise da Viabilidade e se possível a construção de faixas de trânsito elevadas em frente as escolas 
-municipais e estaduais do município<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15020/ind-n-640-adailton_cruz.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -21208,7 +21206,7 @@ municipais e estaduais do município<br>
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=4&q=escola
-28,"('https://sapl.al.ac.leg.br/', True)",escola,5,"<!DOCTYPE html>
+28,https://sapl.al.ac.leg.br/,escola,5,"<!DOCTYPE html>
 
 
 
@@ -21545,6 +21543,28 @@ municipais e estaduais do município<br>
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/15020"">Indicação nº 640 de 2023</a></br>
+                Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts 169 c/ 170, todos da Resolução 
+86I90 - Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Prefeito Municipal de Plácido de Castro Camilo, a seguinte indicação, para que seja realizado a analise da Viabilidade e se possível a construção de faixas de trânsito elevadas em frente as escolas 
+municipais e estaduais do município<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15020/ind-n-640-adailton_cruz.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/15019"">Indicação nº 639 de 2023</a></br>
                 Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts 169 ei 170 todo% da Resolução n 86190 - Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Prefeito Municipal de Acrelândia, OIavo Francelino de Resende, a seguinte indicação, para que seja realizado a análise da viabilidade e se possível a construção de faixas de transito elevadas em frente as escotas municipais e estaduais do município<br>
 
@@ -21713,28 +21733,6 @@ frentes as escolas municipais e estaduais do município.<br>
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/15005/ind-n-633-adailton_cruz.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/14987"">Indicação nº 632 de 2023</a></br>
-                Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts. 169 c/ 170, todos da Resolução n. 86/90 - 
-Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Senhor Prefeito de Plácido de Castro, Camilo da Silva, e ao Senhor José Roberto Lima Murad, Diretor Presidente do Departamento de Estradas de Rodagem, infraestrutura Hidroviária e Aeroportuária do Acre - DERACRE, 
-a seguinte indicação, solicitando em caráter de urgência a Reforma e Manutenção das Pontes do ramal do Cazuza, município de Plácido de Castro.<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/14987/ind-n-632-adailton_cruz.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -21982,7 +21980,7 @@ a seguinte indicação, solicitando em caráter de urgência a Reforma e Manutenção 
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=5&q=escola
-29,"('https://sapl.al.ac.leg.br/', True)",escola,6,"<!DOCTYPE html>
+29,https://sapl.al.ac.leg.br/,escola,6,"<!DOCTYPE html>
 
 
 
@@ -22319,6 +22317,28 @@ a seguinte indicação, solicitando em caráter de urgência a Reforma e Manutenção 
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/14987"">Indicação nº 632 de 2023</a></br>
+                Indico à Mesa Diretora da Assembleia Legislativa do Estado do Acre, de acordo com os dispositivos dos arts. 169 c/ 170, todos da Resolução n. 86/90 - 
+Regimento Interno deste Poder, seja endereçado expediente ao Excelentíssimo Senhor Prefeito de Plácido de Castro, Camilo da Silva, e ao Senhor José Roberto Lima Murad, Diretor Presidente do Departamento de Estradas de Rodagem, infraestrutura Hidroviária e Aeroportuária do Acre - DERACRE, 
+a seguinte indicação, solicitando em caráter de urgência a Reforma e Manutenção das Pontes do ramal do Cazuza, município de Plácido de Castro.<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/14987/ind-n-632-adailton_cruz.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/14979"">Projeto de Lei nº 222 de 2023</a></br>
                 Cria o Programa Atleta do Futuro - para incentiva da prática esportiva nas escolas públicas<br>
 
@@ -22486,26 +22506,6 @@ Aplausos ao Senhor Lourenço de Azevedo Vasconcelos, pelos relevantes serviços pr
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/14931/pl-n-205-clodoaldo_rodrigues.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/14927"">Projeto de Lei nº 202 de 2023</a></br>
-                Concede o Título de Cidadã Acriana à Ilustríssima Senhora CELINA LUDOVINA MARQUES CORREIA.<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/14927/pl-n-202-pedro_longo.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -22753,7 +22753,7 @@ Aplausos ao Senhor Lourenço de Azevedo Vasconcelos, pelos relevantes serviços pr
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=6&q=escola
-30,"('https://sapl.al.ac.leg.br/', True)",escola,7,"<!DOCTYPE html>
+30,https://sapl.al.ac.leg.br/,escola,7,"<!DOCTYPE html>
 
 
 
@@ -23090,6 +23090,26 @@ Aplausos ao Senhor Lourenço de Azevedo Vasconcelos, pelos relevantes serviços pr
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/14927"">Projeto de Lei nº 202 de 2023</a></br>
+                Concede o Título de Cidadã Acriana à Ilustríssima Senhora CELINA LUDOVINA MARQUES CORREIA.<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/14927/pl-n-202-pedro_longo.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/14924"">Moção nº 44 de 2023</a></br>
                 MOÇÃO DE APLAUSOS Camilo da Silva, Prefeito no Município de Plácido de Castro.<br>
 
@@ -23256,26 +23276,6 @@ expediente ao Excelentíssimo Senhor Governador do Estado do Acre para que junto 
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2022/12880/ind-n-686-jose_bstene.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/12881"">Indicação nº 687 de 2022</a></br>
-                Indicamos a Mesa Diretora da Assembleia Legislativa do Estado Acre, com fundamentação no art. 169, da Resolução n2 86/90 Regimento Interno desta Casa Legislativa, que seja encaminhada a presente indicação a Secretaria de Estado da Educação, Cultura e Esporte (SEE), para que providencia reparo na parte elétrica e na estrutura física da Escota Marta José Bezerra dos Reis no município de Senador Guiomard.<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2022/12881/ind-n-687-jos_besteene.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -23523,7 +23523,7 @@ expediente ao Excelentíssimo Senhor Governador do Estado do Acre para que junto 
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=7&q=escola
-31,"('https://sapl.al.ac.leg.br/', True)",escola,8,"<!DOCTYPE html>
+31,https://sapl.al.ac.leg.br/,escola,8,"<!DOCTYPE html>
 
 
 
@@ -23860,6 +23860,26 @@ expediente ao Excelentíssimo Senhor Governador do Estado do Acre para que junto 
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/12881"">Indicação nº 687 de 2022</a></br>
+                Indicamos a Mesa Diretora da Assembleia Legislativa do Estado Acre, com fundamentação no art. 169, da Resolução n2 86/90 Regimento Interno desta Casa Legislativa, que seja encaminhada a presente indicação a Secretaria de Estado da Educação, Cultura e Esporte (SEE), para que providencia reparo na parte elétrica e na estrutura física da Escota Marta José Bezerra dos Reis no município de Senador Guiomard.<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2022/12881/ind-n-687-jos_besteene.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/12882"">Indicação nº 688 de 2022</a></br>
                 Indicamos a Mesa Diretora cia Assembleia Legislativa do Estado Acre, com fundamentação no art. 169, da Resolução n2 86/90 Regimento Interno desta Casa Legislativa, que seja encaminhada a presente indicação a Secretaria de Estado da Educação, Cultura e Esporte (SSE), para que providencie elétrica e na estrutura física da Escola Padre Carlos Casavequia no município de Senador Guiomard.<br>
 
@@ -24028,26 +24048,6 @@ atenção dispensada.<br>
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2022/12928/ind-n-716-jenilson.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/12929"">Indicação nº 717 de 2022</a></br>
-                Indico a Mesa Diretora da Assembleia Legislativa do Estado do Acre, com fulcro no artigo 169, do Regimento Interno da Assembleia Legislativa, que seja encaminhado ao Governo do Estado do Acre, para que a Secretaria de Estado de Educação e Cultura-SEE, viabilize melhorias na estrutura física, aquisição de mobiliário, restruturação da parte elétrica da escola Prof. Dalva de Souza localizada na estrada Transacreana KM 70 na zona rural de Rio Branco.<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2022/12929/ind-n-717-jeenilson.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -24295,7 +24295,7 @@ atenção dispensada.<br>
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=8&q=escola
-32,"('https://sapl.al.ac.leg.br/', True)",escola,9,"<!DOCTYPE html>
+32,https://sapl.al.ac.leg.br/,escola,9,"<!DOCTYPE html>
 
 
 
@@ -24632,6 +24632,26 @@ atenção dispensada.<br>
           <td>
             
               <p>
+                <strong>Matéria Legislativa: </strong> <a href=""/materia/12929"">Indicação nº 717 de 2022</a></br>
+                Indico a Mesa Diretora da Assembleia Legislativa do Estado do Acre, com fulcro no artigo 169, do Regimento Interno da Assembleia Legislativa, que seja encaminhado ao Governo do Estado do Acre, para que a Secretaria de Estado de Educação e Cultura-SEE, viabilize melhorias na estrutura física, aquisição de mobiliário, restruturação da parte elétrica da escola Prof. Dalva de Souza localizada na estrada Transacreana KM 70 na zona rural de Rio Branco.<br>
+
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2022/12929/ind-n-717-jeenilson.pdf""> Clique aqui </a></br>
+                
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/12930"">Indicação nº 718 de 2022</a></br>
                 Indico a Mesa Diretora da Assembleia Legislativa do Estado do Acre, com fulcro no artigo 169. do Regimento Interno da Assembleia Legislativa, que seja encaminhado ao Governo do Estado do Acre, para que a Secretaria de Estado de Educação e Cultura-SEE, viabilize melhorias na estrutura física, aquisição de mobiliário, restruturação da parte elétrica da escola São Camilo localizada na AR 364 Km 10 na zona rural de Rio Branco.<br>
 
@@ -24799,27 +24819,6 @@ possibilidade de realizar melhorias emergenciais no Ramal da Lagoa, situado no P
 
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2020/8909/ind-n-65-wagner_felipe.pdf""> Clique aqui </a></br>
-                
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong>Matéria Legislativa: </strong> <a href=""/materia/8910"">Indicação nº 66 de 2020</a></br>
-                Indico a Mesa Diretora, com fulcro no art. 169, do Regimento Interno da Assembleia Legislativa que, seja encaminhado expediente ao Exmo. Senhor
-Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao Órgão competente, a construção de urna escola de Ensino Médio no município de Feijó, urna vez que a já existente não atende a toda comunidade estudantil que quer ingressar no Ensino Médio<br>
-
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2020/8910/ind-n-66-marcus_cavalcante.pdf""> Clique aqui </a></br>
                 
                 
               </p>
@@ -25067,7 +25066,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.al.ac.leg.br/sistema/search/?page=9&q=escola
-33,"('https://sapl.capixaba.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+33,https://sapl.capixaba.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -25542,7 +25541,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.capixaba.ac.leg.br/sistema/search/?page=1&q=gênero
-34,"('https://sapl.capixaba.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+34,https://sapl.capixaba.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -26017,7 +26016,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.capixaba.ac.leg.br/sistema/search/?page=1&q=ideologia
-35,"('https://sapl.capixaba.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+35,https://sapl.capixaba.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -26492,7 +26491,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.capixaba.ac.leg.br/sistema/search/?page=1&q=orcamento
-36,"('https://sapl.capixaba.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+36,https://sapl.capixaba.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -26967,7 +26966,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.capixaba.ac.leg.br/sistema/search/?page=1&q=escola
-37,"('https://sapl.cruzeirodosul.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+37,https://sapl.cruzeirodosul.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -27442,7 +27441,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.cruzeirodosul.ac.leg.br/sistema/search/?page=1&q=gênero
-38,"('https://sapl.cruzeirodosul.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+38,https://sapl.cruzeirodosul.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -27917,7 +27916,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.cruzeirodosul.ac.leg.br/sistema/search/?page=1&q=ideologia
-39,"('https://sapl.cruzeirodosul.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+39,https://sapl.cruzeirodosul.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -28392,7 +28391,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.cruzeirodosul.ac.leg.br/sistema/search/?page=1&q=orcamento
-40,"('https://sapl.cruzeirodosul.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+40,https://sapl.cruzeirodosul.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -28867,7 +28866,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.cruzeirodosul.ac.leg.br/sistema/search/?page=1&q=escola
-41,"('https://sapl.feijo.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+41,https://sapl.feijo.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -29356,7 +29355,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.feijo.ac.leg.br/sistema/search/?page=1&q=gênero
-42,"('https://sapl.feijo.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+42,https://sapl.feijo.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -29845,7 +29844,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.feijo.ac.leg.br/sistema/search/?page=1&q=ideologia
-43,"('https://sapl.feijo.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+43,https://sapl.feijo.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -30334,7 +30333,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.feijo.ac.leg.br/sistema/search/?page=1&q=orcamento
-44,"('https://sapl.feijo.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+44,https://sapl.feijo.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -30823,7 +30822,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.feijo.ac.leg.br/sistema/search/?page=1&q=escola
-45,"('https://sapl.jordao.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+45,https://sapl.jordao.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -31298,7 +31297,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.jordao.ac.leg.br/sistema/search/?page=1&q=gênero
-46,"('https://sapl.jordao.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+46,https://sapl.jordao.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -31773,7 +31772,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.jordao.ac.leg.br/sistema/search/?page=1&q=ideologia
-47,"('https://sapl.jordao.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+47,https://sapl.jordao.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -32248,7 +32247,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.jordao.ac.leg.br/sistema/search/?page=1&q=orcamento
-48,"('https://sapl.jordao.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+48,https://sapl.jordao.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -32723,7 +32722,7 @@ Governador do Estado do Acre, Exmo. GLADSON CAMELI, para que viabilize junto ao 
   </body>
 </html>
 ",https://sapl.jordao.ac.leg.br/sistema/search/?page=1&q=escola
-49,"('https://sapl.manciolima.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+49,https://sapl.manciolima.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -33290,7 +33289,7 @@ E DÁ OUTRAS PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=1&q=gênero
-50,"('https://sapl.manciolima.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+50,https://sapl.manciolima.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -33765,7 +33764,7 @@ E DÁ OUTRAS PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=1&q=ideologia
-51,"('https://sapl.manciolima.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+51,https://sapl.manciolima.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -34496,7 +34495,7 @@ E DÁ OUTRAS PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=1&q=orcamento
-52,"('https://sapl.manciolima.ac.leg.br/', True)",orcamento,2,"<!DOCTYPE html>
+52,https://sapl.manciolima.ac.leg.br/,orcamento,2,"<!DOCTYPE html>
 
 
 
@@ -35229,7 +35228,7 @@ E DÁ OUTRAS PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=2&q=orcamento
-53,"('https://sapl.manciolima.ac.leg.br/', True)",orcamento,3,"<!DOCTYPE html>
+53,https://sapl.manciolima.ac.leg.br/,orcamento,3,"<!DOCTYPE html>
 
 
 
@@ -35970,7 +35969,7 @@ PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=3&q=orcamento
-54,"('https://sapl.manciolima.ac.leg.br/', True)",orcamento,4,"<!DOCTYPE html>
+54,https://sapl.manciolima.ac.leg.br/,orcamento,4,"<!DOCTYPE html>
 
 
 
@@ -36693,7 +36692,7 @@ PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=4&q=orcamento
-55,"('https://sapl.manciolima.ac.leg.br/', True)",orcamento,5,"<!DOCTYPE html>
+55,https://sapl.manciolima.ac.leg.br/,orcamento,5,"<!DOCTYPE html>
 
 
 
@@ -37416,7 +37415,7 @@ PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=5&q=orcamento
-56,"('https://sapl.manciolima.ac.leg.br/', True)",orcamento,6,"<!DOCTYPE html>
+56,https://sapl.manciolima.ac.leg.br/,orcamento,6,"<!DOCTYPE html>
 
 
 
@@ -38139,7 +38138,7 @@ PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=6&q=orcamento
-57,"('https://sapl.manciolima.ac.leg.br/', True)",orcamento,7,"<!DOCTYPE html>
+57,https://sapl.manciolima.ac.leg.br/,orcamento,7,"<!DOCTYPE html>
 
 
 
@@ -38862,7 +38861,7 @@ PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=7&q=orcamento
-58,"('https://sapl.manciolima.ac.leg.br/', True)",orcamento,8,"<!DOCTYPE html>
+58,https://sapl.manciolima.ac.leg.br/,orcamento,8,"<!DOCTYPE html>
 
 
 
@@ -39529,7 +39528,7 @@ PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=8&q=orcamento
-59,"('https://sapl.manciolima.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+59,https://sapl.manciolima.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -40240,7 +40239,7 @@ PROVIDÊNCIAS<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=1&q=escola
-60,"('https://sapl.manciolima.ac.leg.br/', True)",escola,2,"<!DOCTYPE html>
+60,https://sapl.manciolima.ac.leg.br/,escola,2,"<!DOCTYPE html>
 
 
 
@@ -40946,7 +40945,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=2&q=escola
-61,"('https://sapl.manciolima.ac.leg.br/', True)",escola,3,"<!DOCTYPE html>
+61,https://sapl.manciolima.ac.leg.br/,escola,3,"<!DOCTYPE html>
 
 
 
@@ -41643,7 +41642,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=3&q=escola
-62,"('https://sapl.manciolima.ac.leg.br/', True)",escola,4,"<!DOCTYPE html>
+62,https://sapl.manciolima.ac.leg.br/,escola,4,"<!DOCTYPE html>
 
 
 
@@ -42284,7 +42283,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.manciolima.ac.leg.br/sistema/search/?page=4&q=escola
-63,"('https://sapl.manoelurbano.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+63,https://sapl.manoelurbano.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -42773,7 +42772,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.manoelurbano.ac.leg.br/sistema/search/?page=1&q=gênero
-64,"('https://sapl.manoelurbano.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+64,https://sapl.manoelurbano.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -43262,7 +43261,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.manoelurbano.ac.leg.br/sistema/search/?page=1&q=ideologia
-65,"('https://sapl.manoelurbano.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+65,https://sapl.manoelurbano.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -43751,7 +43750,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.manoelurbano.ac.leg.br/sistema/search/?page=1&q=orcamento
-66,"('https://sapl.manoelurbano.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+66,https://sapl.manoelurbano.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -44240,7 +44239,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.manoelurbano.ac.leg.br/sistema/search/?page=1&q=escola
-67,"('https://sapl.placidodecastro.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+67,https://sapl.placidodecastro.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -44729,7 +44728,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.placidodecastro.ac.leg.br/sistema/search/?page=1&q=gênero
-68,"('https://sapl.placidodecastro.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+68,https://sapl.placidodecastro.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -45218,7 +45217,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.placidodecastro.ac.leg.br/sistema/search/?page=1&q=ideologia
-69,"('https://sapl.placidodecastro.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+69,https://sapl.placidodecastro.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -45707,7 +45706,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.placidodecastro.ac.leg.br/sistema/search/?page=1&q=orcamento
-70,"('https://sapl.placidodecastro.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+70,https://sapl.placidodecastro.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -46196,7 +46195,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.placidodecastro.ac.leg.br/sistema/search/?page=1&q=escola
-71,"('https://sapl.portowalter.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+71,https://sapl.portowalter.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -46706,7 +46705,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.portowalter.ac.leg.br/sistema/search/?page=1&q=gênero
-72,"('https://sapl.portowalter.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+72,https://sapl.portowalter.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -47216,7 +47215,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.portowalter.ac.leg.br/sistema/search/?page=1&q=ideologia
-73,"('https://sapl.portowalter.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+73,https://sapl.portowalter.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -47726,7 +47725,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.portowalter.ac.leg.br/sistema/search/?page=1&q=orcamento
-74,"('https://sapl.portowalter.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+74,https://sapl.portowalter.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -48236,7 +48235,7 @@ PROFESSORA NEUZA AMÂNCIO SABINO.<br>
   </body>
 </html>
 ",https://sapl.portowalter.ac.leg.br/sistema/search/?page=1&q=escola
-75,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,1,"<!DOCTYPE html>
+75,https://sapl.riobranco.ac.leg.br/,gênero,1,"<!DOCTYPE html>
 
 
 
@@ -49057,7 +49056,7 @@ Art. 2° Esta Resolução entra em vigor na data de sua publicação.<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q=gênero
-76,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,2,"<!DOCTYPE html>
+76,https://sapl.riobranco.ac.leg.br/,gênero,2,"<!DOCTYPE html>
 
 
 
@@ -49891,7 +49890,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=2&q=gênero
-77,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,3,"<!DOCTYPE html>
+77,https://sapl.riobranco.ac.leg.br/,gênero,3,"<!DOCTYPE html>
 
 
 
@@ -50675,7 +50674,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=3&q=gênero
-78,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,4,"<!DOCTYPE html>
+78,https://sapl.riobranco.ac.leg.br/,gênero,4,"<!DOCTYPE html>
 
 
 
@@ -51463,7 +51462,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=4&q=gênero
-79,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,5,"<!DOCTYPE html>
+79,https://sapl.riobranco.ac.leg.br/,gênero,5,"<!DOCTYPE html>
 
 
 
@@ -52253,7 +52252,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=5&q=gênero
-80,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,6,"<!DOCTYPE html>
+80,https://sapl.riobranco.ac.leg.br/,gênero,6,"<!DOCTYPE html>
 
 
 
@@ -53049,7 +53048,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=6&q=gênero
-81,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,7,"<!DOCTYPE html>
+81,https://sapl.riobranco.ac.leg.br/,gênero,7,"<!DOCTYPE html>
 
 
 
@@ -53843,7 +53842,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=7&q=gênero
-82,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,8,"<!DOCTYPE html>
+82,https://sapl.riobranco.ac.leg.br/,gênero,8,"<!DOCTYPE html>
 
 
 
@@ -54663,7 +54662,7 @@ Vereador -PP<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=8&q=gênero
-83,"('https://sapl.riobranco.ac.leg.br/', True)",gênero,9,"<!DOCTYPE html>
+83,https://sapl.riobranco.ac.leg.br/,gênero,9,"<!DOCTYPE html>
 
 
 
@@ -55459,7 +55458,7 @@ Vereador -PP<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=9&q=gênero
-84,"('https://sapl.riobranco.ac.leg.br/', True)",ideologia,1,"<!DOCTYPE html>
+84,https://sapl.riobranco.ac.leg.br/,ideologia,1,"<!DOCTYPE html>
 
 
 
@@ -56217,7 +56216,7 @@ Vereador -PP<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q=ideologia
-85,"('https://sapl.riobranco.ac.leg.br/', True)",ideologia,2,"<!DOCTYPE html>
+85,https://sapl.riobranco.ac.leg.br/,ideologia,2,"<!DOCTYPE html>
 
 
 
@@ -56971,7 +56970,7 @@ Vereador -PP<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=2&q=ideologia
-86,"('https://sapl.riobranco.ac.leg.br/', True)",ideologia,3,"<!DOCTYPE html>
+86,https://sapl.riobranco.ac.leg.br/,ideologia,3,"<!DOCTYPE html>
 
 
 
@@ -57725,7 +57724,7 @@ Vereador -PP<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=3&q=ideologia
-87,"('https://sapl.riobranco.ac.leg.br/', True)",ideologia,4,"<!DOCTYPE html>
+87,https://sapl.riobranco.ac.leg.br/,ideologia,4,"<!DOCTYPE html>
 
 
 
@@ -58479,7 +58478,7 @@ Vereador -PP<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=4&q=ideologia
-88,"('https://sapl.riobranco.ac.leg.br/', True)",ideologia,5,"<!DOCTYPE html>
+88,https://sapl.riobranco.ac.leg.br/,ideologia,5,"<!DOCTYPE html>
 
 
 
@@ -59185,7 +59184,7 @@ Vereador -PP<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=5&q=ideologia
-89,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,1,"<!DOCTYPE html>
+89,https://sapl.riobranco.ac.leg.br/,orcamento,1,"<!DOCTYPE html>
 
 
 
@@ -60019,7 +60018,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q=orcamento
-90,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,2,"<!DOCTYPE html>
+90,https://sapl.riobranco.ac.leg.br/,orcamento,2,"<!DOCTYPE html>
 
 
 
@@ -60809,7 +60808,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=2&q=orcamento
-91,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,3,"<!DOCTYPE html>
+91,https://sapl.riobranco.ac.leg.br/,orcamento,3,"<!DOCTYPE html>
 
 
 
@@ -61601,7 +61600,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=3&q=orcamento
-92,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,4,"<!DOCTYPE html>
+92,https://sapl.riobranco.ac.leg.br/,orcamento,4,"<!DOCTYPE html>
 
 
 
@@ -62389,7 +62388,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=4&q=orcamento
-93,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,5,"<!DOCTYPE html>
+93,https://sapl.riobranco.ac.leg.br/,orcamento,5,"<!DOCTYPE html>
 
 
 
@@ -63177,7 +63176,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=5&q=orcamento
-94,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,6,"<!DOCTYPE html>
+94,https://sapl.riobranco.ac.leg.br/,orcamento,6,"<!DOCTYPE html>
 
 
 
@@ -63961,7 +63960,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=6&q=orcamento
-95,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,7,"<!DOCTYPE html>
+95,https://sapl.riobranco.ac.leg.br/,orcamento,7,"<!DOCTYPE html>
 
 
 
@@ -64749,7 +64748,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=7&q=orcamento
-96,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,8,"<!DOCTYPE html>
+96,https://sapl.riobranco.ac.leg.br/,orcamento,8,"<!DOCTYPE html>
 
 
 
@@ -65537,7 +65536,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=8&q=orcamento
-97,"('https://sapl.riobranco.ac.leg.br/', True)",orcamento,9,"<!DOCTYPE html>
+97,https://sapl.riobranco.ac.leg.br/,orcamento,9,"<!DOCTYPE html>
 
 
 
@@ -66325,7 +66324,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=9&q=orcamento
-98,"('https://sapl.riobranco.ac.leg.br/', True)",escola,1,"<!DOCTYPE html>
+98,https://sapl.riobranco.ac.leg.br/,escola,1,"<!DOCTYPE html>
 
 
 
@@ -66697,6 +66696,24 @@ Vereadora - PSB/AC<br>
           <td>
             
               <p>
+                <strong> Documento Acessório: </strong><a href=""/materia/documentoacessorio/23472"">Parecer - PARECER Nº 113/2023/CCJRF, CE, CDDMA de 05/12/2023 por COMISSÕES TÉCNICAS</a></br>
+                <br>
+                
+                <strong>Texto Original:</strong> <a href=""/media/sapl/public/documentoacessorio/2023/23472/pl_no_53-2023-parecer_no_113-2023-ccjrf-cddma.pdf""> Clique aqui </a></br>
+                
+              </p>
+
+            
+
+
+          </td>
+        </tr>
+
+        
+        <tr>
+          <td>
+            
+              <p>
                 <strong>Matéria Legislativa: </strong> <a href=""/materia/23324"">Projeto de Lei Ordinária nº 53 de 2023</a></br>
                 Da prioridade de matricula em creches e escolas Municipais para dependentes de mulheres vitimas de violência, de natureza física e/ou sexual, e dá outras providências.<br>
 
@@ -66743,24 +66760,6 @@ Vereadora - PSB/AC<br>
                 
                 <strong>Texto Original:</strong> <a href=""/media/sapl/public/materialegislativa/2023/23814/projeto_de_cidadao_rio_branquense_antonio_de_padua.pdf""> Clique aqui </a></br>
                 
-                
-              </p>
-
-            
-
-
-          </td>
-        </tr>
-
-        
-        <tr>
-          <td>
-            
-              <p>
-                <strong> Documento Acessório: </strong><a href=""/materia/documentoacessorio/23472"">Parecer - PARECER Nº 113/2023/CCJRF, CE, CDDMA de 05/12/2023 por COMISSÕES TÉCNICAS</a></br>
-                <br>
-                
-                <strong>Texto Original:</strong> <a href=""/media/sapl/public/documentoacessorio/2023/23472/parecer_n_113-2023-ccjrf_ce_cddma.pdf""> Clique aqui </a></br>
                 
               </p>
 
@@ -67121,7 +67120,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q=escola
-99,"('https://sapl.riobranco.ac.leg.br/', True)",escola,2,"<!DOCTYPE html>
+99,https://sapl.riobranco.ac.leg.br/,escola,2,"<!DOCTYPE html>
 
 
 
@@ -67923,7 +67922,7 @@ Vereadora - PSB/AC<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=2&q=escola
-100,"('https://sapl.riobranco.ac.leg.br/', True)",escola,3,"<!DOCTYPE html>
+100,https://sapl.riobranco.ac.leg.br/,escola,3,"<!DOCTYPE html>
 
 
 
@@ -68792,7 +68791,7 @@ Assim como:
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=3&q=escola
-101,"('https://sapl.riobranco.ac.leg.br/', True)",escola,4,"<!DOCTYPE html>
+101,https://sapl.riobranco.ac.leg.br/,escola,4,"<!DOCTYPE html>
 
 
 
@@ -69610,7 +69609,7 @@ criança ou adolescente<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=4&q=escola
-102,"('https://sapl.riobranco.ac.leg.br/', True)",escola,5,"<!DOCTYPE html>
+102,https://sapl.riobranco.ac.leg.br/,escola,5,"<!DOCTYPE html>
 
 
 
@@ -70414,7 +70413,7 @@ criança ou adolescente<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=5&q=escola
-103,"('https://sapl.riobranco.ac.leg.br/', True)",escola,6,"<!DOCTYPE html>
+103,https://sapl.riobranco.ac.leg.br/,escola,6,"<!DOCTYPE html>
 
 
 
@@ -71206,7 +71205,7 @@ criança ou adolescente<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=6&q=escola
-104,"('https://sapl.riobranco.ac.leg.br/', True)",escola,7,"<!DOCTYPE html>
+104,https://sapl.riobranco.ac.leg.br/,escola,7,"<!DOCTYPE html>
 
 
 
@@ -72000,7 +71999,7 @@ do Brás, bairro do Belo Jardim<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=7&q=escola
-105,"('https://sapl.riobranco.ac.leg.br/', True)",escola,8,"<!DOCTYPE html>
+105,https://sapl.riobranco.ac.leg.br/,escola,8,"<!DOCTYPE html>
 
 
 
@@ -72796,7 +72795,7 @@ do Brás, bairro do Belo Jardim<br>
   </body>
 </html>
 ",https://sapl.riobranco.ac.leg.br/sistema/search/?page=8&q=escola
-106,"('https://sapl.riobranco.ac.leg.br/', True)",escola,9,"<!DOCTYPE html>
+106,https://sapl.riobranco.ac.leg.br/,escola,9,"<!DOCTYPE html>
 
 
 

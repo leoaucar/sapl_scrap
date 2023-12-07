@@ -41,7 +41,7 @@ def buscar_resultados(casas_resultado, palavras):
                     #soup = BeautifulSoup(response.text)
                     if response.status_code == 200:
                         #preciso separar paginas de resultados vazias das com resultados
-                        resultados.append([indice, casa, palavra, pagina,response.text,url])
+                        resultados.append([indice, casa[0], palavra, pagina,response.text,url])
                         #print(soup.prettify())
                     else:
                         break

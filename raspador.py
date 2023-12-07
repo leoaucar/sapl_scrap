@@ -3,15 +3,20 @@ import pandas as pd
 
 def raspar_resultados(resultados_busca):
     #loopa pelas paginas selecionadno os conteudos
+    links_totais = []
     resultados = pd.read_csv(resultados_busca, encoding='latin-1')
     for i in range(len(resultados)):
         html = resultados.loc[i,'html']
-        #link = resultados.loc[i:'link']
+        link = resultados.loc[i,'Casa']
         soup = BeautifulSoup(html)
         for a in soup.find_all('a', href=True):
-            print("Found the URL: " + a['href'])
-            pass
-    #return tabela_materias
+            links_totais.append("Found the URL: " + str(link) + a['href'])
+    
+    links_materias = []
+    for i in links_totais:
+        pass
+    
+    return links_totais
 #aqui vou precisar raspar os resultados da busca página a página
 
 def raspar_materia_legislativa(conteudo):
@@ -19,4 +24,5 @@ def raspar_materia_legislativa(conteudo):
     return resultado
 #aqui raspo o conteudo de cada matéria legislativa
 
-raspar_resultados('./arquivos_csv/resultado_busca2.csv')
+resultados = raspar_resultados('./arquivos_csv/resultado_busca2.csv')
+print(resultados)

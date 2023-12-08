@@ -10,7 +10,7 @@ lista_casas = importar_casas()
 #print(lista_casas)
 
 #validacao das casas legislativas online
-casas_resultado = teste_url_ativa(lista_casas[0:20]) #limitado 20 para teste
+casas_resultado = teste_url_ativa(lista_casas[0:50]) #limitado 20 para teste
 #print(casas_resultado)
 
 #validacao das palavras chave
@@ -19,9 +19,10 @@ palavras = importar_palavras()
 
 montar_tabela_busca('resultado_busca')
 resultados = buscar_resultados(casas_resultado, palavras)
-for i in resultados:           
-    with open('arquivos_csv/resultado_busca.csv', 'a', encoding="utf-8") as file:
-        writer = csv.writer(file)
+           
+with open('arquivos_csv/resultado_busca.csv', 'a', encoding="UTF-8") as file:
+    writer = csv.writer(file)
+    for i in resultados:
         writer.writerow(i)
 
 resultados = raspar_resultados('./arquivos_csv/resultado_busca.csv')

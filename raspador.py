@@ -5,7 +5,7 @@ import re
 def raspar_resultados(resultados_busca):
     #loopa pelas paginas selecionadno os conteudos
     links_totais = []
-    resultados = pd.read_csv(resultados_busca, encoding='latin-1')
+    resultados = pd.read_csv(resultados_busca, encoding='UTF-8')
     for i in range(len(resultados)):
         html = resultados.loc[i,'html']
         link = resultados.loc[i,'Casa']

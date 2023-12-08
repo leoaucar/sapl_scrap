@@ -11,16 +11,16 @@ def buscar_resultados(casas_resultado, palavras):
             #aqui recupero os resultados de cada busca no sistema
             for palavra in palavras:
                 pagina = 1
-                while pagina < 10: #mantendo paginas limitadas a 10 para teste
+                while pagina < 25: #mantendo paginas limitadas a 10 para teste
                     url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
-                    print(url)
                     try:
                         response = requests.get(url)
-                        urls_erro.append(url)
                     except:
+                        urls_erro.append(url)
                         continue
                     #soup = BeautifulSoup(response.text)
                     if response.status_code == 200:
+                        print(url)
                         #preciso separar paginas de resultados vazias das com resultados
                         resultados.append([indice, casa[0], palavra, pagina,response.text,url])
                         #print(soup.prettify())
@@ -31,6 +31,7 @@ def buscar_resultados(casas_resultado, palavras):
                     pagina = pagina + 1
         else:
             continue
+    print(urls_erro)
     return resultados
 
 

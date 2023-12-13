@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import pandas as pd
-import re
+import requests
 
 def raspar_resultados(resultados_busca):
     #loopa pelas paginas selecionadno os conteudos
@@ -16,7 +16,7 @@ def raspar_resultados(resultados_busca):
             
     links_materias = []
     for link in links_totais:
-        if ('materia' in link[0]) and (('pesquisar' not in link[0]) and ('media' not in link[0])): #considerar sessao e normas dps
+        if ('materia' in link[0]) and (('pesquisar' not in link[0]) and ('media' not in link[0]) and ('documentoacessorio' not in link[0])): #considerar sessao e normas dps
             links_materias.append(link)
         #depois preciso de informações da casa nessa lista
         #preciso limpar duplicados
@@ -24,6 +24,15 @@ def raspar_resultados(resultados_busca):
 #aqui vou precisar raspar os resultados da busca página a página
 
 def raspar_materia_legislativa(conteudo):
-    resultado = conteudo
-    return resultado
+    links_achados = pd.read_csv(conteudo)
+    resultados=[]
+    indice = 0
+    for i in links_achados.iloc[:50,1]:#limitado a 50 para teste
+        response = requests.get(i)
+        dados_atuais = list(links_achados.iloc[indice,:])
+        dados_atuais.append(response.text)
+        resultados.append(dados_atuais)
+        indice = indice + 1
+    return resultados
+        
 #aqui raspo o conteudo de cada matéria legislativa

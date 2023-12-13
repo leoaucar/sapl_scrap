@@ -27,10 +27,21 @@ def raspar_materia_legislativa(conteudo):
     links_achados = pd.read_csv(conteudo)
     resultados=[]
     indice = 0
-    for i in links_achados.iloc[:50,1]:#limitado a 50 para teste
+    for i in links_achados.iloc[:,1]:#limitado a 50 para teste
         response = requests.get(i)
         dados_atuais = list(links_achados.iloc[indice,:])
-        dados_atuais.append(response.text)
+        soup = BeautifulSoup(response.text)
+        
+        #raspa titulo
+        for titulo in soup.find_all('h1', {"class": "page-header"}):
+            titulo = titulo.text
+            dados_atuais.append(titulo.strip())
+            print(titulo.strip())
+
+        for ementa in soup.find_all('div', {"id": "div_id_ementa"}):
+            ementa = ementa.text
+            dados_atuais.append(ementa.strip())
+            print(ementa.strip())
         resultados.append(dados_atuais)
         indice = indice + 1
     return resultados

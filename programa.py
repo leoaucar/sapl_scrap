@@ -10,7 +10,7 @@ lista_casas = importar_casas()
 #print(lista_casas)
 
 #validacao das casas legislativas online
-casas_resultado = teste_url_ativa(lista_casas[0:10]) #limitado 20 para teste
+casas_resultado = teste_url_ativa(lista_casas[0:100]) #limitado 20 para teste
 #print(casas_resultado)
 
 #validacao das palavras chave
@@ -33,4 +33,4 @@ df.to_csv("arquivos_csv/links_achados.csv")
 #aqui trazemos os dados da planilha de links para a planilha de materias legislativas
 resultados = raspar_materia_legislativa('./arquivos_csv/links_achados.csv')
 df = pd.DataFrame(resultados)
-df.to_csv('./arquivos_csv/conteudos_materias')
+df.to_csv('./arquivos_csv/conteudos_materias.csv')

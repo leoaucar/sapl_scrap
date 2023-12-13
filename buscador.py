@@ -11,7 +11,7 @@ def buscar_resultados(casas_resultado, palavras):
             #aqui recupero os resultados de cada busca no sistema
             for palavra in palavras:
                 pagina = 1
-                while pagina < 5: #mantendo paginas limitadas a 10 para teste
+                while pagina < 25: #mantendo paginas limitadas a 10 para teste
                     url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
                     try:
                         response = requests.get(url)

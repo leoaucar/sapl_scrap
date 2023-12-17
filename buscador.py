@@ -5,13 +5,17 @@ def buscar_resultados(casas_resultado, palavras):
     indice = 0
     urls_erro = []
     resultados = []
+    numero_casa = 1
     for casa in casas_resultado: #limitado a 5 para teste
+        print("Teste na casa número: " + str(numero_casa) + " de " + len(casas_resultado))
+        numero_casa = numero_casa + 1
         if casa[1] == True:
             #print(casa[1])
             #aqui recupero os resultados de cada busca no sistema
             for palavra in palavras:
+                palavra.replace(" ","+")
                 pagina = 1
-                while pagina < 25: #mantendo paginas limitadas a 10 para teste
+                while pagina < 10: #mantendo paginas limitadas a 10 para teste
                     url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
                     try:
                         response = requests.get(url)

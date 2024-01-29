@@ -13,7 +13,7 @@ def teste_url_ativa(casas):
     resultado_casas = []
     for casa in casas:
         try:
-            response = requests.get(casa, timeout=10)
+            response = requests.get(casa, timeout=5)
             if response.status_code == 200:
                 resultado_casas.append((casa,True))
             else:
@@ -24,7 +24,7 @@ def teste_url_ativa(casas):
 #vou alterar essa função pra retornar um resultado rápido
 #retornar também lista de casas OK (lista de bools)
 
-""" def teste_conteudo_atualizado(casas, palavras):
+def teste_conteudo_atualizado(casas, palavras):
     palavras = ['educacao','orcamento','saude']
     links_totais = []
     for casa in casas:
@@ -40,7 +40,7 @@ def teste_url_ativa(casas):
             #preciso de um segundo teste para verificar data
             else:
                 print('não preenchido')
-    return casas """
+    return casas
 #retornar função para retornar lista de casas ok
 
 #fazer testes de conteudo

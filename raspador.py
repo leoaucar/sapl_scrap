@@ -33,15 +33,50 @@ def raspar_materia_legislativa(conteudo):
         soup = BeautifulSoup(response.text)
         
         #raspa titulo
+        titulo = ''
         for titulo in soup.find_all('h1', {"class": "page-header"}):
             titulo = titulo.text
-            dados_atuais.append(titulo.strip())
-            print(titulo.strip())
+        dados_atuais.append(titulo.strip())
+        print(titulo.strip())
 
+        ementa = ''
         for ementa in soup.find_all('div', {"id": "div_id_ementa"}):
             ementa = ementa.text
-            dados_atuais.append(ementa.strip())
-            print(ementa.strip())
+        dados_atuais.append(ementa.strip())
+        print(ementa.strip())
+
+        ano = ''
+        for ano in soup.find_all('div', {"id": "div_id_ano"}):
+            ano = ano.text
+        dados_atuais.append(ano.strip())
+        print(ano.strip())
+        
+        data = ''
+        for data in soup.find_all('div', {"id": "div_id_data"}):
+            data = data.text
+        dados_atuais.append(data.strip())
+        print(data.strip())
+        
+        numero = ''
+        for numero in soup.find_all('div', {"id": "div_id_numero"}):
+            numero = numero.text
+        dados_atuais.append(numero.strip())
+        print(numero.strip())
+        
+        observacao = ''
+        for observacao in soup.find_all('div', {"id": "div_id_observacao"}):
+            observacao = observacao.text
+        dados_atuais.append(observacao.strip())
+        print(observacao.strip())
+        
+        assuntos = ''
+        for assuntos in soup.find_all('div', {"id": "div_id_assuntos"}):
+            assuntos = assuntos.text
+        dados_atuais.append(assuntos.strip())
+        print(assuntos.strip())
+
+
+
         resultados.append(dados_atuais)
         indice = indice + 1
     return resultados

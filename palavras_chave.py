@@ -6,7 +6,6 @@ def importar_palavras():
     return palavras
 
 def preparar_termos(palavras):
-    print('realizando a busca para termos:\n')
     lista_termos = []
     for palavra in palavras:
         termos = palavra.split(",")

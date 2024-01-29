@@ -17,22 +17,22 @@ except:
 ## Primeiro loop carrega a lista de casas legislativas
 while True:
     if casas_legislativas != 1:
-        casas_legislativas = input("Deseja atualizar a lista de casas legislativas? \nEscolha: 1 - sim 2 - não")
-    else:
-        try:
-            casas_legislativas = int(casas_legislativas)
-            if casas_legislativas == 1 or casas_legislativas == 0:
-                break
-            else:
-                print("Digite apenas o número 1 ou 2")
-                continue
-        except:
+        casas_legislativas = input("Deseja atualizar a lista de casas legislativas? \nEscolha: 1 - sim 2 - não  ")
+    try:
+        casas_legislativas = int(casas_legislativas)
+        if casas_legislativas == 1 or casas_legislativas == 2:
+            break
+        else:
             print("Digite apenas o número 1 ou 2")
             continue
+    except:
+        print("Digite apenas o número 1 ou 2")
+        continue
 
 if casas_legislativas == 1:
+    print("carregando casas legislativas")
     lista_casas = importar_casas()
-    casas_resultado = teste_url_ativa(lista_casas[500:550]) #limitado 20 para teste
+    casas_resultado = teste_url_ativa(lista_casas) #limitado 20 para teste
     print('realizando a busca em ' + str(len(casas_resultado)) + ' casas com url ativas')
     pd.DataFrame(casas_resultado).to_csv('./arquivos_csv/casas_resultado.csv')
 

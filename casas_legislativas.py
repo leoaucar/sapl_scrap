@@ -43,4 +43,37 @@ def teste_conteudo_atualizado(casas, palavras):
     return casas
 #retornar função para retornar lista de casas ok
 
+def setup_casas(nome_projeto):
+    try:
+        casas_resultado = pd.read_csv('./'+nome_projeto+'_proj/'+'casas_resultado.csv')
+        print('Última atualização continha ' + str(len(casas_resultado)) + ' casas com url ativas')
+        casas_legislativas = 0
+    except:
+        casas_legislativas = 1
+
+        ## Primeiro loop carrega a lista de casas legislativas
+    while True:
+        if casas_legislativas != 1:
+            casas_legislativas = input("Deseja atualizar a lista de casas legislativas? \nEscolha: 1 - sim 2 - não  ")
+        try:
+            casas_legislativas = int(casas_legislativas)
+            if casas_legislativas == 1 or casas_legislativas == 2:
+                break
+            else:
+                print("Digite apenas o número 1 ou 2")
+                continue
+        except:
+            print("Digite apenas o número 1 ou 2")
+            continue
+
+    if casas_legislativas == 1:
+        print("Carregando Casas Legislativas")
+        lista_casas = importar_casas()
+        casas_resultado = teste_url_ativa(lista_casas[:25]) #limitado 20 para teste
+        print('realizando a busca em ' + str(len(casas_resultado)) + ' casas com url ativas')
+        pd.DataFrame(casas_resultado).to_csv('./'+nome_projeto+'_proj/'+'/casas_resultado.csv')
+        pd.DataFrame(casas_resultado).to_csv('./arquivos_csv/casas_resultado.csv')
+    
+    return casas_resultado
+
 #fazer testes de conteudo

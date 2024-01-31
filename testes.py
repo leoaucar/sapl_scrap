@@ -48,6 +48,9 @@ def testar_palavras():
                     print('não preenchido')
     return casas"""
 
+#def carregar_casas():
+    #setup_casas(teste_curto)
+
 escolha = input('Escolha teste:\nraspagem\npalavras\n')
 if escolha == 'raspagem':
     testar_raspagem_links()
@@ -55,3 +58,5 @@ elif escolha == 'palavras':
     testar_palavras()
 elif escolha == 'conteudo casas':
     testar_palavras()
+#elif escolha = 'carregar casas':
+#    carregar_casas()

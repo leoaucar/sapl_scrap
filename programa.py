@@ -3,6 +3,7 @@ from casas_legislativas import setup_casas
 from raspador import raspar_resultados, raspar_materia_legislativa
 from gerenciador_projetos import criacao_projeto
 from buscador import buscar_resultados, setup_busca
+from tratamento_resultado import tratamento_resultados
 import pandas as pd
 import csv
 import os
@@ -18,7 +19,7 @@ import os
 #criação do projeto
 #a criacao_projeto() capta nome desejado do projeto e tb chama a "montar tabela busca"
 while True:
-    nova_tabela = input("Deseja usar a mesma tabela de casas do último projeto? 1- sim, 2- não")
+    nova_tabela = input("Deseja usar a mesma tabela de casas do último projeto? 1- sim, 2- não\n")
     if nova_tabela == '1':
         nova_tabela = False
         break
@@ -45,7 +46,7 @@ casas_resultado = setup_casas(nome_projeto)
 casas_resultado = setup_busca(casas_resultado)
 
 #aqui chamamos o buscador com buscar_resultado() e gravamos eles crus na tabela de resultados
-resultados = buscar_resultados(casas_resultado, palavras[:5]) #limitado a 5 palavras pra teste
+resultados = buscar_resultados(casas_resultado, palavras) #limitar palavras pra teste
 with open(nome_projeto+'_proj/'+nome_projeto+'_resultados_crus_casas'+'.csv', 'a', encoding="UTF-8") as file:
     writer = csv.writer(file)
     for i in resultados:
@@ -65,3 +66,6 @@ resultados_materias = raspar_materia_legislativa(nome_projeto+'_proj/'+nome_proj
 df = pd.DataFrame(resultados_materias)
 df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_materias_legislativas"+".csv")
 #columns=['Link Materia','Link Casa','titulo','ementa','ano','data','numero','observacao','assuntos']
+
+df = tratamento_resultados(nome_projeto+'_proj/'+nome_projeto+"_materias_legislativas"+".csv")
+df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+".csv")

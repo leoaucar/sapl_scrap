@@ -3,13 +3,10 @@ import os
 import shutil
 
 def criacao_projeto(nova_tabela):
-    nome = input('Defina o nome do projeto')
+    nome = input('Defina o nome do projeto\n')
     os.mkdir('./'+nome+'_proj/')
     if nova_tabela == False:
-        try:
-            shutil.copyfile('./arquivos_csv/casas_resultado.csv', './'+nome+'_proj/'+'casas_resultado'+'.csv')
-        except:
-            print("Tabela não encontrando, extraindo casas legislativas da tabela original")
+        shutil.copyfile('./arquivos_csv/casas_resultado.csv', './'+nome+'_proj/'+'casas_resultado'+'.csv')
     montar_tabela_busca(nome,nome+'_resultados_crus_casas')
     #montar_tabela_links(nome+'_links_totais')
     #montar_tabela_conteudos(nome+'_materias_legislativas')

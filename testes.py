@@ -6,10 +6,10 @@ import requests
 from bs4 import BeautifulSoup
 
 def testar_raspagem_links():
-    resultados = raspar_materia_legislativa("./arquivos_csv/Teste_curto_links_totais.csv")
+    resultados = raspar_materia_legislativa("./teste_novo_proj/teste_novo_links_totais.csv")
     print(resultados[0])
     df = pd.DataFrame(resultados)
-    df.to_csv('./arquivos_csv/conteudos_materias.csv')
+    df.to_csv('./arquivos_csv/teste_raspagem.csv')
     #columns=['Link Materia','Link Casa','titulo','ementa','ano','data','numero','observacao','assuntos']
 
 

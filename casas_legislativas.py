@@ -49,15 +49,21 @@ def setup_casas(nome_projeto):
         print('Última atualização continha ' + str(len(casas_resultado)) + ' casas com url ativas')
         casas_legislativas = 0
     except:
-        casas_legislativas = 1
+        casas_legislativas = 3
 
         ## Primeiro loop carrega a lista de casas legislativas
     while True:
-        if casas_legislativas != 1:
-            casas_legislativas = input("Deseja atualizar a lista de casas legislativas? \nEscolha: 1 - sim 2 - não  ")
+        if casas_legislativas == 0:
+            casas_legislativas = input("Deseja atualizar status das casas legislativas? \nEscolha: 1 - sim 2 - não \n")
+        else:
+            break
         try:
             casas_legislativas = int(casas_legislativas)
             if casas_legislativas == 1 or casas_legislativas == 2:
+                if casas_legislativas == 1:
+                    print("Atualizando status das casas legislativas")
+                    casas_resultado = teste_url_ativa(casas_resultado['0'])
+                    print(casas_resultado)
                 break
             else:
                 print("Digite apenas o número 1 ou 2")
@@ -66,14 +72,17 @@ def setup_casas(nome_projeto):
             print("Digite apenas o número 1 ou 2")
             continue
 
-    if casas_legislativas == 1:
+    if casas_legislativas == 3:
         print("Carregando Casas Legislativas")
         lista_casas = importar_casas()
-        casas_resultado = teste_url_ativa(lista_casas[:25]) #limitado 20 para teste
+        casas_resultado = teste_url_ativa(lista_casas) #limitado 20 para teste
         print('realizando a busca em ' + str(len(casas_resultado)) + ' casas com url ativas')
-        pd.DataFrame(casas_resultado).to_csv('./'+nome_projeto+'_proj/'+'/casas_resultado.csv')
-        pd.DataFrame(casas_resultado).to_csv('./arquivos_csv/casas_resultado.csv')
+        pd.DataFrame(casas_resultado).to_csv('./'+nome_projeto+'_proj/'+'/casas_resultado.csv', index=False)
+        pd.DataFrame(casas_resultado).to_csv('./arquivos_csv/casas_resultado.csv',index=False)
     
-    return casas_resultado
+    elif casas_legislativas == 2:
+        casas_resultado['tupla'] = list(zip(casas_resultado['0'], casas_resultado['1']))
+        casas_resultado = casas_resultado['tupla']
 
+    return casas_resultado
 #fazer testes de conteudo

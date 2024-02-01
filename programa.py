@@ -43,6 +43,7 @@ casas_resultado = setup_casas(nome_projeto)
 
 #setup de busca (define se limitaremos a busca a 50 casas)
 casas_resultado = setup_busca(casas_resultado)
+
 #aqui chamamos o buscador com buscar_resultado() e gravamos eles crus na tabela de resultados
 resultados = buscar_resultados(casas_resultado, palavras[:5]) #limitado a 5 palavras pra teste
 with open(nome_projeto+'_proj/'+nome_projeto+'_resultados_crus_casas'+'.csv', 'a', encoding="UTF-8") as file:

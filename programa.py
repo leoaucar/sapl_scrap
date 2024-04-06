@@ -30,7 +30,28 @@ while True:
         print("Digite apenas o numero 1 ou 2")
         continue
 
-nome_projeto = criacao_projeto(nova_tabela)
+while True:
+    atualizar = input("Deseja apenas atualizar a tabela do projeto anterior? 1- sim, 2- não\n")
+    if atualizar == '1':
+        atualizar = True
+        break
+    elif atualizar == '2':
+        atualizar = False
+        break
+    else:
+        print("Digite apenas o numero 1 ou 2")
+        continue
+
+if atualizar == True:
+    lista_projetos = os.listdir('.')
+    print(os.listdir('.'))
+    while True:
+        nome_projeto = input("Digite o nome do projeto para atualizar")
+        nome_projeto = criacao_projeto(nova_tabela, True, "nome_projeto")
+        break
+
+else:
+    nome_projeto = criacao_projeto(nova_tabela)
 
 #validacao das palavras chave
 palavras = importar_palavras()
@@ -38,6 +59,7 @@ palavras = preparar_termos(palavras)
 print('realizando a busca para termos:\n')
 for i in palavras:
     print(i)
+#dividir as palavras em em 3 grupos
 
 #CASAS LEGISLATIVAS
 casas_resultado = setup_casas(nome_projeto)
@@ -47,6 +69,9 @@ casas_resultado = setup_busca(casas_resultado)
 
 #aqui chamamos o buscador com buscar_resultado() e gravamos eles crus na tabela de resultados
 resultados = buscar_resultados(casas_resultado, palavras) #limitar palavras pra teste
+#dividir isso em 3 threads
+#juntar as três num mesmo "resultados"
+
 with open(nome_projeto+'_proj/'+nome_projeto+'_resultados_crus_casas'+'.csv', 'a', encoding="UTF-8") as file:
     writer = csv.writer(file)
     for i in resultados:

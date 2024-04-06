@@ -60,3 +60,20 @@ elif escolha == 'conteudo casas':
     testar_palavras()
 #elif escolha = 'carregar casas':
 #    carregar_casas()
+'''
+from raspador import raspar_resultados
+import pandas as pd
+nome_projeto = "teste_build1"
+links_materias = raspar_resultados(nome_projeto+'_proj/'+nome_projeto+'_resultados_crus_casas'+'.csv')
+df = pd.DataFrame(links_materias)
+
+lista_removidos = []
+def remove_irrelevantes(row):
+    if row in lista_removidos:
+        result = True
+    else:
+        result = False
+    return result
+df[df['0'].apply(remove_irrelevantes) == True]
+df.apply(remove_irrelevantes)
+'''

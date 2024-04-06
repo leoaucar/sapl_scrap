@@ -1,9 +1,14 @@
 import pandas as pd
 import os
 import shutil
+from datetime import datetime
 
-def criacao_projeto(nova_tabela):
-    nome = input('Defina o nome do projeto\n')
+def criacao_projeto(nova_tabela, nome_padrao=True, nome_antigo=None):
+    if nome_padrao == True:
+        #nome = nome_antigo + "_atualizacao_" + str(datetime.today())
+        nome = input('Defina o nome do projeto\n')
+    else:
+        nome = input('Defina o nome do projeto\n')
     os.mkdir('./'+nome+'_proj/')
     if nova_tabela == False:
         shutil.copyfile('./arquivos_csv/casas_resultado.csv', './'+nome+'_proj/'+'casas_resultado'+'.csv')

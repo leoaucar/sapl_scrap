@@ -2,7 +2,7 @@ import requests
 
 def setup_busca(casas_resultado):
     while True:
-        limite_busca = input('Deseja limitar sua busca para teste? \n1- não(pesquisar todas as casas) \n2- 50 primeiras casas \n3- 50 últimas casas\n4- Apenas 10 casas')
+        limite_busca = input('Deseja limitar sua busca para teste? \n1- não(pesquisar todas as casas) \n2- 50 primeiras casas \n3- 50 últimas casas\n4- Apenas 10 casas\n')
         try:
             limite_busca = int(limite_busca)
             if limite_busca > 0 and limite_busca < 5:

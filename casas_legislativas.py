@@ -54,7 +54,8 @@ def setup_casas(nome_projeto):
         ## Primeiro loop carrega a lista de casas legislativas
     while True:
         if casas_legislativas == 0:
-            casas_legislativas = input("Deseja atualizar status das casas legislativas? \nEscolha: 1 - sim 2 - não \n")
+            #casas_legislativas = input("Deseja atualizar status das casas legislativas? \nEscolha: 1 - sim 2 - não \n")
+            casas_legislativas = 2
         else:
             break
         try:

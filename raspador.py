@@ -28,6 +28,7 @@ def raspar_materia_legislativa(conteudo):
     resultados=[]
     indice = 0
     for i in links_achados.iloc[:,1]:#limitado a 50 para teste
+        i = i.replace('/ta','')
         response = requests.get(i)
         dados_atuais = list(links_achados.iloc[indice,:])
         soup = BeautifulSoup(response.text)

@@ -25,6 +25,7 @@ https://sapl.amapa.ap.leg.br/,True
 https://sapl.calcoene.ap.leg.br/,True
 https://sapl.ferreiragomes.ap.leg.br/,True
 https://sapl.laranjaldojari.ap.leg.br/,True
+https://sapl.oiapoque.ap.leg.br/,True
 https://sapl.pedrabrancadoamapari.ap.leg.br/,True
 https://sapl.portogrande.ap.leg.br/,True
 https://sapl.santana.ap.leg.br/,True
@@ -89,7 +90,6 @@ https://sapl.beberibe.ce.leg.br/,True
 https://sapl.caninde.ce.leg.br/,True
 https://sapl.cascavel.ce.leg.br/,True
 https://sapl.eusebio.ce.leg.br/,True
-https://sapl.fortaleza.ce.leg.br/,True
 https://sapl.fortim.ce.leg.br/,True
 https://sapl.horizonte.ce.leg.br/,True
 https://sapl.icapui.ce.leg.br/,True
@@ -167,6 +167,7 @@ https://sapl.altoaraguaia.mt.leg.br/,True
 https://sapl.barradogarcas.mt.leg.br/,True
 https://sapl.caceres.mt.leg.br/,True
 https://sapl.campinapolis.mt.leg.br/,True
+https://sapl.camponovodoparecis.mt.leg.br/,True
 https://sapl.campoverde.mt.leg.br/,True
 https://sapl.canarana.mt.leg.br/,True
 https://sapl.chapadadosguimaraes.mt.leg.br/,True
@@ -182,6 +183,7 @@ https://sapl.juara.mt.leg.br/,True
 https://sapl.juina.mt.leg.br/,True
 https://sapl.nortelandia.mt.leg.br/,True
 https://sapl.novamaringa.mt.leg.br/,True
+https://sapl.novamonteverde.mt.leg.br/,True
 https://sapl.novasantahelena.mt.leg.br/,True
 https://sapl.novaxavantina.mt.leg.br/,True
 https://sapl.paranatinga.mt.leg.br/,True
@@ -234,6 +236,7 @@ https://sapl.campoflorido.mg.leg.br/,True
 https://sapl.camposaltos.mg.leg.br/,True
 https://sapl.canaverde.mg.leg.br/,True
 https://sapl.capitaoeneas.mg.leg.br/,True
+https://sapl.capitolio.mg.leg.br/,True
 https://sapl.caputira.mg.leg.br/,True
 https://sapl.careacu.mg.leg.br/,True
 https://sapl.carmodamata.mg.leg.br/,True
@@ -260,6 +263,7 @@ https://sapl.estiva.mg.leg.br/,True
 https://sapl.farialemos.mg.leg.br/,True
 https://sapl.feliciodossantos.mg.leg.br/,True
 https://sapl.florestal.mg.leg.br/,True
+https://sapl.formiga.mg.leg.br/,True
 https://sapl.formoso.mg.leg.br/,True
 https://sapl.frutal.mg.leg.br/,True
 https://sapl.guanhaes.mg.leg.br/,True
@@ -277,6 +281,7 @@ https://sapl.itauna.mg.leg.br/,True
 https://sapl.iturama.mg.leg.br/,True
 https://sapl.jacui.mg.leg.br/,True
 https://sapl.januaria.mg.leg.br/,True
+https://sapl.japaraiba.mg.leg.br/,True
 https://sapl.joaomonlevade.mg.leg.br/,True
 https://sapl.joaopinheiro.mg.leg.br/,True
 https://sapl.lagoadaprata.mg.leg.br/,True
@@ -300,6 +305,7 @@ https://sapl.muriae.mg.leg.br/,True
 https://sapl.natalandia.mg.leg.br/,True
 https://sapl.natercia.mg.leg.br/,True
 https://sapl.novaponte.mg.leg.br/,True
+https://sapl.novaserrana.mg.leg.br/,True
 https://sapl.olimpionoronha.mg.leg.br/,True
 https://sapl.ourofino.mg.leg.br/,True
 https://sapl.pains.mg.leg.br/,True
@@ -499,12 +505,12 @@ https://sapl.carpina.pe.leg.br/,True
 https://sapl.custodia.pe.leg.br/,True
 https://sapl.flores.pe.leg.br/,True
 https://sapl.floresta.pe.leg.br/,True
-https://sapl.gloriadogoita.pe.leg.br/,True
 https://sapl.goiana.pe.leg.br/,True
 https://sapl.gravata.pe.leg.br/,True
 https://sapl.ibirajuba.pe.leg.br/,True
 https://sapl.igarassu.pe.leg.br/,True
 https://sapl.ipojuca.pe.leg.br/,True
+https://sapl.jatoba.pe.leg.br/,True
 https://sapl.machados.pe.leg.br/,True
 https://sapl.moreno.pe.leg.br/,True
 https://sapl.olinda.pe.leg.br/,True
@@ -521,6 +527,7 @@ https://sapl.surubim.pe.leg.br/,True
 https://sapl.tacaratu.pe.leg.br/,True
 https://sapl.taquaritingadonorte.pe.leg.br/,True
 https://sapl.toritama.pe.leg.br/,True
+https://sapl.tracunhaem.pe.leg.br/,True
 https://sapl.trindade.pe.leg.br/,True
 https://sapl.vertentes.pe.leg.br/,True
 https://sapl.al.pi.leg.br/,True
@@ -567,6 +574,7 @@ https://sapl.macae.rj.leg.br/,True
 https://sapl.mangaratiba.rj.leg.br/,True
 https://sapl.miguelpereira.rj.leg.br/,True
 https://sapl.novafriburgo.rj.leg.br/,True
+https://sapl.patydoalferes.rj.leg.br/,True
 https://sapl.petropolis.rj.leg.br/,True
 https://saplinho.pirai.rj.leg.br/,True
 https://sapl.pirai.rj.leg.br/,True
@@ -584,6 +592,7 @@ https://sapl.apodi.rn.leg.br/,True
 https://sapl.caraubas.rn.leg.br/,True
 https://sapl.carnaubadosdantas.rn.leg.br/,True
 https://sapl.cearamirim.rn.leg.br/,True
+https://sapl.cruzeta.rn.leg.br/,True
 https://sapl.curraisnovos.rn.leg.br/,True
 https://sapl.doutorseveriano.rn.leg.br/,True
 https://sapl.extremoz.rn.leg.br/,True
@@ -600,6 +609,7 @@ https://sapl.timbaubadosbatistas.rn.leg.br/,True
 https://sapl.varzea.rn.leg.br/,True
 https://sapl.acegua.rs.leg.br/,True
 https://sapl.agudo.rs.leg.br/,True
+https://sapl.arroiodosratos.rs.leg.br/,True
 https://sapl.barao.rs.leg.br/,True
 https://sapl.baraodecotegipe.rs.leg.br/,True
 https://sapl.barradoribeiro.rs.leg.br/,True
@@ -742,7 +752,6 @@ https://sapl.iguape.sp.leg.br/,True
 https://sapl.ilhacomprida.sp.leg.br/,True
 https://sapl.indiapora.sp.leg.br/,True
 https://sapl.ipigua.sp.leg.br/,True
-https://sapl.itabera.sp.leg.br/,True
 https://sapl.itaporanga.sp.leg.br/,True
 https://sapl.itapui.sp.leg.br/,True
 https://sapl.jardinopolis.sp.leg.br/,True

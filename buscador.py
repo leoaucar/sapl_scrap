@@ -5,7 +5,7 @@ def setup_busca(casas_resultado):
         limite_busca = input('Deseja limitar sua busca para teste? \n1- não(pesquisar todas as casas) \n2- 50 primeiras casas \n3- 50 últimas casas\n4- Apenas 10 casas\n')
         try:
             limite_busca = int(limite_busca)
-            if limite_busca > 0 and limite_busca < 5:
+            if limite_busca > 0 and limite_busca < 6:
                 break
             else:
                 print("Digite apenas o número 1, 2, 3 ou 4")
@@ -40,7 +40,7 @@ def buscar_resultados(casas_resultado, palavras):
             #aqui recupero os resultados de cada busca no sistema
             for palavra in palavras:
                 pagina = 1
-                while pagina < 5: #altere para limitar paginas de teste
+                while True: #altere para limitar paginas de teste
                     url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
                     try:
                         response = requests.get(url)

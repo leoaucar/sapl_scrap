@@ -2,8 +2,12 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-def importar_casas():
+def importar_casas(estado=False):
     df = pd.read_excel('./arquivos_csv/casas_legislativas.xlsx')
+    df = df[df['UF'].isin(estado)]
+    if estado == True:
+        lista_estados = ['RJ','SP','RS','SC','MG','ES','PR']
+        df = df[df['UF'].isin(lista_estados)]
     casas = df['URL do serviço']
     #talvez aqui possamos usar os testes
     #garantir que só importaremos casas OK
@@ -12,6 +16,7 @@ def importar_casas():
 def teste_url_ativa(casas):
     resultado_casas = []
     for casa in casas:
+        print(casa)
         try:
             response = requests.get(casa, timeout=5)
             if response.status_code == 200:
@@ -43,7 +48,7 @@ def teste_conteudo_atualizado(casas, palavras):
     return casas
 #retornar função para retornar lista de casas ok
 
-def setup_casas(nome_projeto):
+def setup_casas(nome_projeto, estado=False):
     try:
         casas_resultado = pd.read_csv('./'+nome_projeto+'_proj/'+'casas_resultado.csv')
         print('Última atualização continha ' + str(len(casas_resultado)) + ' casas com url ativas')
@@ -75,7 +80,7 @@ def setup_casas(nome_projeto):
 
     if casas_legislativas == 3:
         print("Carregando Casas Legislativas")
-        lista_casas = importar_casas()
+        lista_casas = importar_casas(estado)
         casas_resultado = teste_url_ativa(lista_casas) #limitado 20 para teste
         print('realizando a busca em ' + str(len(casas_resultado)) + ' casas com url ativas')
         pd.DataFrame(casas_resultado).to_csv('./'+nome_projeto+'_proj/'+'/casas_resultado.csv', index=False)

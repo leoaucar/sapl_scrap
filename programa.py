@@ -7,6 +7,7 @@ from tratamento_resultado import tratamento_resultados
 import pandas as pd
 import csv
 import os
+from datetime import datetime
 
 ### Primeira parte do código da conta da criação do projeto
 ## Verifica se existem projeto (dummy por enquanto) e dps se usuário deseja criar novo
@@ -47,7 +48,13 @@ if atualizar == True:
     print(os.listdir('.'))
     while True:
         nome_projeto = input("Digite o nome do projeto para atualizar\n")
-        resultados_materias = atualizar_materia_legislativa(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+".csv")
+        if nome_projeto[-5:] == '_proj':
+            nome_projeto = nome_projeto[:-5]
+        try:
+            resultados_materias = atualizar_materia_legislativa(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+".csv")
+        except:
+            print('Certifique que o nome do projeto foi digitado corretamente')
+            continue
         break
 
 else:
@@ -62,7 +69,12 @@ else:
     #dividir as palavras em em 3 grupos
 
     #CASAS LEGISLATIVAS
-    casas_resultado = setup_casas(nome_projeto)
+    restricao = input('Deseja restringir a busca a sul e sudeste?\n1-sim\n2-não')
+    if int(restricao) == 1:
+        casas_resultado = setup_casas(nome_projeto, estado=True)
+    else:
+        casas_resultado = setup_casas(nome_projeto)
+
 
     #setup de busca (define se limitaremos a busca a 50 casas)
     casas_resultado = setup_busca(casas_resultado)
@@ -96,4 +108,6 @@ if atualizar == False:
     df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+".csv")
 elif atualizar ==True:
     df = tratamento_resultados(nome_projeto+'_proj/'+nome_projeto+"_materias_legislativas"+".csv")
-    df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+"_ATUALIZADO"+".csv")
+    today = datetime.now()
+    today = today.strftime("%d_%m_%Y")
+    df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+"_ATUALIZADO_"+today+".csv")

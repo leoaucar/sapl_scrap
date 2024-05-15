@@ -4,7 +4,10 @@ from bs4 import BeautifulSoup
 
 def importar_casas(estado=False):
     df = pd.read_excel('./arquivos_csv/casas_legislativas.xlsx')
-    df = df[df['UF'].isin(estado)]
+    try:
+        df = df[df['UF'].isin(estado)]
+    except:
+        pass
     if estado == True:
         lista_estados = ['RJ','SP','RS','SC','MG','ES','PR']
         df = df[df['UF'].isin(lista_estados)]

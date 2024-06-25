@@ -8,6 +8,7 @@ import pandas as pd
 import csv
 import os
 from datetime import datetime
+from download_pdf import download_arquivo
 
 ### Primeira parte do código da conta da criação do projeto
 ## Verifica se existem projeto (dummy por enquanto) e dps se usuário deseja criar novo
@@ -111,3 +112,20 @@ elif atualizar ==True:
     today = datetime.now()
     today = today.strftime("%d_%m_%Y")
     df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+"_ATUALIZADO_"+today+".csv")
+
+dowload_opcao = int(input("Deseja realizar downloads? 1-sim, 2-não"))
+if dowload_opcao == 1:
+    diretorio_geral = nome_projeto+'_proj/'
+    if atualizar == False:
+        diretorio_downloads = 'downloads'
+    elif atualizar == True:
+        diretorio_downloads = 'downloads'+today
+    path = os.path.join(diretorio_geral,diretorio_downloads)
+    os.mkdir(path)
+    print("realizando downloads")
+    id = 0
+    for i in df['texto_original']:
+        download_arquivo(i,id,path)
+        id = id + 1
+        print("download numero: " + str(id))
+    #df['texto_integral'].apply(download_arquivo)

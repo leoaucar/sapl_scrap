@@ -74,6 +74,22 @@ def raspar_materia_legislativa(conteudo):
             tipo_materia = tipo_materia.text
         dados_atuais.append(tipo_materia.strip())
 
+        texto_original = ''
+        for texto_original in soup.find_all('div', {"id": "div_id_texto_original"}):
+            try:     
+                texto_original = str(texto_original.find('a')['href'])
+            except:
+                texto_original = ''
+        dados_atuais.append(texto_original)
+
+        texto_integral = ''
+        for texto_integral in soup.find_all('div', {"id": "div_id_texto_integral"}):
+            try:
+                texto_integral = str(texto_integral.find('a')['href'])
+            except:
+                texto_integral = ''
+        dados_atuais.append(texto_integral)
+
         #texto_original = ''
         #for texto_original in soup.find_all('div', {"id": "div_id_texto_original"}):
         #    texto_original = texto_original.text
@@ -102,6 +118,7 @@ def raspar_materia_legislativa(conteudo):
 
 def atualizar_materia_legislativa(conteudo):
     links_achados = pd.read_csv(conteudo, index_col=0)
+    #links_achados = links_achados[links_achados['Relevante']=='Sim']
     resultados=[]
     indice = 0
     for i in links_achados.iloc[:,1]:#limitado a 50 para teste
@@ -150,6 +167,32 @@ def atualizar_materia_legislativa(conteudo):
         for tipo_materia in soup.find_all('div', {"id": "div_id_tipo"}):
             tipo_materia = tipo_materia.text
         dados_atuais.append(tipo_materia.strip())
+        
+        texto_original = ''
+        for texto_original in soup.find_all('div', {"id": "div_id_texto_original"}):
+            texto_original = texto_original.text
+        dados_atuais.append(texto_original.strip())
+
+        texto_integral = ''
+        for texto_integral in soup.find_all('div', {"id": "div_id_texto_integral"}):
+            texto_integral = texto_integral.text
+        dados_atuais.append(texto_integral.strip())
+
+        texto_original = ''
+        for texto_original in soup.find_all('div', {"id": "div_id_texto_original"}):
+            try:     
+                texto_original = str(texto_original.find('a')['href'])
+            except:
+                texto_original = ''
+        dados_atuais.append(texto_original)
+
+        texto_integral = ''
+        for texto_integral in soup.find_all('div', {"id": "div_id_texto_integral"}):
+            try:
+                texto_integral = str(texto_integral.find('a')['href'])
+            except:
+                texto_integral = ''
+        dados_atuais.append(texto_integral)
 
         #texto_original = ''
         #for texto_original in soup.find_all('div', {"id": "div_id_texto_original"}):

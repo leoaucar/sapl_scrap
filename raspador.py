@@ -167,16 +167,6 @@ def atualizar_materia_legislativa(conteudo):
         for tipo_materia in soup.find_all('div', {"id": "div_id_tipo"}):
             tipo_materia = tipo_materia.text
         dados_atuais.append(tipo_materia.strip())
-        
-        texto_original = ''
-        for texto_original in soup.find_all('div', {"id": "div_id_texto_original"}):
-            texto_original = texto_original.text
-        dados_atuais.append(texto_original.strip())
-
-        texto_integral = ''
-        for texto_integral in soup.find_all('div', {"id": "div_id_texto_integral"}):
-            texto_integral = texto_integral.text
-        dados_atuais.append(texto_integral.strip())
 
         texto_original = ''
         for texto_original in soup.find_all('div', {"id": "div_id_texto_original"}):
@@ -193,6 +183,7 @@ def atualizar_materia_legislativa(conteudo):
             except:
                 texto_integral = ''
         dados_atuais.append(texto_integral)
+
 
         #texto_original = ''
         #for texto_original in soup.find_all('div', {"id": "div_id_texto_original"}):

@@ -105,10 +105,10 @@ df = pd.DataFrame(resultados_materias)
 df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_materias_legislativas"+".csv")
 #columns=['Link Materia','Link Casa','titulo','ementa','ano','data','numero','observacao','assuntos']
 if atualizar == False:
-    df = tratamento_resultados(nome_projeto+'_proj/'+nome_projeto+"_materias_legislativas"+".csv")
+    df = tratamento_resultados(nome_projeto+'_proj/'+nome_projeto+"_materias_legislativas"+".csv", atualizar)
     df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+".csv")
 elif atualizar ==True:
-    df = tratamento_resultados(nome_projeto+'_proj/'+nome_projeto+"_materias_legislativas"+".csv")
+    df = tratamento_resultados(nome_projeto+'_proj/'+nome_projeto+"_materias_legislativas"+".csv", atualizar)
     today = datetime.now()
     today = today.strftime("%d_%m_%Y")
     df.to_csv(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+"_ATUALIZADO_"+today+".csv")

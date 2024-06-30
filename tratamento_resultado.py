@@ -1,6 +1,6 @@
 import pandas as pd
 
-def tratamento_resultados(tabela_resultados):
+def tratamento_resultados(tabela_resultados, atualizar):
     df = pd.read_csv(tabela_resultados, index_col=0, dtype=str)
     df = df.rename(columns={'0':'IndiceOLD',
                             '1':'Link Materia',
@@ -24,7 +24,10 @@ def tratamento_resultados(tabela_resultados):
     df['Observacao'] = df['Observacao'].str.replace('Observação', '')
     df['Observacao'] = df['Observacao'].str.replace('\n\n', '')
     df['Tipo de Materia Legislativa'] = df['Tipo de Materia Legislativa'].str.replace('Tipo de Matéria Legislativa\n\n', '')
-    df['texto_original'] = df['Link Casa'] + df['texto_original'].str.replace('Texto Original\n\n', '')
+    if atualizar == False:
+        df['texto_original'] = df['Link Casa'] + df['texto_original'].str.replace('Texto Original\n\n', '')
+    elif atualizar == True:
+        df['texto_original'] = df['texto_original'].str.replace('Texto Original\n\n', '')
     #df['texto_integral'] = df['texto_integral'].str.replace('')
     df = df.replace(r'\r',' ', regex=True)
     return df

@@ -1,7 +1,10 @@
 import pandas as pd
 
 def importar_palavras():
-    df = pd.read_csv('./arquivos_csv/palavras_chave.csv', header=0)
+    try:
+        df = pd.read_csv('./arquivos_csv/palavras_chave.csv', header=0)
+    except:
+        df = pd.read_excel('./arquivos_csv/palavras_chave.xlsx', header=0)
     palavras = df['Palavras']
     return palavras
 

@@ -5,24 +5,20 @@ import pandas as pd
 import requests
 
 
-path = os.getcwd() 
-csv_files = glob.glob(os.path.join(path, "*final.csv"))
-dados = pd.read_csv(csv_files[0], index_col=0)
-dados['Autoria'] = ""
-dados['Tramite'] = ""
-
-
 def buscar_autoria(link):
     url = link + '/autoria'
+    autorias_totais = []
     try:
         response = requests.get(url, timeout=3)
 
         soup = BeautifulSoup(response.text, features='html.parser')
-        for a in soup.find_all('tr'):
-            autorias_totais = a
+        for a in soup.find_all('td')[0:2]:
+            a = a.get_text().replace('\n','').strip()
+            autorias_totais.append(a)
     except:
         autorias_totais = ''
         pass
+    autorias_totais = ' '.join(autorias_totais)
     return autorias_totais
 
 def buscar_tramitacao(link):
@@ -31,18 +27,30 @@ def buscar_tramitacao(link):
     try:
         response = requests.get(url, timeout=3)
         soup = BeautifulSoup(response.text, features='html.parser')
-        for a in soup.find_all('tr'):
-            tramites_totais = a
+        for a in soup.find_all('td')[0:4]:
+            a = a.get_text().replace('\n','').strip()
+            tramites_totais.append(a)
     except:
         tramites_totais = ''
-        pass
     return tramites_totais
 
-tramites_totais = []
-autorias_totais = []
-for i in dados['Link Materia'][15:25]:
-    autorias_totais.append(buscar_autoria(i))
-    tramites_totais.append(buscar_tramitacao(i))
+if __name__ == '__main__':
+    path = os.getcwd() 
+    csv_files = glob.glob(os.path.join(path, "*final.csv"))
+    dados = pd.read_csv(csv_files[0], index_col=0)
+    dados['Autoria'] = ""
+    dados['Tramite'] = ""
 
-#print(autorias_totais)
-print(tramites_totais)
+    tramites_totais = []
+
+    
+    autorias_totais = []
+    for i in dados['Link Materia']:
+        autorias_totais.append(buscar_autoria(i))
+        tramites_totais.append(buscar_tramitacao(i))
+
+    dados['Autoria'] = autorias_totais
+    dados['Tramite'] = tramites_totais
+    file_name = os.path.basename(csv_files[0])
+
+    dados.to_csv(file_name)

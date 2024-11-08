@@ -36,7 +36,7 @@ def buscar_tramitacao(link):
 
 if __name__ == '__main__':
     path = os.getcwd() 
-    csv_files = glob.glob(os.path.join(path, "*final.csv"))
+    csv_files = glob.glob(os.path.join(path, "*.csv"))
     dados = pd.read_csv(csv_files[0], index_col=0)
     dados['Autoria'] = ""
     dados['Tramite'] = ""
@@ -46,6 +46,7 @@ if __name__ == '__main__':
     
     autorias_totais = []
     for i in dados['Link Materia']:
+        print("raspando autoria e tramitaçao de: " + str(i))
         autorias_totais.append(buscar_autoria(i))
         tramites_totais.append(buscar_tramitacao(i))
 

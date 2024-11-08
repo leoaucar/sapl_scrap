@@ -33,7 +33,7 @@ while True:
         continue
 
 while True:
-    atualizar = input("Deseja apenas atualizar a tabela do projeto anterior? 1- sim, 2- não\n")
+    atualizar = input("Deseja apenas atualizar a tabela de algum projeto anterior? 1- sim, 2- não\n")
     if atualizar == '1':
         atualizar = True
         break
@@ -54,7 +54,7 @@ if atualizar == True:
         try:
             resultados_materias = atualizar_materia_legislativa(nome_projeto+'_proj/'+nome_projeto+"_resultado_final"+".csv")
         except:
-            print('Certifique que o nome do projeto foi digitado corretamente')
+            print('Certifique que o nome do projeto foi digitado corretamente ou o arquivo de resultados finais está presente')
             continue
         break
 

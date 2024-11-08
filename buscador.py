@@ -43,7 +43,7 @@ def buscar_resultados(casas_resultado, palavras):
                 while True: #altere para limitar paginas de teste
                     url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
                     try:
-                        response = requests.get(url)
+                        response = requests.get(url, timeout=10)
                     except:
                         urls_erro.append(url)
                         continue

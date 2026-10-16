@@ -1,3 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
 *sapl_env/
+
+# Projetos gerados pelo programa (resultados de busca e downloads)
 *_proj/
-*teste_raspagem.csv'
+*.pdf
+
+# Saídas de teste
+arquivos_csv/teste_raspagem.csv
+
+# Editores / sistema
+.vscode/
+.idea/
+.DS_Store
+~$*.xlsx

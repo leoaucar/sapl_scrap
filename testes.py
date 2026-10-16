@@ -1,3 +1,7 @@
+"""Testes manuais (interativos) de partes do raspador.
+
+Uso: python testes.py  e digite o nome do teste (raspagem ou palavras).
+"""
 from raspador import raspar_materia_legislativa
 from casas_legislativas import importar_casas, teste_url_ativa
 import pandas as pd

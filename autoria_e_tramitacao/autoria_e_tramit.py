@@ -1,3 +1,9 @@
+"""Acrescenta as colunas Autoria e Tramite a uma planilha de resultados.
+
+Uso (de dentro desta pasta, com um único .csv nela):
+    python autoria_e_tramit.py
+O CSV é sobrescrito com as novas colunas.
+"""
 from bs4 import BeautifulSoup
 import os
 import glob
@@ -6,6 +12,7 @@ import requests
 
 
 def buscar_autoria(link):
+    """Texto das duas primeiras células da página <materia>/autoria ('' em caso de erro)."""
     url = link + '/autoria'
     autorias_totais = []
     try:
@@ -22,6 +29,7 @@ def buscar_autoria(link):
     return autorias_totais
 
 def buscar_tramitacao(link):
+    """Lista com as quatro primeiras células (último trâmite) da página <materia>/tramitacao."""
     url = link + '/tramitacao'
     tramites_totais = []
     try:
@@ -36,6 +44,7 @@ def buscar_tramitacao(link):
 
 if __name__ == '__main__':
     path = os.getcwd() 
+    # Usa o primeiro CSV encontrado na pasta atual
     csv_files = glob.glob(os.path.join(path, "*.csv"))
     dados = pd.read_csv(csv_files[0], index_col=0)
     dados['Autoria'] = ""

@@ -123,7 +123,7 @@ Rules for every task:
 
 ## Phase E — State and stages
 
-- [ ] **T13 State file** — FR-18
+- [x] **T13 State file** — FR-18
   - `estado.py`: `Estado(caminho)`: `registrar(etapa, chave, status, erro)`
     (append + flush), `ultimo(etapa, chave)`, `pendentes(etapa, chaves)`,
     `contagens()`.

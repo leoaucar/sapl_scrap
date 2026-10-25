@@ -167,7 +167,7 @@ Rules for every task:
   - `tests/test_projetos.py`: new project; existing → menu; "outro nome"
     loops; `config.json` round-trip; existing downloads folder OK.
 
-- [ ] **T19 `programa.py` main flow and update mode** — TR-1, FR-19, Q5
+- [x] **T19 `programa.py` main flow and update mode** — TR-1, FR-19, Q5
   - `main(entrada=input, cliente=None, raiz='.')`; runs only under
     `__main__`; new / resume / update modes wired to the stages; update
     mode outputs `_ATUALIZADO_<data>` files with their own state file.
@@ -175,7 +175,7 @@ Rules for every task:
     answers drive a new project through a fake house; update mode writes
     the `_ATUALIZADO_` files.
 
-- [ ] **T20 Final summary** — FR-26
+- [x] **T20 Final summary** — FR-26
   - `registro.resumo(estado, caminhos)` → text with every count of FR-26 and
     the retry hint when there are failures; printed and logged at the end of
     `main`.

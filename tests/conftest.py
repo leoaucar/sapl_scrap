@@ -1,4 +1,5 @@
 """Fixtures compartilhadas pelos testes."""
+import logging
 import socket
 
 import pandas as pd
@@ -17,6 +18,16 @@ def bloquear_rede(monkeypatch):
     monkeypatch.setattr(socket.socket, 'connect', _rede_bloqueada)
     monkeypatch.setattr(socket.socket, 'connect_ex', _rede_bloqueada)
     monkeypatch.setattr(socket, 'create_connection', _rede_bloqueada)
+
+
+@pytest.fixture(autouse=True)
+def limpar_log():
+    """Remove os handlers de log criados por `registro.configurar` em cada teste."""
+    yield
+    log = logging.getLogger('sapl_scrap')
+    for handler in list(log.handlers):
+        log.removeHandler(handler)
+        handler.close()
 
 
 @pytest.fixture

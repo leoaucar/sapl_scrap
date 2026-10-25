@@ -66,7 +66,7 @@ Rules for every task:
 
 ## Phase C — Inputs and prompts
 
-- [ ] **T07 Prompt helpers** — FR-21, TR-3
+- [x] **T07 Prompt helpers** — FR-21, TR-3
   - `entrada.py`: `perguntar_opcao(texto, opcoes, entrada=input)`,
     `perguntar_texto(texto, entrada=input)`.
   - `tests/test_entrada.py`: invalid, empty, out-of-range answers re-asked;

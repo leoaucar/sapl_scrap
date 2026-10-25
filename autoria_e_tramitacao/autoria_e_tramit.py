@@ -119,7 +119,8 @@ def main(pasta='.', entrada=input, cliente=None):
         print('Nenhum arquivo .csv nesta pasta. Copie para cá o resultado final de um projeto.')
         return 1
     try:
-        processar(caminho, cliente or ClienteSAPL())
+        historico = Path(__file__).resolve().parent.parent / '.sapl_historico.json'
+        processar(caminho, cliente or ClienteSAPL(historico=str(historico)))
     except KeyboardInterrupt:
         print('\nInterrompido. O arquivo de entrada não foi alterado.')
         return 1

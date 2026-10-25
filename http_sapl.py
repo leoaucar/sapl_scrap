@@ -9,6 +9,11 @@ Garante, para cada site (host):
 - nunca tenta para sempre: depois de `max_tentativas`, devolve a falha com o
   motivo (`HTTP 429`, `HTTP 503`, `timeout`, `conexao`).
 
+Com `historico` (um arquivo JSON), os horários das requisições recentes de
+cada site são guardados no disco a cada requisição e lidos quando o cliente
+começa. Assim, uma execução retomada logo depois de interrompida (ou outro
+projeto rodado em seguida) não passa do limite somando as duas.
+
 404 e outros 4xx voltam na hora, sem nova tentativa: quem chamou decide
 (fim da paginação, casa sem API, matéria inexistente).
 
@@ -21,6 +26,8 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime
 from email.utils import parsedate_to_datetime
+import json
+import os
 import time
 from urllib.parse import urlparse
 
@@ -96,16 +103,60 @@ class ClienteSAPL:
 
     def __init__(self, sessao=None, relogio=time.monotonic, dormir=time.sleep,
                  limite_por_minuto=LIMITE_POR_MINUTO, max_tentativas=MAX_TENTATIVAS,
-                 timeout=TIMEOUT_PADRAO):
+                 timeout=TIMEOUT_PADRAO, historico=None, relogio_parede=time.time):
         self.sessao = sessao if sessao is not None else criar_sessao()
         self.relogio = relogio
+        self.relogio_parede = relogio_parede
         self.dormir = dormir
         self.limite = limite_por_minuto
         self.max_tentativas = max_tentativas
         self.timeout = timeout
+        self.historico = historico
         self._janelas = defaultdict(deque)   # host -> horários das últimas requisições
+        self._parede = defaultdict(deque)    # os mesmos horários, no relógio de parede
         self._bloqueado_ate = {}             # host -> horário (após um 429)
+        self._bloqueado_parede = {}
         self.total_requisicoes = 0
+        if historico:
+            self._carregar_historico()
+
+    # --- Histórico em disco (limite entre execuções) -------------------------
+
+    def _carregar_historico(self):
+        try:
+            with open(self.historico, encoding='utf-8') as arquivo:
+                dados = json.load(arquivo)
+        except FileNotFoundError:
+            return
+        except (OSError, ValueError) as erro:
+            log.warning('Histórico de requisições ilegível (%s): começando sem ele', erro)
+            return
+        agora, parede = self.relogio(), self.relogio_parede()
+        for host, horarios in (dados.get('requisicoes') or {}).items():
+            for t in sorted(horarios)[-self.limite:]:
+                if parede - t < JANELA_SEGUNDOS:
+                    self._janelas[host].append(agora - (parede - t))
+                    self._parede[host].append(t)
+        for host, ate in (dados.get('bloqueios') or {}).items():
+            if ate > parede:
+                self._bloqueado_ate[host] = agora + (ate - parede)
+                self._bloqueado_parede[host] = ate
+
+    def _salvar_historico(self):
+        parede = self.relogio_parede()
+        dados = {
+            'requisicoes': {h: [t for t in ts if parede - t < JANELA_SEGUNDOS]
+                            for h, ts in self._parede.items()},
+            'bloqueios': {h: t for h, t in self._bloqueado_parede.items() if t > parede},
+        }
+        dados['requisicoes'] = {h: ts for h, ts in dados['requisicoes'].items() if ts}
+        temporario = f'{self.historico}.tmp'
+        try:
+            with open(temporario, 'w', encoding='utf-8') as arquivo:
+                json.dump(dados, arquivo)
+            os.replace(temporario, self.historico)
+        except OSError as erro:
+            log.warning('Não foi possível gravar o histórico de requisições: %s', erro)
 
     def _aguardar_vez(self, host):
         """Dorme o necessário para a próxima requisição a `host` respeitar o limite."""
@@ -118,6 +169,12 @@ class ClienteSAPL:
                     janela.popleft()
                 if len(janela) < self.limite:
                     janela.append(agora)
+                    parede = self._parede[host]
+                    parede.append(self.relogio_parede())
+                    while len(parede) > self.limite:
+                        parede.popleft()
+                    if self.historico:
+                        self._salvar_historico()
                     return
                 espera = JANELA_SEGUNDOS - (agora - janela[0])
             # Espera mínima: evita laço infinito com esperas de 1e-14 s (arredondamento)
@@ -163,6 +220,9 @@ class ClienteSAPL:
             if status == 429:
                 # O site inteiro fica bloqueado até passar o Retry-After
                 self._bloqueado_ate[host] = self.relogio() + espera
+                self._bloqueado_parede[host] = self.relogio_parede() + espera
+                if self.historico:
+                    self._salvar_historico()
             else:
                 self.dormir(espera)
         log.warning('Falha em %s: %s (%d tentativas)', url, erro, tentativas)

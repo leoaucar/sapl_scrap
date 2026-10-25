@@ -223,3 +223,71 @@ def test_resposta_json_e_texto(cliente, sessao):
 
 def test_sessao_padrao_tem_user_agent():
     assert 'sapl_scrap' in http_sapl.criar_sessao().headers['User-Agent']
+
+
+# --- Limite entre execuções (achado V2 da validação) ------------------------
+
+def _cliente_com_historico(sessao, relogio, caminho, **kw):
+    return ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir,
+                       historico=str(caminho), relogio_parede=relogio.agora, **kw)
+
+
+def test_nova_execucao_respeita_requisicoes_da_anterior(sessao, relogio, tmp_path):
+    sessao.responder(A, texto='ok')
+    primeira = _cliente_com_historico(sessao, relogio, tmp_path / 'h.json')
+    inicio = relogio.agora()
+    for _ in range(35):
+        primeira.get(A)
+        relogio.t += 0.5
+    # programa interrompido e retomado: um cliente novo, com janela vazia na memória
+    segunda = _cliente_com_historico(sessao, relogio, tmp_path / 'h.json')
+    segunda.get(A)
+    assert relogio.agora() >= inicio + 60 - 0.05
+
+
+def test_historico_antigo_e_ignorado(sessao, relogio, tmp_path):
+    sessao.responder(A, texto='ok')
+    primeira = _cliente_com_historico(sessao, relogio, tmp_path / 'h.json')
+    for _ in range(35):
+        primeira.get(A)
+    relogio.t += 61
+    segunda = _cliente_com_historico(sessao, relogio, tmp_path / 'h.json')
+    esperas_antes = len(relogio.esperas)
+    for _ in range(35):
+        segunda.get(A)
+    assert len(relogio.esperas) == esperas_antes
+
+
+def test_bloqueio_de_429_passa_para_a_proxima_execucao(sessao, relogio, tmp_path):
+    sessao.responder(A, status=429, headers={'Retry-After': '40'})
+
+    def interromper(segundos):
+        raise KeyboardInterrupt
+    primeira = ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=interromper,
+                           historico=str(tmp_path / 'h.json'), relogio_parede=relogio.agora)
+    with pytest.raises(KeyboardInterrupt):
+        primeira.get(A)                     # Ctrl+C durante a espera do Retry-After
+    sessao.limpar(A).responder(A, texto='ok')
+    inicio = relogio.agora()
+    _cliente_com_historico(sessao, relogio, tmp_path / 'h.json').get(A)
+    assert relogio.agora() - inicio == pytest.approx(40, abs=0.05)
+
+
+def test_historico_ilegivel_nao_impede_execucao(sessao, relogio, tmp_path, caplog):
+    (tmp_path / 'h.json').write_text('{quebrado', encoding='utf-8')
+    sessao.responder(A, texto='ok')
+    with caplog.at_level(logging.WARNING):
+        assert _cliente_com_historico(sessao, relogio, tmp_path / 'h.json').get(A).ok
+    assert any('ilegível' in r.getMessage() for r in caplog.records)
+    assert 'requisicoes' in (tmp_path / 'h.json').read_text(encoding='utf-8')
+
+
+def test_historico_guarda_no_maximo_o_limite_por_site(sessao, relogio, tmp_path):
+    import json
+    sessao.responder(A, texto='ok')
+    cliente = _cliente_com_historico(sessao, relogio, tmp_path / 'h.json')
+    for _ in range(80):
+        cliente.get(A)
+    dados = json.loads((tmp_path / 'h.json').read_text(encoding='utf-8'))
+    assert len(dados['requisicoes']['sapl.a.leg.br']) <= 35
+    assert not (tmp_path / 'h.json.tmp').exists()

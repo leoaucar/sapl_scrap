@@ -39,6 +39,9 @@ PERGUNTA_ATUALIZAR = 'Deseja apenas atualizar a tabela de algum projeto anterior
 PERGUNTA_TABELA = 'Deseja usar a mesma tabela de casas do último projeto? 1- sim, 2- não\n'
 PERGUNTA_SUL = 'Deseja restringir a busca a Sul e Sudeste? 1- sim, 2- não\n'
 PERGUNTA_DOWNLOAD = 'Deseja baixar os textos originais (PDFs)? 1- sim, 2- não\n'
+# Horários das requisições recentes de cada site, compartilhados entre
+# execuções e projetos (veja http_sapl). Fica na pasta de trabalho.
+ARQUIVO_HISTORICO = '.sapl_historico.json'
 MENSAGEM_INTERROMPIDO = ('\nExecução interrompida. Para continuar de onde parou, rode o programa '
                          'de novo, digite o mesmo nome de projeto e escolha "retomar".')
 
@@ -141,7 +144,7 @@ def executar_atualizacao(raiz, cliente, entrada=input, hoje=None):
 
 def main(entrada=input, cliente=None, raiz='.'):
     raiz = Path(raiz)
-    cliente = cliente or ClienteSAPL()
+    cliente = cliente or ClienteSAPL(historico=str(raiz / ARQUIVO_HISTORICO))
     try:
         if perguntar_sim_nao(PERGUNTA_ATUALIZAR, entrada):
             texto = executar_atualizacao(raiz, cliente, entrada)

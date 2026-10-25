@@ -183,3 +183,30 @@ def test_interrompida_e_retomada_da_o_mesmo_resultado(projeto_tmp, monkeypatch):
     assert a.equals(b)
     assert sorted(p.name for p in (projeto_tmp / 'b_proj' / 'downloads').iterdir()) == \
         sorted(p.name for p in (projeto_tmp / 'a_proj' / 'downloads').iterdir())
+
+
+def test_retomada_com_cliente_novo_respeita_o_limite(projeto_tmp, monkeypatch):
+    """Achado V2: o programa retomado é outro processo, com o limitador vazio."""
+    cliente, sessao, horarios = montar(projeto_tmp)
+    relogio = cliente.relogio.__self__
+    historico = str(projeto_tmp / '.sapl_historico.json')
+    primeiro = ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir,
+                           historico=historico, relogio_parede=relogio.agora)
+    original, chamadas = materias.raspar_materia, []
+
+    def cair(link, *args):
+        chamadas.append(1)
+        if len(chamadas) == 6:
+            raise KeyboardInterrupt
+        return original(link, *args)
+    monkeypatch.setattr(materias, 'raspar_materia', cair)
+    assert programa.main(roteiro(*NOVO), primeiro, projeto_tmp) == 1
+    monkeypatch.setattr(materias, 'raspar_materia', original)
+
+    segundo = ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir,
+                          historico=historico, relogio_parede=relogio.agora)
+    assert programa.main(roteiro('2', 'p', '1'), segundo, projeto_tmp) == 0
+    for site in {s for s, _ in horarios}:
+        tempos = sorted(t for s, t in horarios if s == site)
+        for i, t in enumerate(tempos):
+            assert sum(1 for u in tempos[i:] if u - t < 60) <= 35, site

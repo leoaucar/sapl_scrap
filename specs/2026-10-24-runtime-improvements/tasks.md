@@ -182,7 +182,7 @@ Rules for every task:
   - `tests/test_registro.py` (summary part): counts from a known state file;
     hint present only with failures; correct after a resume.
 
-- [ ] **T21 End-to-end test** — TR-9, acceptance 1, 4, 5 (offline version)
+- [x] **T21 End-to-end test** — TR-9, acceptance 1, 4, 5 (offline version)
   - `tests/test_ponta_a_ponta.py`: two fake houses (API / HTML-only),
     scripted 429s and one permanent failure, downloads on. Assert final
     CSV (no empty `ok` rows, no duplicate keys, `Palavras`), state, PDFs,

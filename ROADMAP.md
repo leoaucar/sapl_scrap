@@ -142,13 +142,13 @@ a estrutura antes do paralelismo e fecha os bugs que ficaram de fora.
       (`autoria_e_tramitacao/tabela_limpa_2.csv`)
 - [ ] Remover código morto e comentários desatualizados que sobrarem
 
-**Nova identidade: Puxa Projeto Sapl.** Projeto de código aberto que ajuda
-qualquer pessoa a acompanhar o que está acontecendo em várias casas
-legislativas do Brasil ao mesmo tempo.
-- [ ] Renomear o repositório no GitHub para `puxa_projetos_sapl` (e o pacote
-      Python), atualizando links e o badge do CI. *A decidir: "Projeto" ou
-      "Projetos" — a marca está no singular e o repositório no plural.*
-- [ ] Pequena identidade visual para o README (nome, logotipo simples, cores)
+**Nova identidade: SAPyL — Raspador do Sistema de Apoio Legislativo.**
+Projeto de código aberto que ajuda qualquer pessoa a acompanhar o que está
+acontecendo em várias casas legislativas do Brasil ao mesmo tempo.
+- [ ] Renomear o repositório no GitHub para `sapyl`, atualizando links e o
+      badge do CI; pacote Python e comando também `sapyl`
+- [ ] Identidade só em texto no README (nome, chamada curta, badges), sem
+      logotipo
 - [ ] Reescrever a descrição do README e os nomes no código e na
       documentação com a nova marca
 

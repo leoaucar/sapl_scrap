@@ -1,18 +1,31 @@
 # sapl_scrap
 
+[![testes](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml/badge.svg)](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml)
+
 Raspador de matérias legislativas em Câmaras Municipais e Assembleias que usam o
 **SAPL** (Sistema de Apoio ao Processo Legislativo, do Interlegis).
 
 O programa pesquisa uma lista de palavras-chave na busca de cada casa legislativa,
-coleta os links das matérias encontradas, raspa os dados de cada matéria (título,
-ementa, ano, número, tipo, links dos textos) e gera uma planilha final em CSV.
-Opcionalmente, baixa os PDFs dos textos originais.
+coleta os links das matérias encontradas, obtém os dados de cada matéria (título,
+ementa, data, tipo, situação, link do texto original…) e gera uma planilha final
+em CSV. Opcionalmente, baixa os textos originais (PDFs).
 
-> **Atenção (problema conhecido):** os servidores do SAPL limitam cada site a
-> 35 requisições por minuto. Acima disso, a versão atual grava as matérias
-> bloqueadas como linhas vazias, sem avisar. Confira a coluna `Titulo` do
-> resultado final. Veja o [ROADMAP](ROADMAP.md) para detalhes, estimativas de
-> tempo e próximos passos.
+O que ele garante:
+
+- **Nenhuma matéria vazia em silêncio.** Toda linha tem `status` (`ok` ou
+  `erro`) e, quando falha, o motivo na coluna `erro`.
+- **Respeito aos servidores.** No máximo 35 requisições por minuto em cada
+  site (o limite do SAPL); quando o site pede para esperar (`HTTP 429`), o
+  programa espera e tenta de novo.
+- **Retomada.** Se a execução parar no meio (Ctrl+C, queda de energia ou de
+  internet), basta rodar de novo e escolher "retomar": o que já foi feito não
+  é refeito, e o que falhou é tentado outra vez.
+- **Sem duplicatas.** Uma matéria encontrada por várias palavras aparece uma
+  vez só, com todas as palavras na coluna `Palavras`.
+
+Uma execução completa é demorada justamente por respeitar o limite de cada
+site: uma casa com 1 000 matérias leva cerca de 30 minutos. Veja estimativas
+e próximos passos no [ROADMAP](ROADMAP.md).
 
 ## Requisitos
 
@@ -22,7 +35,7 @@ Opcionalmente, baixa os PDFs dos textos originais.
 ## Instalação
 
 ```bash
-git clone <url-do-repositorio>
+git clone https://github.com/leoaucar/sapl_scrap.git
 cd sapl_scrap
 
 python3 -m venv .venv
@@ -64,46 +77,88 @@ Na raiz do projeto, com o ambiente virtual ativado:
 python programa.py
 ```
 
-O programa faz perguntas no terminal. Responda digitando o número da opção:
+O programa faz perguntas no terminal. Responda digitando o número da opção
+(respostas inválidas são pedidas de novo):
 
-1. **Usar a mesma tabela de casas do último projeto?**
-   - `1` (sim): reaproveita `arquivos_csv/casas_resultado.csv`, sem testar as
-     casas de novo (mais rápido).
-   - `2` (não): testa novamente quais sites das casas estão no ar.
-2. **Apenas atualizar a tabela de um projeto anterior?**
-   - `1` (sim): pede o nome de um projeto existente e raspa de novo as matérias
-     do seu `_resultado_final.csv` (veja [Atualizar um projeto](#atualizar-um-projeto)).
-   - `2` (não): cria um projeto novo.
-3. **Nome do projeto**: é criada a pasta `<nome>_proj/`. O nome não pode
-   repetir o de uma pasta já existente.
+1. **Apenas atualizar a tabela de um projeto anterior?** `1` sim
+   (veja [Atualizar um projeto](#atualizar-um-projeto)), `2` não.
+2. **Nome do projeto**: é criada a pasta `<nome>_proj/`. Se o nome já existe,
+   o programa oferece **retomar** esse projeto ou escolher outro nome; um
+   projeto existente nunca é sobrescrito.
+3. **Usar a mesma tabela de casas do último projeto?** (só aparece se já existe
+   `arquivos_csv/casas_resultado.csv`) `1` reaproveita a tabela, sem testar os
+   sites de novo; `2` testa quais sites estão no ar.
 4. **Restringir a busca a Sul e Sudeste?** `1` limita a RJ, SP, RS, SC, MG,
    ES e PR; `2` busca em todo o país.
-5. **Limitar a busca para teste?**
-   - `1` todas as casas
-   - `2` as 50 primeiras
-   - `3` as 50 últimas
-   - `4` apenas 10 casas (bom para um primeiro teste)
-6. **Realizar downloads?** `1` baixa os PDFs dos textos originais das matérias.
+5. **Limitar a busca para teste?** `1` todas as casas, `2` as 50 primeiras,
+   `3` as 50 últimas, `4` apenas 10 casas (bom para um primeiro teste).
+6. **Baixar os textos originais (PDFs)?** `1` sim, `2` não.
 
-> A busca completa em todas as casas pode levar várias horas. Comece com a
-> opção `4` (10 casas) para conferir se as palavras-chave estão boas.
+As respostas ficam salvas no projeto (`config.json`); ao retomar, nada é
+perguntado de novo.
+
+> Comece com a opção `4` (10 casas) para conferir se as palavras-chave estão
+> boas antes de uma busca completa.
+
+### Retomar um projeto
+
+Rode `python programa.py`, responda `2` na primeira pergunta, digite o nome do
+projeto e escolha `1- retomar este projeto`. O programa:
+
+- não refaz as buscas que terminaram (e refaz as que ficaram incompletas);
+- não raspa de novo as matérias com `status = ok`;
+- tenta de novo as matérias com `status = erro`;
+- não baixa de novo os PDFs que já estão na pasta.
+
+### Resumo e log
+
+No fim de cada execução aparece um resumo: casas pesquisadas, buscas
+incompletas, matérias encontradas, únicas, raspadas e com erro, downloads e o
+caminho do resultado. Se houve falhas, ele lembra de retomar o projeto.
+
+Tudo o que aparece no terminal, e mais uma linha para cada requisição feita
+aos sites, fica em `<nome>_proj/<nome>.log`.
 
 ## Resultados
 
 Tudo fica dentro da pasta `<nome>_proj/`:
 
-| Arquivo                               | Conteúdo                                         |
-|---------------------------------------|--------------------------------------------------|
-| `casas_resultado.csv`                 | Casas testadas e se o site respondeu             |
-| `<nome>_resultados_crus_casas.csv`    | HTML bruto de cada página de busca               |
-| `<nome>_links_totais.csv`             | Links de matérias encontrados                    |
-| `<nome>_materias_legislativas.csv`    | Dados raspados de cada matéria, sem tratamento   |
-| **`<nome>_resultado_final.csv`**      | **Planilha final, limpa — use esta**             |
-| `downloads/`                          | PDFs dos textos originais (se escolhido)         |
+| Arquivo                               | Conteúdo                                              |
+|---------------------------------------|-------------------------------------------------------|
+| **`<nome>_resultado_final.csv`**      | **Planilha final, uma linha por matéria — use esta**  |
+| `casas_resultado.csv`                 | Casas do projeto: `url, ativa, motivo, uf`            |
+| `<nome>_resultados_crus_casas.csv`    | HTML de cada página de busca                          |
+| `<nome>_links_totais.csv`             | Links únicos de matérias encontrados                  |
+| `<nome>_materias_legislativas.csv`    | Cada tentativa de raspagem (a mais recente vale)      |
+| `<nome>_estado.csv`                   | Progresso, usado para retomar                         |
+| `<nome>.log`                          | Registro da execução                                  |
+| `config.json`                         | Respostas dadas ao criar o projeto                    |
+| `downloads/`                          | Textos originais, como `<site>_<id>.pdf`              |
 
-Colunas da planilha final: `Link Materia`, `Link Casa`, `Palavras`, `Titulo`,
-`Ementa`, `Ano`, `Data`, `Numero`, `Observacao`, `Assuntos`,
-`Tipo de Materia Legislativa`, `texto_original`, `texto_integral`.
+### Colunas da planilha final
+
+| Coluna | Conteúdo |
+|---|---|
+| `Link Materia`, `Link Casa` | Página da matéria e site da casa |
+| `Palavras` | Todas as buscas que encontraram a matéria, separadas por `; ` |
+| `Titulo`, `Ementa`, `Ano`, `Numero` | Identificação da matéria |
+| `Data` | Data de apresentação (`dd/mm/aaaa`) |
+| `Observacao`, `Tipo de Materia Legislativa` | Como no SAPL |
+| `texto_original` | Link do texto original (PDF) |
+| `Indexacao` | Palavras-chave cadastradas pela casa |
+| `Em Tramitacao`, `Regime Tramitacao` | `Sim`/`Não`; Ordinária, Urgência… |
+| `Materia Anexada` | Matérias às quais esta está anexada |
+| `Resultado` | Resultado (aprovada, rejeitada…), quando a casa preenche |
+| `Data Publicacao`, `Numero Protocolo` | Quando a casa preenche |
+| `Ultima Atualizacao` | Última edição do registro no SAPL (só pela API) |
+| `sapl_id` | Número da matéria no SAPL da casa |
+| `fonte` | `api` (API do SAPL) ou `html` (página, em versões antigas do SAPL) |
+| `status`, `erro` | `ok`, ou `erro` com o motivo (`HTTP 429`, `timeout`…) |
+| `raspada_em` | Data e hora da raspagem |
+| `arquivo_pdf`, `download_status` | Nome do arquivo baixado; `ok`, `erro` ou `sem_pdf` |
+
+As colunas `Assuntos` e `texto_integral` das versões anteriores saíram: elas
+não existem mais nas páginas do SAPL e vinham sempre vazias.
 
 ## Atualizar um projeto
 
@@ -111,47 +166,70 @@ Para atualizar os dados de matérias já encontradas (por exemplo, depois de
 filtrar manualmente as relevantes no `_resultado_final.csv`):
 
 1. Rode `python programa.py`.
-2. Responda `1` na pergunta “Deseja apenas atualizar a tabela…”.
+2. Responda `1` na pergunta "Deseja apenas atualizar a tabela…".
 3. Digite o nome do projeto (com ou sem `_proj`).
 
 O resultado é salvo como `<nome>_resultado_final_ATUALIZADO_<dd_mm_aaaa>.csv`
-e os downloads, se pedidos, em `downloads<data>/`.
+e os downloads, se pedidos, em `downloads<dd_mm_aaaa>/`. A atualização também
+pode ser retomada no mesmo dia.
 
 ## Autoria e tramitação
 
 O script `autoria_e_tramitacao/autoria_e_tramit.py` acrescenta as colunas
-`Autoria` e `Tramite` a uma planilha de resultados.
+`Autoria` e `Tramite` (a tramitação mais recente) a uma planilha de
+resultados.
 
 1. Copie o CSV de resultados (com a coluna `Link Materia`) para a pasta
-   `autoria_e_tramitacao/`. Deixe **apenas um** `.csv` nessa pasta, pois o
-   script lê o primeiro que encontrar.
-2. Rode o script de dentro da pasta:
+   `autoria_e_tramitacao/`.
+2. Rode o script de dentro da pasta e escolha o arquivo na lista:
 
    ```bash
    cd autoria_e_tramitacao
    python autoria_e_tramit.py
    ```
 
-O arquivo é sobrescrito com as novas colunas.
+O arquivo escolhido não é alterado; o resultado vai para
+`<nome>_autoria_tramitacao.csv`, com as colunas `status_autoria`,
+`status_tramitacao` e `erro_autoria_tramitacao`.
+
+## Testes
+
+Os testes rodam sem internet, com páginas reais do SAPL salvas em
+`tests/fixtures/` (veja o [README das fixtures](tests/fixtures/README.md)).
+
+```bash
+pip install -r requirements-dev.txt
+pytest                                   # todos os testes, com cobertura
+pytest tests/test_http_sapl.py -k 429    # só alguns
+```
+
+Eles também rodam no GitHub Actions a cada push, em Python 3.10 e 3.12.
 
 ## Estrutura do código
 
-| Arquivo                   | Função                                                    |
-|---------------------------|-----------------------------------------------------------|
-| `programa.py`             | Ponto de entrada; conduz o fluxo e as perguntas           |
-| `gerenciador_projetos.py` | Cria a pasta e as tabelas iniciais do projeto             |
-| `palavras_chave.py`       | Lê e formata as palavras-chave para a busca               |
-| `casas_legislativas.py`   | Lê a lista de casas e testa quais sites estão no ar       |
-| `buscador.py`             | Faz as buscas página a página em cada casa                |
-| `raspador.py`             | Extrai os links e os dados de cada matéria                |
-| `tratamento_resultado.py` | Renomeia colunas e limpa os textos raspados               |
-| `download_pdf.py`         | Baixa os PDFs dos textos originais                        |
-| `testes.py`               | Testes manuais de raspagem e de palavras-chave            |
+| Arquivo                   | Função                                                        |
+|---------------------------|---------------------------------------------------------------|
+| `programa.py`             | Ponto de entrada; perguntas e etapas, novo/retomar/atualizar  |
+| `http_sapl.py`            | Cliente HTTP único: limite por site, 429, retentativas, log   |
+| `casas_legislativas.py`   | Lista de casas, teste dos sites, UF, filtros                  |
+| `palavras_chave.py`       | Lê e formata as palavras-chave para a busca                   |
+| `buscador.py`             | Busca página a página em cada casa                            |
+| `raspador.py`             | Extrai os links de matérias das páginas de busca              |
+| `materias.py`             | Chaves, duplicatas, dados pela API ou pelo HTML               |
+| `tratamento_resultado.py` | Monta a planilha final                                        |
+| `download_pdf.py`         | Baixa os textos originais                                     |
+| `estado.py`               | Progresso em disco, para retomar                              |
+| `gerenciador_projetos.py` | Pasta e arquivos do projeto                                   |
+| `entrada.py`              | Perguntas com validação                                       |
+| `registro.py`             | Log e resumo final                                            |
+
+O desenvolvimento segue specs em [`specs/`](specs/) (constituição, stack e uma
+pasta por mudança).
 
 ## Licença
 
-Copyright (C) 2023–2026 Leonardo Nogueira Aucar. Concepção e revisão: Renata e
-Fernanda. Veja [AUTHORS.md](AUTHORS.md).
+Copyright (C) 2023–2026 Leonardo Nogueira Aucar. Concepção e revisão: Renata
+Aquino e Fernanda Moura. Veja [AUTHORS.md](AUTHORS.md).
 
 Este programa é software livre: você pode usá-lo, estudá-lo, modificá-lo e
 redistribuí-lo nos termos da **GNU Affero General Public License, versão 3**

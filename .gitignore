@@ -29,6 +29,9 @@ htmlcov/
 # Logs de execução
 *.log
 
+# Horários das requisições recentes por site (limite entre execuções)
+.sapl_historico.json*
+
 # Arquivos do Claude Code (locais, fora do repositório)
 .claude/
 CLAUDE.md

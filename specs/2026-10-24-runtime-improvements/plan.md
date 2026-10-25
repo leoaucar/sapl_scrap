@@ -1,6 +1,6 @@
 # Plan: Runtime improvements
 
-- **Spec:** [spec.md](spec.md) · **Status:** Approved · **Date:** 2026-10-24
+- **Spec:** [spec.md](spec.md) · **Status:** Done · **Date:** 2026-10-24
 - **Branch for implementation:** `spec/2026-10-24-runtime-improvements`
   (created after this plan is committed; merged after `validation.md` passes)
 

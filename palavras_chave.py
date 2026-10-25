@@ -1,15 +1,17 @@
 """Leitura e formatação das palavras-chave de busca."""
+import os
+
 import pandas as pd
 
 
-def importar_palavras():
-    """Lê a coluna `Palavras` de `arquivos_csv/palavras_chave.csv` ou, se não existir, do `.xlsx`."""
-    try:
-        df = pd.read_csv('./arquivos_csv/palavras_chave.csv', header=0)
-    except:
-        df = pd.read_excel('./arquivos_csv/palavras_chave.xlsx', header=0)
-    palavras = df['Palavras']
-    return palavras
+def importar_palavras(pasta='arquivos_csv'):
+    """Lê a coluna `Palavras` de `<pasta>/palavras_chave.csv` ou, se não existir, do `.xlsx`."""
+    csv = os.path.join(pasta, 'palavras_chave.csv')
+    if os.path.exists(csv):
+        df = pd.read_csv(csv, header=0)
+    else:
+        df = pd.read_excel(os.path.join(pasta, 'palavras_chave.xlsx'), header=0)
+    return [str(p) for p in df['Palavras'].dropna() if str(p).strip()]
 
 
 def preparar_termos(palavras):
@@ -18,15 +20,8 @@ def preparar_termos(palavras):
     Termos separados por vírgula viram expressões exatas unidas por '+':
     "lingua portuguesa, norma culta" -> '"lingua+portuguesa"+"norma+culta"'
     """
-    lista_termos = []
-    for palavra in palavras:
-        termos = palavra.split(",")
-        for termo in termos:
-            n = termos.index(termo)
-            termo = termo.strip()
-            termo = termo.replace(" ", "+")
-            termo = "\""+termo+"\""
-            termos[n] = termo
-        termos = "+".join(termos)
-        lista_termos.append(termos)
-    return lista_termos
+    consultas = []
+    for linha in palavras:
+        termos = [t.strip() for t in str(linha).split(',') if t.strip()]
+        consultas.append('+'.join('"' + '+'.join(t.split()) + '"' for t in termos))
+    return consultas

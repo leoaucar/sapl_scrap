@@ -1,6 +1,6 @@
 # Spec: Runtime improvements
 
-- **Status:** Approved
+- **Status:** Done (validated 2026-10-25)
 - **Date:** 2026-10-24
 - **Covers:** ROADMAP §3 bugs 1–12 and §4 "Prioridade máxima" + Phase 1
   (except SQL, parallelism and config/CLI, which are later specs)

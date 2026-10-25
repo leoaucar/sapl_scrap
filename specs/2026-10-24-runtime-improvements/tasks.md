@@ -1,6 +1,6 @@
 # Tasks: Runtime improvements
 
-- **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Status:** Approved
+- **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Status:** Done
 - **Branch:** `spec/2026-10-24-runtime-improvements` (from `main`)
 
 Rules for every task:
@@ -13,7 +13,7 @@ Rules for every task:
 
 ## Phase A — Foundations
 
-- [ ] **T01 Branch and test scaffolding**
+- [x] **T01 Branch and test scaffolding**
   - Create branch `spec/2026-10-24-runtime-improvements`.
   - `pyproject.toml` with `[tool.pytest.ini_options]` and
     `[tool.coverage.run]` (plan §8.1).
@@ -24,13 +24,13 @@ Rules for every task:
     `RelogioFalso.dormir` advances time without waiting.
   - Done when: `pytest` runs, 0 network access, < 5 s.
 
-- [ ] **T02 CI workflow** — TR-11
+- [x] **T02 CI workflow** — TR-11
   - `.github/workflows/tests.yml` (push + pull_request, Python 3.10 / 3.12,
     `pip install -r requirements-dev.txt`, `pytest`).
   - README badge.
   - Done when: workflow green on the branch for both versions.
 
-- [ ] **T03 Fixture documentation and synthetic fixtures** — TR-7
+- [x] **T03 Fixture documentation and synthetic fixtures** — TR-7
   - `tests/fixtures/README.md`: what each file is, source URL/date (from
     `index.json`), and how the synthetic ones were derived.
   - Synthetic, derived from real pages: `materia_sem_data.html`,
@@ -41,13 +41,13 @@ Rules for every task:
 
 ## Phase B — HTTP and logging
 
-- [ ] **T04 Logging setup** — FR-25
+- [x] **T04 Logging setup** — FR-25
   - `registro.py`: `configurar(pasta, nome)` → terminal `INFO`, file
     `<nome>.log` `DEBUG`; idempotent (calling twice adds no handlers).
   - `tests/test_registro.py`: both handlers, levels, file created, no
     duplicate handlers.
 
-- [ ] **T05 HTTP client: limiter** — FR-1, FR-2, TR-2
+- [x] **T05 HTTP client: limiter** — FR-1, FR-2, TR-2
   - `http_sapl.py`: `ClienteSAPL`, `Resposta`, `LIMITE_POR_MINUTO`,
     sliding window per host with injected clock/sleep.
   - `tests/test_http_sapl.py`: 35 requests pass without sleeping; the 36th
@@ -55,7 +55,7 @@ Rules for every task:
     changing the constant changes the behaviour; default timeouts passed to
     the session.
 
-- [ ] **T06 HTTP client: retries and failures** — FR-3, FR-4, FR-5, FR-25a
+- [x] **T06 HTTP client: retries and failures** — FR-3, FR-4, FR-5, FR-25a
   - 429 + `Retry-After` (seconds), default 60, cap 300, host-wide block;
     5xx/timeout/connection backoff 5/15/45 s; `max_tentativas`; reasons
     `HTTP <n>` / `timeout` / `conexao`; 404 and 4xx not retried; DEBUG line
@@ -66,14 +66,14 @@ Rules for every task:
 
 ## Phase C — Inputs and prompts
 
-- [ ] **T07 Prompt helpers** — FR-21, TR-3
+- [x] **T07 Prompt helpers** — FR-21, TR-3
   - `entrada.py`: `perguntar_opcao(texto, opcoes, entrada=input)`,
     `perguntar_texto(texto, entrada=input)`.
   - `tests/test_entrada.py`: invalid, empty, out-of-range answers re-asked;
     `5` rejected in a 1–4 menu; names: empty and `/` rejected, spaces
     trimmed.
 
-- [ ] **T08 Houses: availability, UF, filters, limit** — FR-6, FR-22, FR-23
+- [x] **T08 Houses: availability, UF, filters, limit** — FR-6, FR-22, FR-23
   - `casas_legislativas.py`: `testar_casas(casas, cliente)` keeps every
     house with `ativa` and `motivo`; UF join from the spreadsheet; read old
     2-column `casas_resultado.csv`; `filtrar_sul_sudeste`; `limitar_casas`
@@ -85,7 +85,7 @@ Rules for every task:
 
 ## Phase D — Matter data
 
-- [ ] **T09 Keys, link extraction and dedup** — FR-12, FR-13
+- [x] **T09 Keys, link extraction and dedup** — FR-12, FR-13
   - `materias.py`: `normalizar_link`, `chave`; `raspador.raspar_resultados`
     rewritten to use it (explicit parser, FR-11); `deduplicar_links`.
   - `tests/test_raspador.py`: links from the three real `busca_p1.html`
@@ -94,7 +94,7 @@ Rules for every task:
   - `tests/test_materias.py` (dedup part): one row per key, `Palavras`
     joined in order, same id in two houses not merged.
 
-- [ ] **T10 HTML extraction** — FR-8 (parse part), FR-10 (HTML), FR-10a, FR-11
+- [x] **T10 HTML extraction** — FR-8 (parse part), FR-10 (HTML), FR-10a, FR-11
   - `materias.extrair_html(html, casa_url)` → dict of `COLUNAS_FINAIS`
     fields; `COLUNAS_FINAIS` constant; value normalisation (dates
     `dd/mm/aaaa`, whitespace, `None` → `''`).
@@ -103,7 +103,7 @@ Rules for every task:
     `materia_sem_data`, `materia_sem_pdf` give empty fields;
     `Ultima Atualizacao` empty for HTML.
 
-- [ ] **T11 API extraction and lookups** — FR-10 (API), FR-10a, FR-10b
+- [x] **T11 API extraction and lookups** — FR-10 (API), FR-10a, FR-10b
   - `materias.extrair_api(json, casa_url, consultas)`; `Consultas` cache per
     house (tipo, regime, anexadas) through `ClienteSAPL`.
   - Tests: Rio Branco 34049 / 46496 and Cascavel 43301 mapped with lookup
@@ -112,7 +112,7 @@ Rules for every task:
     lookup → empty field + warning, matter still `ok`; cache: one request
     per distinct id; output has no `ip`/`user`.
 
-- [ ] **T12 Scraping one matter with source choice** — FR-8, FR-9, FR-10
+- [x] **T12 Scraping one matter with source choice** — FR-8, FR-9, FR-10
   - `materias.raspar_materia(chave, link, cliente, fontes, consultas)`:
     API first; switch house to `html` only on final 404 / non-JSON 200;
     errors after retries → `status = erro`, `erro` reason, not parsed;
@@ -123,14 +123,14 @@ Rules for every task:
 
 ## Phase E — State and stages
 
-- [ ] **T13 State file** — FR-18
+- [x] **T13 State file** — FR-18
   - `estado.py`: `Estado(caminho)`: `registrar(etapa, chave, status, erro)`
     (append + flush), `ultimo(etapa, chave)`, `pendentes(etapa, chaves)`,
     `contagens()`.
   - `tests/test_estado.py`: append/read; last row wins; truncated last line
     ignored; reopening the file keeps the history.
 
-- [ ] **T14 Search stage** — FR-7, FR-18
+- [x] **T14 Search stage** — FR-7, FR-18
   - `buscador.buscar(casas, palavras, cliente, estado, arquivo_cru)`:
     pages until 404; failed page → `incompleta`; raw pages appended as they
     arrive; skips searches already `completa`.
@@ -138,19 +138,19 @@ Rules for every task:
     404); persistent 429 → `incompleta` and next keyword continues; empty
     search; resume skips `completa`.
 
-- [ ] **T15 Matters stage** — FR-9, FR-14 (via dedup), FR-18, FR-19
+- [x] **T15 Matters stage** — FR-9, FR-14 (via dedup), FR-18, FR-19
   - `materias.raspar_todas(links, cliente, estado, arquivo_materias)`:
     data row flushed **before** the state row; only keys not `ok`.
   - Tests: rows appended per matter; resume skips `ok`, retries `erro` and
     unattempted; a data row without a state row is redone.
 
-- [ ] **T16 Final table** — FR-9, NFR-2
+- [x] **T16 Final table** — FR-9, NFR-2
   - `tratamento_resultado.montar_final(arquivo_materias, links)` → latest
     row per key in `COLUNAS_FINAIS` order; label stripping removed.
   - `tests/test_tratamento.py`: column order; latest attempt wins;
     `Palavras` from the links file; `Assuntos`/`texto_integral` absent.
 
-- [ ] **T17 Downloads** — FR-14, FR-15, FR-16, FR-17
+- [x] **T17 Downloads** — FR-14, FR-15, FR-16, FR-17
   - `download_pdf.baixar_todos(final, pasta, cliente, estado)`:
     `<host>_<id>.pdf`, streamed via `.part` + rename, `sem_pdf`, skip
     existing `ok`; fills `arquivo_pdf` / `download_status`.
@@ -160,14 +160,14 @@ Rules for every task:
 
 ## Phase F — Projects, main flow, summary
 
-- [ ] **T18 Projects: create or reopen** — FR-19, FR-20, FR-24
+- [x] **T18 Projects: create or reopen** — FR-19, FR-20, FR-24
   - `gerenciador_projetos.py`: `abrir_ou_criar(nome, raiz, entrada)` with
     the resume / other-name menu; `config.json` save/load; `os.makedirs(...,
     exist_ok=True)` for download folders; remove unused helpers (FR-30).
   - `tests/test_projetos.py`: new project; existing → menu; "outro nome"
     loops; `config.json` round-trip; existing downloads folder OK.
 
-- [ ] **T19 `programa.py` main flow and update mode** — TR-1, FR-19, Q5
+- [x] **T19 `programa.py` main flow and update mode** — TR-1, FR-19, Q5
   - `main(entrada=input, cliente=None, raiz='.')`; runs only under
     `__main__`; new / resume / update modes wired to the stages; update
     mode outputs `_ATUALIZADO_<data>` files with their own state file.
@@ -175,14 +175,14 @@ Rules for every task:
     answers drive a new project through a fake house; update mode writes
     the `_ATUALIZADO_` files.
 
-- [ ] **T20 Final summary** — FR-26
+- [x] **T20 Final summary** — FR-26
   - `registro.resumo(estado, caminhos)` → text with every count of FR-26 and
     the retry hint when there are failures; printed and logged at the end of
     `main`.
   - `tests/test_registro.py` (summary part): counts from a known state file;
     hint present only with failures; correct after a resume.
 
-- [ ] **T21 End-to-end test** — TR-9, acceptance 1, 4, 5 (offline version)
+- [x] **T21 End-to-end test** — TR-9, acceptance 1, 4, 5 (offline version)
   - `tests/test_ponta_a_ponta.py`: two fake houses (API / HTML-only),
     scripted 429s and one permanent failure, downloads on. Assert final
     CSV (no empty `ok` rows, no duplicate keys, `Palavras`), state, PDFs,
@@ -192,29 +192,29 @@ Rules for every task:
 
 ## Phase G — Authors script, clean-up, docs
 
-- [ ] **T22 Authors and procedure script** — FR-27, FR-28, FR-29
+- [x] **T22 Authors and procedure script** — FR-27, FR-28, FR-29
   - `autoria_e_tramit.py`: `main(pasta, entrada, cliente)`; choose CSV from
     a list; output `<entrada>_autoria_tramitacao.csv`; parse by header
     names; `Tramite` as text; `status_autoria`, `status_tramitacao`, `erro`.
   - `tests/test_autoria.py`: real autoria/tramitação fixtures parsed;
     chosen file read and input untouched; failure recorded.
 
-- [ ] **T23 Clean-up** — FR-30
+- [x] **T23 Clean-up** — FR-30
   - Remove `testes.py` and any remaining dead code; no direct
     `requests.get` left (`grep` check as a test:
     `tests/test_sem_requests_direto.py`).
 
-- [ ] **T24 Docs** — NFR-5
+- [x] **T24 Docs** — NFR-5
   - README: new columns, `fonte`/`status`, resume, log, summary, how to run
     tests, CI badge, remove the "known problem" warning. ROADMAP: tick the
     items done. Constitution/tech-stack untouched unless something changed.
 
 ## Phase H — Validation
 
-- [ ] **T25 Update `validation.md`** — it was written before implementation;
+- [x] **T25 Update `validation.md`** — it was written before implementation;
   align commands, prompt answers, file names, column names and the log
   regex (§2.2) with what was built.
-- [ ] **T26 Run validation**, record results in `validation.md`, fix what
+- [x] **T26 Run validation**, record results in `validation.md`, fix what
   fails (new tasks if needed), then merge the branch into `main`.
 
 ## Traceability (TR-10)

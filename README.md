@@ -228,8 +228,8 @@ pasta por mudança).
 
 ## Licença
 
-Copyright (C) 2023–2026 Leonardo Nogueira Aucar. Concepção e revisão: Renata e
-Fernanda. Veja [AUTHORS.md](AUTHORS.md).
+Copyright (C) 2023–2026 Leonardo Nogueira Aucar. Concepção e revisão: Renata
+Aquino e Fernanda Moura. Veja [AUTHORS.md](AUTHORS.md).
 
 Este programa é software livre: você pode usá-lo, estudá-lo, modificá-lo e
 redistribuí-lo nos termos da **GNU Affero General Public License, versão 3**

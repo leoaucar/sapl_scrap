@@ -150,7 +150,7 @@ Rules for every task:
   - `tests/test_tratamento.py`: column order; latest attempt wins;
     `Palavras` from the links file; `Assuntos`/`texto_integral` absent.
 
-- [ ] **T17 Downloads** — FR-14, FR-15, FR-16, FR-17
+- [x] **T17 Downloads** — FR-14, FR-15, FR-16, FR-17
   - `download_pdf.baixar_todos(final, pasta, cliente, estado)`:
     `<host>_<id>.pdf`, streamed via `.part` + rename, `sem_pdf`, skip
     existing `ok`; fills `arquivo_pdf` / `download_status`.

@@ -168,6 +168,40 @@ pela casa com mais matérias, algo como **30–60 min**, em vez de 10–20 h.
 - [ ] `UPSERT` para atualizar matérias sem duplicar
 - [ ] Manter a exportação para CSV/Excel a partir do banco
 
+### Fase 3b: Sugestão de palavras-chave
+A pessoa descreve o tema ou dá algumas palavras, e o programa sugere variações
+e termos relacionados. Vem depois da Fase 3 porque a abordagem principal
+aprende com as matérias já coletadas no banco.
+
+**Spec principal (sem dependências pesadas, tudo offline):**
+- [ ] **Variações de grafia:** plurais, com e sem acento, com hífen e com
+      espaço, erros de digitação comuns (a própria lista atual tem
+      "politico-partidario" / "politico partidario" e o erro
+      "aparellhamento"). Python puro + stemmer RSLP do NLTK para português.
+- [ ] **Aprender com os dados coletados:** a partir de `Ementa` e
+      `Indexacao` das matérias no banco, sugerir termos que aparecem junto
+      com as palavras da pessoa (TF-IDF ou contagem de coocorrência, com
+      scikit-learn). Usa o vocabulário real das casas legislativas.
+- [ ] **Revisão obrigatória:** a pessoa revisa e edita a lista antes da
+      busca. Cada termo a mais multiplica as buscas, e todas contam no
+      limite de 35 requisições/min de cada site.
+- [ ] **Teste rápido de cada termo:** uma página de busca em poucas casas,
+      mostrando quantos resultados cada termo traz, para descartar cedo os
+      termos inúteis.
+
+**Opções para specs futuras (plugins opcionais):**
+- [ ] **Embeddings locais** (`sentence-transformers` com modelo
+      multilíngue, offline): entende o sentido ("escola sem partido" perto
+      de "doutrinação ideológica"). Contra: download de centenas de MB e
+      instalação mais pesada.
+- [ ] **LLM por API** (ex.: Claude): o melhor encaixe para "a pessoa
+      descreve o que quer → lista de termos". Contra: serviço externo, com
+      chave de API, custo e necessidade de internet, num software livre que
+      pesquisadores rodam por conta própria.
+- (Avaliado e deixado de lado por ora: dicionário de sinônimos
+  OpenWordnet-PT, que traz sinônimos da língua geral, não do jargão
+  legislativo.)
+
 ### Fase 4: Configuração e execução em nuvem
 - [ ] Trocar as perguntas interativas por **configuração em arquivo**
       (`config.yaml`) e **linha de comando** (`argparse`), mantendo o modo

@@ -199,7 +199,7 @@ Rules for every task:
   - `tests/test_autoria.py`: real autoria/tramitação fixtures parsed;
     chosen file read and input untouched; failure recorded.
 
-- [ ] **T23 Clean-up** — FR-30
+- [x] **T23 Clean-up** — FR-30
   - Remove `testes.py` and any remaining dead code; no direct
     `requests.get` left (`grep` check as a test:
     `tests/test_sem_requests_direto.py`).

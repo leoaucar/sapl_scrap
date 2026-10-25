@@ -47,7 +47,7 @@ Rules for every task:
   - `tests/test_registro.py`: both handlers, levels, file created, no
     duplicate handlers.
 
-- [ ] **T05 HTTP client: limiter** — FR-1, FR-2, TR-2
+- [x] **T05 HTTP client: limiter** — FR-1, FR-2, TR-2
   - `http_sapl.py`: `ClienteSAPL`, `Resposta`, `LIMITE_POR_MINUTO`,
     sliding window per host with injected clock/sleep.
   - `tests/test_http_sapl.py`: 35 requests pass without sleeping; the 36th
@@ -55,7 +55,7 @@ Rules for every task:
     changing the constant changes the behaviour; default timeouts passed to
     the session.
 
-- [ ] **T06 HTTP client: retries and failures** — FR-3, FR-4, FR-5, FR-25a
+- [x] **T06 HTTP client: retries and failures** — FR-3, FR-4, FR-5, FR-25a
   - 429 + `Retry-After` (seconds), default 60, cap 300, host-wide block;
     5xx/timeout/connection backoff 5/15/45 s; `max_tentativas`; reasons
     `HTTP <n>` / `timeout` / `conexao`; 404 and 4xx not retried; DEBUG line

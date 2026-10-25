@@ -211,7 +211,7 @@ Rules for every task:
 
 ## Phase H — Validation
 
-- [ ] **T25 Update `validation.md`** — it was written before implementation;
+- [x] **T25 Update `validation.md`** — it was written before implementation;
   align commands, prompt answers, file names, column names and the log
   regex (§2.2) with what was built.
 - [ ] **T26 Run validation**, record results in `validation.md`, fix what

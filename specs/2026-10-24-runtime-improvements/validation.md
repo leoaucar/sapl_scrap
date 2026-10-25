@@ -21,7 +21,7 @@ has been turned into a new task, fixed and re-checked.
 | 0.3 | Fresh venv: `python3 -m venv .venv-val && source .venv-val/bin/activate && pip install -r requirements-dev.txt` works | |
 | 0.4 | `pytest` passes offline in < 30 s (AC 7); note the time and coverage % | time: ___ s · coverage: ___ % |
 | 0.5 | Every FR in the traceability table of `tasks.md` has its tests present (AC 8) | |
-| 0.6 | `grep -rn "requests.get" --include=*.py . | grep -v tests/` returns nothing | |
+| 0.6 | `tests/test_sem_requests_direto.py` passes (no direct `requests` calls outside `http_sapl.py`) | |
 
 ## 1. Runs
 
@@ -34,9 +34,10 @@ lei orgânica
 orçamento, emenda impositiva
 ```
 
-Keep the terminal output of each run (`python programa.py 2>&1 | tee run_X.txt`
-does not work well with prompts; copy the final summary by hand instead).
-The log file in the project folder is the main evidence.
+The log file `<nome>_proj/<nome>.log` is the main evidence (the final summary
+is in it too). Prompt order, for reference: (1) only update? (2) project name
+(3) reuse house table? — only if `arquivos_csv/casas_resultado.csv` exists
+(4) Sul/Sudeste? (5) limit (6) downloads?
 
 | Run | Project | Houses | Keywords | Downloads | Purpose | Expected time |
 |---|---|---|---|---|---|---|
@@ -48,15 +49,17 @@ The log file in the project folder is the main evidence.
 
 ### 1.1 Run A — trustworthy full run
 
-Answers: `1` (reuse table) · `2` (new project) · name `val_a` · `2` (no
+Answers: `2` (not update) · `val_a` · `1` (reuse table) · `2` (no
 Sul/Sudeste) · `4` (10 houses) · `2` (no downloads).
 
 ### 1.2 Run B — interrupt and resume
 
 1. Same answers as A, name `val_b`.
-2. When the log shows the matters stage at roughly half (e.g. 600 matters
-   done), press **Ctrl+C**.
-3. Run `python programa.py` again, type `val_b`, choose `1- retomar`.
+2. When the log shows the matters stage at roughly half (e.g. "Matéria 600
+   de …"), press **Ctrl+C**. Expected: a short message telling how to resume,
+   no traceback.
+3. Run `python programa.py` again: `2` · `val_b` · `1` (retomar). No other
+   question should appear.
 4. Let it finish.
 
 ### 1.3 Run C — other houses and downloads
@@ -67,20 +70,21 @@ Sul/Sudeste) · `4` (10 houses) · `2` (no downloads).
    fallback). Record it: `__________________`.
 2. Put only `emenda impositiva` in the keywords file (keep a copy of the
    original).
-3. Temporarily reduce the house table to the two houses (keep a copy), or
-   use the limit option that selects them. Record how: `__________`.
-4. Answers: new project `val_c`, downloads `1`.
+3. Temporarily reduce `arquivos_csv/casas_resultado.csv` to the header and
+   those two houses (keep a copy of the file).
+4. Answers: `2` · `val_c` · `1` (reuse table) · `2` · `1` (all) · `1`
+   (downloads).
 5. Restore the keywords file and the house table afterwards.
 
 ### 1.4 Run D — update mode
 
-`python programa.py` → `2`/`1` as needed → "apenas atualizar" `1` → `val_c`
-→ downloads `1`.
+`python programa.py` → `1` (only update) · `val_c` · `1` (downloads).
 
 ### 1.5 Run E — authors and procedure
 
 Copy `val_c_proj/val_c_resultado_final.csv` to `autoria_e_tramitacao/`,
-`cd autoria_e_tramitacao && python autoria_e_tramit.py`, choose that file.
+`cd autoria_e_tramitacao && python autoria_e_tramit.py`, choose that file by
+its number. Output: `val_c_resultado_final_autoria_tramitacao.csv`.
 
 ## 2. Checks
 
@@ -109,18 +113,22 @@ print(df[df.status == 'erro'].erro.value_counts())
 ### 2.2 Rate limit respected — AC 2 (runs A and C)
 
 Count requests per host in any 60-second window from the DEBUG lines of the
-HTTP client (adjust the regex to the final log format, T25):
+HTTP client. Line format:
+`2026-10-24 10:00:00,123 DEBUG sapl_scrap.http <host> | <url> | <status ou erro> | tentativa <n> | espera <s>`
 
 ```python
 import re, collections, datetime as dt
 linhas = open('val_a_proj/val_a.log', encoding='utf-8').read().splitlines()
-pat = re.compile(r'^(\S+ \S+).*?\| (\S+) \| https?://')   # "<data hora> ... | host | url ..."
+pat = re.compile(r'^(\S+ \S+) DEBUG sapl_scrap\.http (\S+) \| \S+ \| (\S+) \| tentativa')
 por_host = collections.defaultdict(list)
+status = collections.Counter()
 for l in linhas:
     m = pat.match(l)
     if m:
         t = dt.datetime.strptime(m.group(1)[:19], '%Y-%m-%d %H:%M:%S')
         por_host[m.group(2)].append(t)
+        status[m.group(3)] += 1
+print(status)                                     # 429 count, timeouts...
 for host, ts in por_host.items():
     ts.sort(); i = 0; pico = 0
     for j, t in enumerate(ts):
@@ -149,6 +157,7 @@ print(df.fonte.value_counts())
 | `Data` filled | ≈ 100 % of `ok` rows (every page inspected had a date) | |
 | `texto_original` filled for Rio Branco | clearly higher than in the 2026-10-15 run (bug fix) | |
 | `Assuntos`, `texto_integral` columns | absent | |
+| `Materia Anexada`, `Regime Tramitacao`, `Ultima Atualizacao` (api rows) | filled where the site has them | |
 | `fonte` | `api` for the Acre houses; record any `html` house | |
 | Spot check: open 5 random `ok` rows in the browser and compare Título, Ementa, Data, Tipo, PDF link | all match | |
 | No `ip` / `user` columns or values in the output | none | |
@@ -236,7 +245,8 @@ print('empty files:', [a for a in arqs if os.path.getsize(os.path.join(pasta, a)
 | Script lists the CSVs and asks which one | yes | |
 | Input file unchanged; new `<entrada>_autoria_tramitacao.csv` written | yes | |
 | `Autoria` and `Tramite` filled; `Tramite` is text (`data \| local \| destino \| status`) | yes | |
-| Failures in status columns, rate limit respected in its output/log | yes | |
+| Failures in `status_autoria` / `status_tramitacao` / `erro_autoria_tramitacao` | yes | |
+| Rate limit respected (§2.2 on `autoria_e_tramitacao/autoria_tramitacao.log`) | ≤ 35 per host per 60 s | |
 
 ### 2.10 Prompts and project handling — AC 6
 
@@ -244,7 +254,7 @@ print('empty files:', [a for a in arqs if os.path.getsize(os.path.join(pasta, a)
 |---|---|---|
 | Each prompt: type `x`, empty, `9` → asked again, no crash | yes, for every prompt | |
 | Limit menu rejects `5` | yes | |
-| "50 últimas casas" selects 50 (check count in log/summary) | 50 | |
+| "50 últimas casas" selects 50 (new project with reuse `1`, limit `3`, then Ctrl+C after the first search; `wc -l <proj>/casas_resultado.csv` = 51) | 50 | |
 | Sul/Sudeste `1` with reused table → only RJ, SP, RS, SC, MG, ES, PR houses searched | yes | |
 | New project with existing name → resume / other name, never overwritten | yes | |
 | Ctrl+C at a prompt exits cleanly (no traceback flood) | yes | |

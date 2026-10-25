@@ -20,3 +20,16 @@ arquivos_csv/teste_raspagem.csv
 .idea/
 .DS_Store
 ~$*.xlsx
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs de execução
+*.log
+
+# Arquivos do Claude Code (locais, fora do repositório)
+.claude/
+CLAUDE.md
+CLAUDE.local.md

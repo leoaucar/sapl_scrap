@@ -1,0 +1,16 @@
+{
+  "id": 145,
+  "__str__": "Zé Lopes",
+  "link_detail_backend": "/sistema/autor/145",
+  "metadata": {},
+  "autor_related": {
+    "value": 184,
+    "text": "Zé Lopes"
+  },
+  "object_id": 184,
+  "nome": "Zé Lopes",
+  "cargo": "",
+  "tipo": 1,
+  "content_type": 1,
+  "operadores": null
+}

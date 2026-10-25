@@ -147,3 +147,20 @@ O arquivo é sobrescrito com as novas colunas.
 | `tratamento_resultado.py` | Renomeia colunas e limpa os textos raspados               |
 | `download_pdf.py`         | Baixa os PDFs dos textos originais                        |
 | `testes.py`               | Testes manuais de raspagem e de palavras-chave            |
+
+## Licença
+
+Copyright (C) 2023–2026 Leonardo Nogueira Aucar. Concepção e revisão: Renata e
+Fernanda. Veja [AUTHORS.md](AUTHORS.md).
+
+Este programa é software livre: você pode usá-lo, estudá-lo, modificá-lo e
+redistribuí-lo nos termos da **GNU Affero General Public License, versão 3**
+(veja [LICENSE](LICENSE)). Versões modificadas, inclusive as oferecidas como
+serviço pela rede, devem continuar livres sob a mesma licença.
+
+Termo adicional (seção 7, alínea b, da AGPL-3.0): cópias e versões modificadas
+devem preservar o aviso de copyright e os créditos de autoria de
+[AUTHORS.md](AUTHORS.md).
+
+Se você usar o programa ou os dados produzidos com ele em pesquisas ou
+publicações, pedimos que o cite como indicado em [AUTHORS.md](AUTHORS.md).

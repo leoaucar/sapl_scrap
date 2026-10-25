@@ -109,6 +109,22 @@ Resolver antes de qualquer outra coisa, porque hoje uma execução completa
 - [ ] Logging (`logging`) em vez de `print`, com um arquivo de log por projeto
 - [ ] Retomar uma execução interrompida (pular matérias já raspadas)
 
+### Fase 1b: Organização geral do código
+Próxima spec depois das melhorias de execução (Fase 1). A Fase 1 só reorganiza
+o necessário para testar; esta fase arruma a estrutura antes do paralelismo.
+
+- [ ] Transformar o projeto em um pacote Python (`sapl_scrap/`) com
+      `pyproject.toml`, separando camadas: HTTP, busca, matérias (API/HTML),
+      downloads, estado/projeto, interface (perguntas)
+- [ ] Um único ponto de entrada (`python -m sapl_scrap`), mantendo
+      `programa.py` como atalho
+- [ ] Trazer `autoria_e_tramitacao/` para dentro do pacote
+- [ ] Nomes consistentes (funções, colunas, arquivos de saída) e um único
+      lugar para definir as colunas do resultado
+- [ ] Tipagem (type hints) e docstrings nas funções públicas
+- [ ] Formatação e lint automáticos (`ruff`) rodando também no CI
+- [ ] Remover código morto e comentários desatualizados que sobrarem
+
 ### Fase 2: Velocidade (paralelismo)
 O limite é **por site**, então o ganho vem de **processar várias casas ao mesmo
 tempo**, nunca de acelerar dentro da mesma casa.

@@ -1,0 +1,26 @@
+{
+  "pagination": {
+    "links": {
+      "next": null,
+      "previous": null
+    },
+    "previous_page": null,
+    "next_page": null,
+    "start_index": 1,
+    "end_index": 1,
+    "total_entries": 1,
+    "total_pages": 1,
+    "page": 1
+  },
+  "results": [
+    {
+      "id": 34013,
+      "__str__": "Autoria: Zé Lopes - Projeto de Lei Ordinária nº 89 de 2025",
+      "link_detail_backend": "/materia/autoria/34013",
+      "metadata": {},
+      "primeiro_autor": true,
+      "autor": 145,
+      "materia": 34049
+    }
+  ]
+}

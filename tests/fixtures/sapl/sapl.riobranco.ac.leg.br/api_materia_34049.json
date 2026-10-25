@@ -1,0 +1,54 @@
+{
+  "id": 34049,
+  "__str__": "Projeto de Lei Ordinária nº 89 de 2025",
+  "link_detail_backend": "/materia/34049",
+  "metadata": {
+    "signs": {
+      "texto_original": {
+        "admin": [],
+        "autores": [
+          [
+            "Jose Lopes Junior",
+            [
+              "2025-07-01T15:48:45-05:00",
+              "ICP-Brasil"
+            ]
+          ]
+        ]
+      }
+    }
+  },
+  "numero": 89,
+  "ano": 2025,
+  "numero_protocolo": 6078,
+  "data_apresentacao": "2025-07-02",
+  "tipo_apresentacao": "",
+  "data_publicacao": null,
+  "numero_origem_externa": "",
+  "ano_origem_externa": null,
+  "data_origem_externa": null,
+  "apelido": "",
+  "dias_prazo": null,
+  "data_fim_prazo": null,
+  "em_tramitacao": true,
+  "polemica": false,
+  "objeto": "",
+  "complementar": false,
+  "ementa": "PL: Minha casa, Minha Vida - Cidades\r\nInstitui a Política Municipal de Habitação de Interesse\r\nSocial, regulamenta a adesão ao Programa Minha\r\nCasa Minha Vida Cidades no âmbito do Município de\r\nRio Branco – Acre.",
+  "indexacao": "",
+  "observacao": "",
+  "resultado": "",
+  "texto_original": "http://sapl.riobranco.ac.leg.br/media/sapl/public/materialegislativa/2025/34049/projeto_de_lei_-_politica_municipal_de_habitacao_de_interesse_social_-_assinado.pdf",
+  "data_ultima_atualizacao": "2026-09-21T13:25:49.124190-03:00",
+  "ip": null,
+  "ultima_edicao": null,
+  "tipo": 1,
+  "regime_tramitacao": 1,
+  "tipo_origem_externa": null,
+  "local_origem_externa": null,
+  "user": null,
+  "anexadas": [],
+  "autores": [
+    145
+  ]
+}

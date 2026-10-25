@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="pt-br"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="pt-br">
+<!--<![endif]-->
+
+  <head>
+    <meta charset="utf-8">
+    <title>SAPL - Assembleia Legislativa do Estado do Acre</title>
+    <script type="application/ld+json">
+    {
+      "@context" : "https://schema.org",
+      "@type" : "WebSite",
+      "name" : "Assembleia Legislativa do Estado do Acre",
+      "url" : "http://10.42.52.254:80"
+    }
+  </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#343a40">
+
+    
+      <link rel="icon" href="/static/sapl/frontend/img/favicon.ico"  type="image/png">
+      
+        
+        <link href="/static/sapl/frontend/css/chunk-vendors.045ec640.css" rel="stylesheet" />
+<link href="/static/sapl/frontend/css/global.042f6737.css" rel="stylesheet" />
+      
+
+      
+      
+
+    
+  </head>
+
+  <body>
+    <div class="page fadein">
+
+      
+        <div class="info-atualizacao hidden-print" style="background-color:#0d2b45;color:#fff;text-align:center;padding:6px 12px;font-size:14px;font-weight:600;">
+          Informações foram atualizadas em
+          05/11/2025
+        </div>
+      
+
+      
+        
+          
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+              <div class="container">
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarNav">
+
+                   
+
+
+  <ul class="navbar-nav">
+    
+      
+        
+          <li class="nav-item"><a class="nav-link" href="/">Início</a></li>
+        
+      
+    
+      
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle"href="#fakeLink"  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            Institucional
+             <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            
+                
+                  <li class="dropdown-item"><a href="/mesa-diretora/">Mesa Diretora</a></li>
+                
+            
+                
+                  <li class="dropdown-item"><a href="/sistema/bancada/">Bancadas Parlamentares</a></li>
+                
+            
+                
+                  <li class="dropdown-item"><a href="/sistema/bloco/">Blocos Parlamentares</a></li>
+                
+            
+                
+                  <li class="dropdown-item"><a href="/comissao/">Comissões</a></li>
+                
+            
+                
+                  <li class="dropdown-item"><a href="/sistema/frente/">Frentes</a></li>
+                
+            
+                
+                  <li class="dropdown-item"><a href="/parlamentar/">Parlamentares</a></li>
+                
+            
+                
+                  <li class="dropdown-item"><a href="/audiencia/">Audiências Públicas</a></li>
+                
+            
+          </ul>
+        </li>
+      
+    
+      
+        
+      
+    
+      
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle"href="#fakeLink"  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            Documentos Administrativos
+             <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            
+                
+                  <li class="dropdown-item"><a href="/docadm/pesq-doc-adm">Pesquisar Documentos Administrativos</a></li>
+                
+            
+                
+            
+          </ul>
+        </li>
+      
+    
+      
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle"href="#fakeLink"  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            Atividade Legislativa
+             <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            
+                
+            
+                
+            
+                
+                  <li class="dropdown-item"><a href="/materia/pesquisar-materia">Matérias Legislativas</a></li>
+                
+            
+                
+                  <li class="dropdown-item"><a href="/sessao/pauta-sessao">Pautas das Sessões</a></li>
+                
+            
+                
+            
+                
+                  <li class="dropdown-item"><a href="/sistema/relatorios/">Relatórios</a></li>
+                
+            
+                
+                  <li class="dropdown-item"><a href="/sessao/pesquisar-sessao">Sessões Plenárias</a></li>
+                
+            
+                
+            
+                
+            
+          </ul>
+        </li>
+      
+    
+      
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle"href="#fakeLink"  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+            Normas Jurídicas
+             <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu" role="menu">
+            
+                
+                  <li class="dropdown-item"><a href="/norma/pesquisar">Pesquisar Normas Jurídicas</a></li>
+                
+            
+                
+            
+                
+            
+                
+            
+                
+            
+          </ul>
+        </li>
+      
+    
+      
+        
+      
+    
+  </ul>
+
+ 
+
+                  <ul class="nav navbar-nav justify-content-end" id="autenticacao">
+                    <li class="nav-item dropdown pesquisa">
+                      <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="/static/sapl/frontend/img/search.png"><span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                          <li class="dropdown-item">
+                            <form id="formulario-lexml" class="navbar-form search-form" method="get" action="">
+                              <input id="input-lexml" type="text" class="form-control" placeholder="Pesquisar no LexML" />
+                            </form>
+                          </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link"href="/sistema/ajuda"><img src="/static/sapl/frontend/img/manual.png"></a></li>
+                    
+                      <li class="nav-item"><a class="nav-link" href="/login/"><img src="/static/sapl/frontend/img/user.png"></a></li>
+                    
+                  </ul>
+
+                </div><!--/.nav-collapse -->
+              </div>
+            </nav>
+          
+        
+      
+      
+        
+        
+        <header class="masthead">
+          <div class="container">
+            <div class="navbar-header">
+              <a class="navbar-brand" href="/">
+                <img src="/media/sapl/public/casa/logotipo/logo_casa.png"
+                alt="Logo" class="img-responsive" >
+                <span class="vcenter">Assembleia Legislativa do Estado do Acre
+                  <br/><small>Sistema de Apoio ao Processo Legislativo</small>
+                </span>
+              </a>
+            </div>
+            <div class="hidden-print">
+               
+
+
+ 
+<ul class="nav nav-pills justify-content-end">
+  
+    
+      
+        <li class="nav-item active"><a class="nav-link active" href="/materia/17764">Início</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/anexada">Anexada</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/materiaassunto">Assunto</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/autoria">Autoria</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/despachoinicial">Despacho Inicial</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/documentoacessorio">Documento Acessório</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/legislacaocitada">Legislação Citada</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/numeracao">Numeração</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/tramitacao">Tramitação</a></li>
+      
+    
+  
+    
+      
+        <li class="nav-item "><a class="nav-link " href="/materia/17764/relatoria">Relatoria</a></li>
+      
+    
+  
+</ul>
+
+ 
+            </div>
+          </div>
+        </header>
+        
+      
+
+      
+      
+        <main id="content" class="content page__row">
+          <div class="container">
+
+            
+            
+
+            
+            
+              <div class="clearfix">
+
+                
+
+
+
+                
+
+                
+                  <h1 class="page-header">
+                    
+                      Moção nº 41 de 2025
+                    
+                  </h1>
+                
+
+              </div>
+            
+
+            
+            <div id="app"></div>
+
+            
+            
+
+  <div class="context-actions clearfix">
+    
+      
+    
+        <div class="actions btn-group btn-group-sm" role="group">
+          
+          
+            <a href="/materia/pesquisar-materia" class="btn btn-outline-primary">Fazer Nova Pesquisa</a>
+          
+          
+        </div>
+          
+      
+    
+
+
+      
+      
+
+      <div class="editons float-right">
+        
+  
+          
+        
+  <a href="/relatorios/17764/etiqueta-materia-legislativa" class="btn btn-outline-primary">Etiqueta</a>
+
+      </div>
+
+    
+  </div>
+
+  <div class="container-detail clearfix">
+    
+    
+      
+        <h2 class="legend">Identificação Básica</h2>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_tipo" class="form-group">
+                    <p class="control-label">Tipo de Matéria Legislativa</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">Moção</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_ano" class="form-group">
+                    <p class="control-label">Ano</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">2025</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_numero" class="form-group">
+                    <p class="control-label">Número</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">41</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_data_apresentacao" class="form-group">
+                    <p class="control-label">Data de Apresentação</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">23/09/2025</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_numero_protocolo" class="form-group">
+                    <p class="control-label">Número do Protocolo</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_tipo_apresentacao" class="form-group">
+                    <p class="control-label">Tipo de Apresentação</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">Escrita</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-12">
+                  <div id="div_id_texto_original" class="form-group">
+                    <p class="control-label">Texto Original</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static"><a href="/media/sapl/public/materialegislativa/2025/17764/moc-n-41-tanizio_sa.pdf">moc-n-41-tanizio_sa.pdf</a></div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-12">
+                  <div id="div_id_numeracao_set" class="form-group">
+                    <p class="control-label">Numeração</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static"><ul><li>41/2025</li></ul></div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+            
+          </div>
+        
+      
+        <h2 class="legend">Outras Informações</h2>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_apelido" class="form-group">
+                    <p class="control-label">Apelido</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_dias_prazo" class="form-group">
+                    <p class="control-label">Dias Prazo</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_polemica" class="form-group">
+                    <p class="control-label">Matéria Polêmica?</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">Não</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_objeto" class="form-group">
+                    <p class="control-label">Objeto</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_regime_tramitacao" class="form-group">
+                    <p class="control-label">Regime Tramitação</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">Ordinária</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_em_tramitacao" class="form-group">
+                    <p class="control-label">Em Tramitação?</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">Sim</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_data_fim_prazo" class="form-group">
+                    <p class="control-label">Data Fim Prazo</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_data_publicacao" class="form-group">
+                    <p class="control-label">Data de Publicação</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_complementar" class="form-group">
+                    <p class="control-label">É Complementar?</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">Não</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+      
+        <h2 class="legend">Origem Externa</h2>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_tipo_origem_externa" class="form-group">
+                    <p class="control-label">Tipo</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_numero_origem_externa" class="form-group">
+                    <p class="control-label">Número</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-4">
+                  <div id="div_id_ano_origem_externa" class="form-group">
+                    <p class="control-label">Ano</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-6">
+                  <div id="div_id_local_origem_externa" class="form-group">
+                    <p class="control-label">Local de Origem</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+              
+                <div class="col-sm-6">
+                  <div id="div_id_data_origem_externa" class="form-group">
+                    <p class="control-label">Data</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static">&nbsp;</div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+      
+        <h2 class="legend">Dados Textuais</h2>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-12">
+                  <div id="div_id_ementa" class="form-group">
+                    <p class="control-label">Ementa</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static"><div class="dont-break-out">A Assembleia Legislativa do Estado do Acre, nos termos do Art. 172 da Resolução n° 86/90 - Regimento Interno desta Casa Legislativa, Moção de Aplauso ao Senhor Ricardo Augusto Mello de Araújo, Engenheiro Civil e de Segurança do Trabalho, em reconhecimento à sua notável trajetória profissional, marcada por décadas de dedicação à Engenharia, à Gestão Pública e ao fortalecimento das instituições de classe, tanto no Acre quanto em âmbito nacional.</div></div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-12">
+                  <div id="div_id_indexacao" class="form-group">
+                    <p class="control-label">Indexação</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static"><div class="dont-break-out"></div></div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+          <div class="row">
+            
+              
+                <div class="col-sm-12">
+                  <div id="div_id_observacao" class="form-group">
+                    <p class="control-label">Observação</p>
+                    <div class="controls">
+                      
+                        <div class="form-control-static"><div class="dont-break-out"></div></div>
+                      
+                    </div>
+                  </div>
+                </div>
+              
+            
+          </div>
+        
+      
+    
+    
+    
+      <strong>Data Votação:</strong>
+      
+        
+          <a href="/sessao/496/ordemdia">
+            22 de Outubro de 2025
+          </a>
+        
+        </br>
+      
+    
+
+    
+
+    
+
+    
+    
+
+
+    
+      <div class="container justify-content-end d-flex">
+        <div class="actions btn-group" role="group">
+          <a href="/api/materia/materialegislativa/17764?utc_time=1792888351" class="btn btn-sm btn-info py-0">
+            <small class="text-white">
+              OpenAPI
+            </small>
+          </a>
+        </div>
+      </div>
+    
+
+
+  </div>
+
+  
+    <div class="container-table">
+      
+        <p></p>
+      
+    </div>
+    
+  
+
+
+
+          </div>
+        </main>
+
+      
+
+      
+
+
+      
+      <footer id="footer" class="footer page__row hidden-print">
+        <div class="container">
+
+          <div class="row">
+            <div class="col-md-4">
+
+              <a class="footer__logo" href="#">
+                <a href="http://www.interlegis.leg.br/">
+                  <img src="/static/sapl/frontend/img/logo_interlegis.png" alt="Logo do Interlegis ">
+                </a>
+              </a>
+              <p>
+                <small>
+                  Desenvolvido pelo <a href="http://www.interlegis.leg.br/">Interlegis</a> em software livre e aberto.
+                </small>
+		<span>Release: 3.1.165-RC4</span>
+              </p>
+
+            </div>
+            <div class="col-md-4">
+              <a class="footer__logo" href="#">
+                <img src="/static/sapl/frontend/img/logo_cc.png" alt="Logo do Creative Commons BY SA">
+              </a>
+              <p>
+                <small>
+                  Conteúdo e dados sob licença <a href="https://creativecommons.org">Creative Commons</a> 4.0<br><a href="https://creativecommons.org/licenses/by/4.0/">Atribuir Fonte - Compartilhar Igual</a>
+                </small>
+              </p>
+            </div>
+            <div class="col-md-4">
+              
+              <address>
+                <small>
+                  <strong>
+                    <span class="org">Assembleia Legislativa do Estado do Acre</span>
+                  </strong>
+                  <br>
+                  <span class="street-address">RUA ARLINDO PORTO LEAL Nº 241</span>
+                  <br>
+                  CEP: <span class="postal-code">69900-904</span>
+                  |
+                  Telefone: <span>(68)3213-4000</span>
+                  <br>
+                  <small><a href="/api/schema/swagger-ui/">OpenAPI</a></small> |
+                  <a href="http://www.al.ac.leg.br" class="url">Site</a> |
+                  <a href="mailto:" class="email">Fale Conosco</a>
+                </small>
+              </address>
+              
+
+
+
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    
+
+    <div vw class="enabled btn-vlibras">
+      <div vw-access-button class="active"></div>
+      <div vw-plugin-wrapper>
+        <div class="vw-plugin-top-wrapper"></div>
+      </div>
+    </div>
+
+    
+
+      
+        
+        <script src="/static/sapl/frontend/js/chunk-vendors.f2d6067d.js" ></script>
+<script src="/static/sapl/frontend/js/global.d557d20c.js" ></script>
+      
+
+      
+      
+
+      
+  <div id="fb-root"></div>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.3"></script>
+
+
+      <script type="text/javascript" >
+        function inIframe () {
+          try {
+              return window.location !== window.parent.location
+          } catch (e) {
+              return true;
+          }
+        }
+        $(document).ready(function(){
+          let iframe_set_backend = false
+          if (iframe_set_backend && !inIframe() ) {
+            location.href = location.origin + '?iframe=0'
+          }
+
+          var form = document.getElementById("formulario-lexml");
+          $("#input-lexml").change(function(){
+            let value = $("#input-lexml").val();
+            let url = "/sistema/lexml/request_search/xxx/"
+            url = url.replace('xxx', value)
+            form.action = url;
+          });
+
+        });
+      </script>
+
+    
+      <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+      <script>
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+      </script>
+
+      
+    
+
+    
+  </body>
+</html>

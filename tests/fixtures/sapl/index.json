@@ -1,0 +1,464 @@
+[
+  {
+    "name": "sapl.riobranco.ac.leg.br/busca_p1.html",
+    "url": "https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q=\"plano+diretor\"",
+    "final_url": "https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q=%22plano+diretor%22",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:31:48",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/busca_vazia.html",
+    "url": "https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q=xyzqwkjhzzz",
+    "final_url": "https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q=xyzqwkjhzzz",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:31:50",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/busca_fim.html",
+    "url": "https://sapl.riobranco.ac.leg.br/sistema/search/?page=999&q=\"plano+diretor\"",
+    "final_url": "https://sapl.riobranco.ac.leg.br/sistema/search/?page=999&q=%22plano+diretor%22",
+    "status": 404,
+    "method": "GET",
+    "fetched": "2026-10-24T21:31:53",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_46496.html",
+    "url": "https://sapl.riobranco.ac.leg.br/materia/46496",
+    "final_url": "https://sapl.riobranco.ac.leg.br/materia/46496",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:31:56",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_46496_autoria.html",
+    "url": "https://sapl.riobranco.ac.leg.br/materia/46496/autoria",
+    "final_url": "https://sapl.riobranco.ac.leg.br/materia/46496/autoria",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:31:59",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_46496_tramitacao.html",
+    "url": "https://sapl.riobranco.ac.leg.br/materia/46496/tramitacao",
+    "final_url": "https://sapl.riobranco.ac.leg.br/materia/46496/tramitacao",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:02",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_46496_pdf",
+    "url": "https://sapl.riobranco.ac.leg.br/media/sapl/public/materialegislativa/2026/46496/oficio-572-2026_-_veto_parcial_1.pdf",
+    "final_url": "https://sapl.riobranco.ac.leg.br/media/sapl/public/materialegislativa/2026/46496/oficio-572-2026_-_veto_parcial_1.pdf",
+    "status": 200,
+    "method": "HEAD",
+    "fetched": "2026-10-24T21:32:04",
+    "headers": {
+      "Content-Type": "application/pdf",
+      "Content-Length": "102576518"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_34049.html",
+    "url": "https://sapl.riobranco.ac.leg.br/materia/34049",
+    "final_url": "https://sapl.riobranco.ac.leg.br/materia/34049",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:07",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_34049_autoria.html",
+    "url": "https://sapl.riobranco.ac.leg.br/materia/34049/autoria",
+    "final_url": "https://sapl.riobranco.ac.leg.br/materia/34049/autoria",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:10",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_34049_tramitacao.html",
+    "url": "https://sapl.riobranco.ac.leg.br/materia/34049/tramitacao",
+    "final_url": "https://sapl.riobranco.ac.leg.br/materia/34049/tramitacao",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:12",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_34049_pdf",
+    "url": "https://sapl.riobranco.ac.leg.br/media/sapl/public/materialegislativa/2025/34049/projeto_de_lei_-_politica_municipal_de_habitacao_de_interesse_social_-_assinado.pdf",
+    "final_url": "https://sapl.riobranco.ac.leg.br/media/sapl/public/materialegislativa/2025/34049/projeto_de_lei_-_politica_municipal_de_habitacao_de_interesse_social_-_assinado.pdf",
+    "status": 200,
+    "method": "HEAD",
+    "fetched": "2026-10-24T21:32:15",
+    "headers": {
+      "Content-Type": "application/pdf",
+      "Content-Length": "220225"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/busca_p1.html",
+    "url": "https://sapl.al.ac.leg.br/sistema/search/?page=1&q=\"plano+diretor\"",
+    "final_url": "https://sapl.al.ac.leg.br/sistema/search/?page=1&q=%22plano+diretor%22",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:23",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/busca_vazia.html",
+    "url": "https://sapl.al.ac.leg.br/sistema/search/?page=1&q=xyzqwkjhzzz",
+    "final_url": "https://sapl.al.ac.leg.br/sistema/search/?page=1&q=xyzqwkjhzzz",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:26",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/busca_fim.html",
+    "url": "https://sapl.al.ac.leg.br/sistema/search/?page=999&q=\"plano+diretor\"",
+    "final_url": "https://sapl.al.ac.leg.br/sistema/search/?page=999&q=%22plano+diretor%22",
+    "status": 404,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:28",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/materia_17764.html",
+    "url": "https://sapl.al.ac.leg.br/materia/17764",
+    "final_url": "https://sapl.al.ac.leg.br/materia/17764",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:31",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/materia_17764_autoria.html",
+    "url": "https://sapl.al.ac.leg.br/materia/17764/autoria",
+    "final_url": "https://sapl.al.ac.leg.br/materia/17764/autoria",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:34",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/materia_17764_tramitacao.html",
+    "url": "https://sapl.al.ac.leg.br/materia/17764/tramitacao",
+    "final_url": "https://sapl.al.ac.leg.br/materia/17764/tramitacao",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:36",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/materia_17764_pdf",
+    "url": "https://sapl.al.ac.leg.br/media/sapl/public/materialegislativa/2025/17764/moc-n-41-tanizio_sa.pdf",
+    "final_url": "https://sapl.al.ac.leg.br/media/sapl/public/materialegislativa/2025/17764/moc-n-41-tanizio_sa.pdf",
+    "status": 200,
+    "method": "HEAD",
+    "fetched": "2026-10-24T21:32:39",
+    "headers": {
+      "Content-Type": "application/pdf",
+      "Content-Length": "1203069"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/materia_15951.html",
+    "url": "https://sapl.al.ac.leg.br/materia/15951",
+    "final_url": "https://sapl.al.ac.leg.br/materia/15951",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:42",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/materia_15951_autoria.html",
+    "url": "https://sapl.al.ac.leg.br/materia/15951/autoria",
+    "final_url": "https://sapl.al.ac.leg.br/materia/15951/autoria",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:45",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/materia_15951_tramitacao.html",
+    "url": "https://sapl.al.ac.leg.br/materia/15951/tramitacao",
+    "final_url": "https://sapl.al.ac.leg.br/materia/15951/tramitacao",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:47",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.al.ac.leg.br/materia_15951_pdf",
+    "url": "https://sapl.al.ac.leg.br/media/sapl/public/materialegislativa/2024/15951/pl-n-103-pedro_longo.pdf",
+    "final_url": "https://sapl.al.ac.leg.br/media/sapl/public/materialegislativa/2024/15951/pl-n-103-pedro_longo.pdf",
+    "status": 200,
+    "method": "HEAD",
+    "fetched": "2026-10-24T21:32:50",
+    "headers": {
+      "Content-Type": "application/pdf",
+      "Content-Length": "800039"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/busca_p1.html",
+    "url": "https://sapl.cascavel.pr.leg.br/sistema/search/?page=1&q=\"plano+diretor\"",
+    "final_url": "https://sapl.cascavel.pr.leg.br/sistema/search/?page=1&q=%22plano+diretor%22",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:54",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/busca_vazia.html",
+    "url": "https://sapl.cascavel.pr.leg.br/sistema/search/?page=1&q=xyzqwkjhzzz",
+    "final_url": "https://sapl.cascavel.pr.leg.br/sistema/search/?page=1&q=xyzqwkjhzzz",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:56",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/busca_fim.html",
+    "url": "https://sapl.cascavel.pr.leg.br/sistema/search/?page=999&q=\"plano+diretor\"",
+    "final_url": "https://sapl.cascavel.pr.leg.br/sistema/search/?page=999&q=%22plano+diretor%22",
+    "status": 404,
+    "method": "GET",
+    "fetched": "2026-10-24T21:32:59",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/materia_38415.html",
+    "url": "https://sapl.cascavel.pr.leg.br/materia/38415",
+    "final_url": "https://sapl.cascavel.pr.leg.br/materia/38415",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:33:02",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/materia_38415_autoria.html",
+    "url": "https://sapl.cascavel.pr.leg.br/materia/38415/autoria",
+    "final_url": "https://sapl.cascavel.pr.leg.br/materia/38415/autoria",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:33:04",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/materia_38415_tramitacao.html",
+    "url": "https://sapl.cascavel.pr.leg.br/materia/38415/tramitacao",
+    "final_url": "https://sapl.cascavel.pr.leg.br/materia/38415/tramitacao",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:33:07",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/materia_38415_pdf",
+    "url": "https://sapl.cascavel.pr.leg.br/media/sapl/public/materialegislativa/2025/38415/req_683_2025.pdf",
+    "final_url": "https://sapl.cascavel.pr.leg.br/media/sapl/public/materialegislativa/2025/38415/req_683_2025.pdf",
+    "status": 200,
+    "method": "HEAD",
+    "fetched": "2026-10-24T21:33:10",
+    "headers": {
+      "Content-Type": "application/pdf",
+      "Content-Length": "1417775"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/materia_43301.html",
+    "url": "https://sapl.cascavel.pr.leg.br/materia/43301",
+    "final_url": "https://sapl.cascavel.pr.leg.br/materia/43301",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:33:12",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/materia_43301_autoria.html",
+    "url": "https://sapl.cascavel.pr.leg.br/materia/43301/autoria",
+    "final_url": "https://sapl.cascavel.pr.leg.br/materia/43301/autoria",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:33:15",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/materia_43301_tramitacao.html",
+    "url": "https://sapl.cascavel.pr.leg.br/materia/43301/tramitacao",
+    "final_url": "https://sapl.cascavel.pr.leg.br/materia/43301/tramitacao",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:33:18",
+    "headers": {
+      "Content-Type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/materia_43301_pdf",
+    "url": "https://sapl.cascavel.pr.leg.br/media/sapl/public/materialegislativa/2026/43301/pl_178_2026.pdf",
+    "final_url": "https://sapl.cascavel.pr.leg.br/media/sapl/public/materialegislativa/2026/43301/pl_178_2026.pdf",
+    "status": 200,
+    "method": "HEAD",
+    "fetched": "2026-10-24T21:33:20",
+    "headers": {
+      "Content-Type": "application/pdf",
+      "Content-Length": "80080125"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/api_materia_34049.json",
+    "url": "https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/34049",
+    "final_url": "https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/34049/",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:35:15",
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  {
+    "name": "sapl.cascavel.pr.leg.br/api_materia_43301.json",
+    "url": "https://sapl.cascavel.pr.leg.br/api/materia/materialegislativa/43301",
+    "final_url": "https://sapl.cascavel.pr.leg.br/api/materia/materialegislativa/43301/",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:35:19",
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/materia_34049_assunto.html",
+    "url": "https://sapl.riobranco.ac.leg.br/materia/34049/materiaassunto",
+    "final_url": "https://sapl.riobranco.ac.leg.br/materia/34049/materiaassunto",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:35:22",
+    "headers": {
+      "content-type": "text/html; charset=utf-8"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/api_materia_46496.json",
+    "url": "https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/46496",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:36:28",
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/api_tipomateria_1.json",
+    "url": "https://sapl.riobranco.ac.leg.br/api/materia/tipomaterialegislativa/1",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:36:31",
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/api_regime_1.json",
+    "url": "https://sapl.riobranco.ac.leg.br/api/materia/regimetramitacao/1",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:36:34",
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/api_autor_145.json",
+    "url": "https://sapl.riobranco.ac.leg.br/api/base/autor/145",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:36:38",
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/api_tramitacao_34049.json",
+    "url": "https://sapl.riobranco.ac.leg.br/api/materia/tramitacao/?materia=34049",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:36:40",
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  {
+    "name": "sapl.riobranco.ac.leg.br/api_autoria_34049.json",
+    "url": "https://sapl.riobranco.ac.leg.br/api/materia/autoria/?materia=34049",
+    "status": 200,
+    "method": "GET",
+    "fetched": "2026-10-24T21:36:43",
+    "headers": {
+      "content-type": "application/json"
+    }
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "__str__": "Projeto de Lei Ordinária",
+  "link_detail_backend": "/sistema/materia/tipo/1",
+  "metadata": {},
+  "sigla": "PLO",
+  "descricao": "Projeto de Lei Ordinária",
+  "num_automatica": false,
+  "quorum_minimo_votacao": 1,
+  "sequencia_numeracao": "",
+  "sequencia_regimental": 12
+}

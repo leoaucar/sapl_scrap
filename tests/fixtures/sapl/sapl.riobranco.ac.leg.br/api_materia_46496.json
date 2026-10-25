@@ -1,0 +1,41 @@
+{
+  "id": 46496,
+  "__str__": "Veto nº 23 de 2026",
+  "link_detail_backend": "/materia/46496",
+  "metadata": {},
+  "numero": 23,
+  "ano": 2026,
+  "numero_protocolo": null,
+  "data_apresentacao": "2026-09-16",
+  "tipo_apresentacao": "E",
+  "data_publicacao": null,
+  "numero_origem_externa": "",
+  "ano_origem_externa": null,
+  "data_origem_externa": null,
+  "apelido": "",
+  "dias_prazo": null,
+  "data_fim_prazo": null,
+  "em_tramitacao": true,
+  "polemica": false,
+  "objeto": "",
+  "complementar": false,
+  "ementa": "Veto parcial ao Autógrafo n° 129/2026, oriundo do Projeto de Lei Complementar n° 26/2025, de autoria do Executivo Municipal, que \"Dispõe sobre a revisão do Plano Diretor do Município de Rio Branco em consonância com o disposto na Constituição da República, na Lei Federal n° 10.257, de 10 de julho de 2001 - Estatuto da Cidade, da Constituição do Estado do Acre e na Lei Orgânica do Município de Rio Branco\".",
+  "indexacao": "",
+  "observacao": "",
+  "resultado": "",
+  "texto_original": "http://sapl.riobranco.ac.leg.br/media/sapl/public/materialegislativa/2026/46496/oficio-572-2026_-_veto_parcial_1.pdf",
+  "data_ultima_atualizacao": "2026-10-15T13:36:12.536488-03:00",
+  "ip": null,
+  "ultima_edicao": "2026-09-17T13:13:56.039894-03:00",
+  "tipo": 15,
+  "regime_tramitacao": 1,
+  "tipo_origem_externa": null,
+  "local_origem_externa": null,
+  "user": null,
+  "anexadas": [
+    37559
+  ],
+  "autores": [
+    41
+  ]
+}

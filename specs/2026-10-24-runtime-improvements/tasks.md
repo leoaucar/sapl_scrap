@@ -192,7 +192,7 @@ Rules for every task:
 
 ## Phase G — Authors script, clean-up, docs
 
-- [ ] **T22 Authors and procedure script** — FR-27, FR-28, FR-29
+- [x] **T22 Authors and procedure script** — FR-27, FR-28, FR-29
   - `autoria_e_tramit.py`: `main(pasta, entrada, cliente)`; choose CSV from
     a list; output `<entrada>_autoria_tramitacao.csv`; parse by header
     names; `Tramite` as text; `status_autoria`, `status_tramitacao`, `erro`.

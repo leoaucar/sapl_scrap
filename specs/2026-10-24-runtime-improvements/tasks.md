@@ -30,7 +30,7 @@ Rules for every task:
   - README badge.
   - Done when: workflow green on the branch for both versions.
 
-- [ ] **T03 Fixture documentation and synthetic fixtures** — TR-7
+- [x] **T03 Fixture documentation and synthetic fixtures** — TR-7
   - `tests/fixtures/README.md`: what each file is, source URL/date (from
     `index.json`), and how the synthetic ones were derived.
   - Synthetic, derived from real pages: `materia_sem_data.html`,

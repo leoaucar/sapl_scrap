@@ -73,7 +73,7 @@ Rules for every task:
     `5` rejected in a 1–4 menu; names: empty and `/` rejected, spaces
     trimmed.
 
-- [ ] **T08 Houses: availability, UF, filters, limit** — FR-6, FR-22, FR-23
+- [x] **T08 Houses: availability, UF, filters, limit** — FR-6, FR-22, FR-23
   - `casas_legislativas.py`: `testar_casas(casas, cliente)` keeps every
     house with `ativa` and `motivo`; UF join from the spreadsheet; read old
     2-column `casas_resultado.csv`; `filtrar_sul_sudeste`; `limitar_casas`

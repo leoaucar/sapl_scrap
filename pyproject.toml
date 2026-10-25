@@ -1,0 +1,10 @@
+# Por enquanto, só a configuração dos testes. A organização em pacote
+# vem na spec de organização do código (ROADMAP, Fase 1b).
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--cov=. --cov-report=term-missing"
+
+[tool.coverage.run]
+omit = ["tests/*", ".venv/*"]

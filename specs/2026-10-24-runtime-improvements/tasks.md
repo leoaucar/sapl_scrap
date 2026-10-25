@@ -13,7 +13,7 @@ Rules for every task:
 
 ## Phase A — Foundations
 
-- [ ] **T01 Branch and test scaffolding**
+- [x] **T01 Branch and test scaffolding**
   - Create branch `spec/2026-10-24-runtime-improvements`.
   - `pyproject.toml` with `[tool.pytest.ini_options]` and
     `[tool.coverage.run]` (plan §8.1).

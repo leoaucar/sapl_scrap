@@ -138,13 +138,13 @@ Rules for every task:
     404); persistent 429 → `incompleta` and next keyword continues; empty
     search; resume skips `completa`.
 
-- [ ] **T15 Matters stage** — FR-9, FR-14 (via dedup), FR-18, FR-19
+- [x] **T15 Matters stage** — FR-9, FR-14 (via dedup), FR-18, FR-19
   - `materias.raspar_todas(links, cliente, estado, arquivo_materias)`:
     data row flushed **before** the state row; only keys not `ok`.
   - Tests: rows appended per matter; resume skips `ok`, retries `erro` and
     unattempted; a data row without a state row is redone.
 
-- [ ] **T16 Final table** — FR-9, NFR-2
+- [x] **T16 Final table** — FR-9, NFR-2
   - `tratamento_resultado.montar_final(arquivo_materias, links)` → latest
     row per key in `COLUNAS_FINAIS` order; label stripping removed.
   - `tests/test_tratamento.py`: column order; latest attempt wins;

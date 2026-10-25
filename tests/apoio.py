@@ -87,6 +87,11 @@ class SessaoFalsa:
         self._filas.setdefault(url, []).append(item)
         return self
 
+    def limpar(self, url):
+        """Descarta as respostas roteirizadas de `url` (para trocar o roteiro)."""
+        self._filas.pop(url, None)
+        return self
+
     def rota(self, funcao):
         self._rotas.append(funcao)
         return self

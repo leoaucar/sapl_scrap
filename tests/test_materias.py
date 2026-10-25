@@ -285,3 +285,68 @@ def test_erro_de_rede_no_html(cliente, sessao):
     fontes.usar_html(RB, 'teste')
     sessao.responder(RB + 'materia/5', erro=requests.ConnectionError())
     assert m.raspar_materia(_link(RB, '5'), cliente, fontes)['erro'] == 'conexao'
+
+
+# --- Etapa de raspagem e retomada (FR-9, FR-18, FR-19) ----------------------
+
+from estado import Estado, ler_csv  # noqa: E402
+
+
+def _links_cascavel():
+    return [_link(CV, '38415'), _link(CV, '43301'), _link(CV, '99')]
+
+
+def _responder_cascavel(sessao, falha_99=True):
+    for i in ('38415', '43301'):
+        sessao.responder(m.url_api(CV, i), status=404)
+        sessao.responder(CV + f'materia/{i}', fixture=f'sapl/sapl.cascavel.pr.leg.br/materia_{i}.html')
+    sessao.responder(CV + 'materia/99', status=503 if falha_99 else 200,
+                     fixture='sapl/sapl.cascavel.pr.leg.br/materia_38415.html')
+
+
+def test_raspar_todas_grava_cada_materia_e_o_estado(tmp_path, cliente, sessao):
+    _responder_cascavel(sessao)
+    estado = Estado(tmp_path / 'e.csv')
+    m.raspar_todas(_links_cascavel(), cliente, estado, tmp_path / 'mat.csv')
+    linhas = ler_csv(tmp_path / 'mat.csv', m.COLUNAS_MATERIAS)
+    assert [(l['chave'], l['status']) for l in linhas] == [
+        ('sapl.cascavel.pr.leg.br/38415', 'ok'), ('sapl.cascavel.pr.leg.br/43301', 'ok'),
+        ('sapl.cascavel.pr.leg.br/99', 'erro')]
+    assert estado.contagens('materia') == {'ok': 2, 'erro': 1}
+
+
+def test_retomada_pula_ok_e_refaz_erro(tmp_path, cliente, sessao):
+    _responder_cascavel(sessao)
+    estado = Estado(tmp_path / 'e.csv')
+    m.raspar_todas(_links_cascavel(), cliente, estado, tmp_path / 'mat.csv')
+    estado.fechar()
+
+    sessao.pedidos.clear()
+    sessao.responder(m.url_api(CV, '99'), status=404)
+    sessao.limpar(CV + 'materia/99').responder(
+        CV + 'materia/99', fixture='sapl/sapl.cascavel.pr.leg.br/materia_38415.html')
+    estado = Estado(tmp_path / 'e.csv')
+    m.raspar_todas(_links_cascavel(), cliente, estado, tmp_path / 'mat.csv')
+    # só a matéria com erro é pedida de novo (nova execução testa a API outra vez)
+    assert sessao.pedidos == [m.url_api(CV, '99'), CV + 'materia/99']
+    assert estado.status('materia', 'sapl.cascavel.pr.leg.br/99') == 'ok'
+
+
+def test_materia_gravada_sem_estado_e_refeita(tmp_path, cliente, sessao):
+    _responder_cascavel(sessao, falha_99=False)
+    links = _links_cascavel()
+    # simula queda depois de gravar a matéria e antes de gravar o estado
+    from estado import ArquivoCSV
+    arquivo = ArquivoCSV(tmp_path / 'mat.csv', m.COLUNAS_MATERIAS)
+    arquivo.anexar({**m.linha_vazia(links[0]), 'status': 'ok', 'Titulo': 'antigo'})
+    arquivo.fechar()
+    estado = Estado(tmp_path / 'e.csv')
+    m.raspar_todas(links, cliente, estado, tmp_path / 'mat.csv')
+    assert sessao.contar('materia/38415') >= 1
+    assert estado.status('materia', links[0]['chave']) == 'ok'
+
+
+def test_salvar_e_ler_links(tmp_path):
+    links = m.deduplicar_links([{'Link Materia': RB + 'materia/1', 'Link Casa': RB, 'Palavras': 'a'}])
+    m.salvar_links(links, tmp_path / 'links.csv')
+    assert m.ler_links(tmp_path / 'links.csv') == links

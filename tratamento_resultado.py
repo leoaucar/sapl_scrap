@@ -1,44 +1,34 @@
-"""Limpeza da tabela de matérias raspadas para gerar o resultado final."""
+"""Montagem da tabela final do projeto a partir das matérias raspadas."""
 import pandas as pd
 
-# Nomes das colunas na ordem em que `raspador.py` grava os dados
-NOMES_COLUNAS = {'0': 'IndiceOLD',
-                 '1': 'Link Materia',
-                 '2': 'Link Casa',
-                 '3': 'Palavras',
-                 '4': 'Titulo',
-                 '5': 'Ementa',
-                 '6': 'Ano',
-                 '7': 'Data',
-                 '8': 'Numero',
-                 '9': 'Observacao',
-                 '10': 'Assuntos',
-                 '11': 'Tipo de Materia Legislativa',
-                 '12': 'texto_original',
-                 '13': 'texto_integral'}
+from estado import ler_csv
+from materias import COLUNAS_FINAIS, COLUNAS_MATERIAS, linha_vazia
 
 
-def tratamento_resultados(tabela_resultados, atualizar):
-    """Renomeia as colunas e remove os rótulos ("Ementa", "Ano"...) do texto raspado.
+def montar_final(arquivo_materias, links):
+    """Uma linha por matéria (na ordem de `links`), com a tentativa mais recente.
 
-    Em projeto novo (`atualizar=False`), o link do texto original é relativo
-    e recebe a URL da casa como prefixo; na atualização ele já é absoluto.
+    `Palavras` vem da lista de links (todas as palavras que acharam a
+    matéria). Uma matéria da lista que nunca foi raspada aparece com
+    `status = erro`, nunca some em silêncio.
     """
-    df = pd.read_csv(tabela_resultados, index_col=0, dtype=str)
-    df = df.rename(columns=NOMES_COLUNAS)
+    ultimas = {}
+    for linha in ler_csv(arquivo_materias, COLUNAS_MATERIAS):
+        ultimas[linha['chave']] = linha
+    linhas = []
+    for link in links:
+        linha = dict(ultimas.get(link['chave']) or {**linha_vazia(link), 'status': 'erro',
+                                                     'erro': 'não raspada'})
+        linha['Palavras'] = link['Palavras']
+        linhas.append({c: linha.get(c, '') for c in COLUNAS_FINAIS})
+    return pd.DataFrame(linhas, columns=COLUNAS_FINAIS)
 
-    # Remove os rótulos que vêm junto com o texto de cada campo
-    df['Ano'] = df['Ano'].str.replace('Ano\n\n', '')
-    df['Ementa'] = df['Ementa'].str.replace('Ementa\n\n', '')
-    df['Numero'] = df['Numero'].str.replace('Número\n\n', '')
-    df['Observacao'] = df['Observacao'].str.replace('Observação', '')
-    df['Observacao'] = df['Observacao'].str.replace('\n\n', '')
-    df['Tipo de Materia Legislativa'] = df['Tipo de Materia Legislativa'].str.replace('Tipo de Matéria Legislativa\n\n', '')
 
-    if atualizar == False:
-        df['texto_original'] = df['Link Casa'] + df['texto_original'].str.replace('Texto Original\n\n', '')
-    elif atualizar == True:
-        df['texto_original'] = df['texto_original'].str.replace('Texto Original\n\n', '')
+def salvar_final(tabela, caminho):
+    tabela.to_csv(caminho, index=False)
 
-    df = df.replace(r'\r', ' ', regex=True)
-    return df
+
+def ler_final(caminho):
+    """Lê uma tabela final (nova ou de versões antigas, com coluna de índice)."""
+    tabela = pd.read_csv(caminho, dtype=str, keep_default_na=False)
+    return tabela.drop(columns=[c for c in tabela.columns if c.startswith('Unnamed')])

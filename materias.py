@@ -7,12 +7,14 @@ Os dados vêm da API JSON do SAPL (`/api/materia/materialegislativa/<id>/`)
 quando a casa tem a API, ou da página HTML da matéria (versões antigas do
 SAPL). As duas fontes produzem as mesmas colunas (`COLUNAS_FINAIS`).
 """
+import csv
 from datetime import datetime
 import re
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
+from estado import ArquivoCSV, ler_csv
 import registro
 
 # Colunas do resultado final, na ordem. As 11 primeiras são as da versão
@@ -336,3 +338,40 @@ def raspar_materia(link, cliente, fontes):
     linha.update(campos)
     linha.update(fonte='html', status='ok')
     return linha
+
+
+# --- Etapa de raspagem e arquivo de links ------------------------------------
+
+def salvar_links(links, caminho):
+    """Grava a lista de links únicos (COLUNAS_LINKS), substituindo o arquivo."""
+    with open(caminho, 'w', newline='', encoding='utf-8') as arquivo:
+        escritor = csv.DictWriter(arquivo, fieldnames=COLUNAS_LINKS, extrasaction='ignore')
+        escritor.writeheader()
+        escritor.writerows(links)
+
+
+def ler_links(caminho):
+    return ler_csv(caminho, COLUNAS_LINKS)
+
+
+def raspar_todas(links, cliente, estado, arquivo_materias, fontes=None):
+    """Raspa as matérias que ainda não estão `ok` no estado.
+
+    Cada matéria é gravada em `arquivo_materias` **antes** de o estado ser
+    atualizado: se o programa cair entre as duas gravações, a matéria só é
+    raspada de novo (a linha mais recente vale na tabela final).
+    """
+    fontes = fontes or Fontes()
+    pendentes = [l for l in links if estado.status('materia', l['chave']) != 'ok']
+    log.info('Matérias: %d a raspar, %d já raspadas', len(pendentes), len(links) - len(pendentes))
+    arquivo = ArquivoCSV(arquivo_materias, COLUNAS_MATERIAS)
+    try:
+        for i, link in enumerate(pendentes, start=1):
+            linha = raspar_materia(link, cliente, fontes)
+            arquivo.anexar(linha)
+            estado.registrar('materia', link['chave'], linha['status'], linha['erro'])
+            detalhe = linha['Titulo'] if linha['status'] == 'ok' else f"ERRO: {linha['erro']}"
+            log.info('Matéria %d de %d (%s): %s', i, len(pendentes), link['chave'], detalhe)
+    finally:
+        arquivo.fechar()
+    return fontes

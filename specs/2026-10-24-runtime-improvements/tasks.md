@@ -204,7 +204,7 @@ Rules for every task:
     `requests.get` left (`grep` check as a test:
     `tests/test_sem_requests_direto.py`).
 
-- [ ] **T24 Docs** — NFR-5
+- [x] **T24 Docs** — NFR-5
   - README: new columns, `fonte`/`status`, resume, log, summary, how to run
     tests, CI badge, remove the "known problem" warning. ROADMAP: tick the
     items done. Constitution/tech-stack untouched unless something changed.

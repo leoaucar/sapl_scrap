@@ -89,25 +89,30 @@ Em ordem de prioridade:
 Resolver antes de qualquer outra coisa, porque hoje uma execução completa
 **perde a maior parte dos dados sem avisar** (87% das matérias no teste).
 
-- [ ] Detectar `HTTP 429` (e outros status ≠ 200) na raspagem das matérias e
+- [x] Detectar `HTTP 429` (e outros status ≠ 200) na raspagem das matérias e
       na busca
-- [ ] Esperar o tempo de `Retry-After` (60 s) e tentar de novo, com número
+- [x] Esperar o tempo de `Retry-After` (60 s) e tentar de novo, com número
       máximo de tentativas
-- [ ] Respeitar o limite de 35 requisições por minuto por casa (assim o 429
+- [x] Respeitar o limite de 35 requisições por minuto por casa (assim o 429
       nem chega a acontecer)
-- [ ] Nunca gravar a página de erro como matéria: marcar a linha com
+- [x] Nunca gravar a página de erro como matéria: marcar a linha com
       `status = erro` e listar as falhas no fim da execução
 - [ ] Testar de novo com as 10 casas do teste: 0 matérias vazias esperadas
 
 ### Fase 1: Correção e robustez
-- [ ] Sessão HTTP única (`requests.Session`) com `timeout` e retentativas
-      (`urllib3.Retry` respeitando `Retry-After` para 429/5xx)
-- [ ] Limitador de taxa por casa (35 req/min, configurável)
-- [ ] Registrar falhas em uma coluna `status` em vez de gravar linhas vazias
-- [ ] Corrigir os seletores (`div_id_data_apresentacao` etc.)
-- [ ] Remover duplicatas antes de raspar e de baixar
-- [ ] Logging (`logging`) em vez de `print`, com um arquivo de log por projeto
-- [ ] Retomar uma execução interrompida (pular matérias já raspadas)
+- [x] Sessão HTTP única (`requests.Session`) com `timeout` e retentativas
+      respeitando `Retry-After` para 429/5xx (`http_sapl.py`)
+- [x] Limitador de taxa por casa (35 req/min, configurável)
+- [x] Registrar falhas em uma coluna `status` em vez de gravar linhas vazias
+- [x] Corrigir os seletores (`div_id_data_apresentacao` etc.); dados pela API
+      JSON do SAPL, com a página HTML como reserva
+- [x] Remover duplicatas antes de raspar e de baixar
+- [x] Logging (`logging`) em vez de `print`, com um arquivo de log por projeto
+- [x] Retomar uma execução interrompida (pular matérias já raspadas)
+
+> Fase 1 e "Prioridade máxima" implementadas na spec
+> [`specs/2026-10-24-runtime-improvements/`](specs/2026-10-24-runtime-improvements/);
+> falta a validação contra os sites reais.
 
 ### Fase 1b: Organização geral do código
 Próxima spec depois das melhorias de execução (Fase 1). A Fase 1 só reorganiza

@@ -130,7 +130,7 @@ Rules for every task:
   - `tests/test_estado.py`: append/read; last row wins; truncated last line
     ignored; reopening the file keeps the history.
 
-- [ ] **T14 Search stage** — FR-7, FR-18
+- [x] **T14 Search stage** — FR-7, FR-18
   - `buscador.buscar(casas, palavras, cliente, estado, arquivo_cru)`:
     pages until 404; failed page → `incompleta`; raw pages appended as they
     arrive; skips searches already `completa`.

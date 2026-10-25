@@ -1,69 +1,78 @@
-"""Busca das palavras-chave no sistema de pesquisa de cada casa legislativa."""
-import requests
+"""Busca das palavras-chave no sistema de pesquisa de cada casa legislativa.
+
+Para cada casa ativa e cada palavra, pede as páginas
+`<casa>sistema/search/?page=N&q=<palavra>` até o servidor responder 404
+(fim das páginas). Cada página é gravada na hora no arquivo bruto do projeto.
+
+Uma busca que falha no meio (429 insistente, 5xx, timeout...) fica marcada
+como `incompleta` no estado e aparece no resumo; ao retomar o projeto, ela é
+refeita. Buscas `completa` não são repetidas.
+"""
+from urllib.parse import urlparse
+
+from estado import ArquivoCSV
+import registro
+
+COLUNAS_CRU = ['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link']
+# Proteção contra paginação sem fim (Rio Branco, a maior do teste, tem ~400)
+MAX_PAGINAS = 5000
+
+log = registro.logger('busca')
 
 
-def setup_busca(casas_resultado):
-    """Pergunta se a busca deve ser limitada (útil para testes) e recorta a lista de casas."""
-    while True:
-        limite_busca = input('Deseja limitar sua busca para teste? \n1- não(pesquisar todas as casas) \n2- 50 primeiras casas \n3- 50 últimas casas\n4- Apenas 10 casas\n')
-        try:
-            limite_busca = int(limite_busca)
-            if limite_busca > 0 and limite_busca < 6:
-                break
-            else:
-                print("Digite apenas o número 1, 2, 3 ou 4")
-                continue
-        except:
-            print("Digite apenas o número 1, 2, 3 ou 4")
+def chave_busca(casa_url, palavra):
+    return f'{urlparse(casa_url).hostname}|{palavra}'
+
+
+def url_busca(casa_url, palavra, pagina):
+    return f'{casa_url}sistema/search/?page={pagina}&q={palavra}'
+
+
+def buscas_pendentes(casas, palavras, estado):
+    """(casa, palavra) das casas ativas cuja busca ainda não está `completa`."""
+    return [(casa, palavra)
+            for casa in casas[casas['ativa']]['url']
+            for palavra in palavras
+            if estado.status('busca', chave_busca(casa, palavra)) != 'completa']
+
+
+def buscar_palavra(casa, palavra, cliente, estado, cru):
+    """Busca uma palavra numa casa, página a página. Devolve o nº de páginas gravadas."""
+    chave = chave_busca(casa, palavra)
+    pagina = 1
+    while pagina <= MAX_PAGINAS:
+        url = url_busca(casa, palavra, pagina)
+        resposta = cliente.get(url)
+        if resposta.ok:
+            cru.anexar({'Indice': '', 'Casa': casa, 'Palavra': palavra, 'Pagina': pagina,
+                        'html': resposta.texto, 'link': url})
+            pagina += 1
             continue
+        if resposta.status == 404 and pagina > 1:
+            estado.registrar('busca', chave, 'completa')
+            return pagina - 1
+        # 404 já na primeira página não é "sem resultados" (isso volta 200):
+        # a busca dessa casa não está funcionando.
+        erro = resposta.erro if pagina > 1 or resposta.status != 404 else 'HTTP 404 na primeira página'
+        log.warning('Busca incompleta em %s para %s (página %d): %s', casa, palavra, pagina, erro)
+        estado.registrar('busca', chave, 'incompleta', f'página {pagina}: {erro}')
+        return pagina - 1
+    estado.registrar('busca', chave, 'incompleta', f'mais de {MAX_PAGINAS} páginas')
+    return pagina - 1
 
-    if limite_busca == 1:
-        casas_resultado = casas_resultado
-    elif limite_busca == 2:
-        casas_resultado = casas_resultado[:50]
-    elif limite_busca == 3:
-        len_casas = len(casas_resultado)
-        casas_resultado = casas_resultado[len_casas-49:len_casas]
-    elif limite_busca == 4:
-        casas_resultado = casas_resultado[:10]
-    return casas_resultado
 
-
-def buscar_resultados(casas_resultado, palavras):
-    """Pesquisa cada palavra em cada casa ativa, página a página.
-
-    `casas_resultado` é uma lista de tuplas (url_da_casa, ativa).
-    Avança as páginas (`?page=N`) até o servidor responder algo diferente
-    de 200. Retorna uma lista de
-    [indice, url_da_casa, palavra, pagina, html, url_da_busca].
-    """
-    indice = 0
-    urls_erro = []
-    resultados = []
-    numero_casa = 1
-    for casa in casas_resultado:
-        print("Busca na casa número: " + str(numero_casa) + " de " + str(len(casas_resultado)))
-        numero_casa = numero_casa + 1
-        if casa[1] != True:  # casa fora do ar no último teste
-            continue
-        for palavra in palavras:
-            pagina = 1
-            while True:
-                url = casa[0] + 'sistema/search/?page=' + str(pagina) + '&q=' + palavra
-                try:
-                    response = requests.get(url, timeout=10)
-                except:
-                    # ATENÇÃO: repete a mesma URL sem limite de tentativas
-                    urls_erro.append(url)
-                    continue
-                if response.status_code == 200:
-                    print(url)
-                    # TODO: separar páginas de resultado vazias das com resultados
-                    resultados.append([indice, casa[0], palavra, pagina, response.text, url])
-                else:
-                    # fim das páginas (ou erro / limite de requisições)
-                    break
-                indice = indice + 1
-                pagina = pagina + 1
-    print(urls_erro)
-    return resultados
+def buscar(casas, palavras, cliente, estado, arquivo_cru):
+    """Faz as buscas pendentes. `casas`: DataFrame com `url` e `ativa`."""
+    pendentes = buscas_pendentes(casas, palavras, estado)
+    total_casas = len({c for c, _ in pendentes})
+    cru = ArquivoCSV(arquivo_cru, COLUNAS_CRU)
+    try:
+        casa_atual, n_casa = None, 0
+        for casa, palavra in pendentes:
+            if casa != casa_atual:
+                casa_atual, n_casa = casa, n_casa + 1
+                log.info('Busca na casa %d de %d: %s', n_casa, total_casas, casa)
+            paginas = buscar_palavra(casa, palavra, cliente, estado, cru)
+            log.info('  %s: %d página(s)', palavra, paginas)
+    finally:
+        cru.fechar()

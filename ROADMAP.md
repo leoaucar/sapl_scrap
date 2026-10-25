@@ -124,6 +124,15 @@ o necessário para testar; esta fase arruma a estrutura antes do paralelismo.
 - [ ] Tipagem (type hints) e docstrings nas funções públicas
 - [ ] Formatação e lint automáticos (`ruff`) rodando também no CI
 - [ ] Remover código morto e comentários desatualizados que sobrarem
+- [ ] **Nova identidade: Puxa Projeto Sapl.** Projeto de código aberto que
+      ajuda qualquer pessoa a acompanhar o que está acontecendo em várias
+      casas legislativas do Brasil ao mesmo tempo.
+  - [ ] Renomear o repositório no GitHub para `puxa_projetos_sapl`
+        (e o pacote Python, se for o caso), atualizando links e o badge do CI
+  - [ ] Pequena identidade visual para o README (nome, logotipo simples,
+        cores)
+  - [ ] Reescrever a descrição do README e os nomes no código e na
+        documentação com a nova marca
 
 ### Fase 2: Velocidade (paralelismo)
 O limite é **por site**, então o ganho vem de **processar várias casas ao mesmo

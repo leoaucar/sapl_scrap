@@ -1,5 +1,7 @@
 # sapl_scrap
 
+[![testes](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml/badge.svg)](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml)
+
 Raspador de matérias legislativas em Câmaras Municipais e Assembleias que usam o
 **SAPL** (Sistema de Apoio ao Processo Legislativo, do Interlegis).
 

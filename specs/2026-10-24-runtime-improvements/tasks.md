@@ -24,7 +24,7 @@ Rules for every task:
     `RelogioFalso.dormir` advances time without waiting.
   - Done when: `pytest` runs, 0 network access, < 5 s.
 
-- [ ] **T02 CI workflow** — TR-11
+- [x] **T02 CI workflow** — TR-11
   - `.github/workflows/tests.yml` (push + pull_request, Python 3.10 / 3.12,
     `pip install -r requirements-dev.txt`, `pytest`).
   - README badge.

@@ -350,3 +350,30 @@ def test_salvar_e_ler_links(tmp_path):
     links = m.deduplicar_links([{'Link Materia': RB + 'materia/1', 'Link Casa': RB, 'Palavras': 'a'}])
     m.salvar_links(links, tmp_path / 'links.csv')
     assert m.ler_links(tmp_path / 'links.csv') == links
+
+
+def test_404_isolado_depois_da_api_funcionar_nao_troca_a_casa(cliente, sessao, caplog):
+    """Achado V3: em Rio Branco a API deu 404 numa matéria que existe (falha pontual)."""
+    fontes = m.Fontes()
+    _responder_consultas(sessao)
+    sessao.responder(m.url_api(RB, '34049'), fixture='sapl/sapl.riobranco.ac.leg.br/api_materia_34049.json')
+    sessao.responder(m.url_api(RB, '46496'), status=404)
+    sessao.responder(RB + 'materia/46496', fixture='sapl/sapl.riobranco.ac.leg.br/materia_46496.html')
+    sessao.responder(m.url_api(RB, '9'), json_dados={**json.loads(ler_fixture(
+        'sapl/sapl.riobranco.ac.leg.br/api_materia_34049.json')), 'id': 9})
+    with caplog.at_level(logging.WARNING):
+        primeira = m.raspar_materia(_link(RB, '34049'), cliente, fontes)
+        segunda = m.raspar_materia(_link(RB, '46496'), cliente, fontes)
+        terceira = m.raspar_materia(_link(RB, '9'), cliente, fontes)
+    assert [primeira['fonte'], segunda['fonte'], terceira['fonte']] == ['api', 'html', 'api']
+    assert segunda['status'] == 'ok' and fontes.de(RB) == 'api'
+    assert any('só essa vai pelo HTML' in r.getMessage() for r in caplog.records)
+
+
+def test_resposta_nao_json_depois_da_api_funcionar_nao_troca_a_casa(cliente, sessao):
+    fontes = m.Fontes()
+    fontes.confirmar_api(CV)
+    sessao.responder(m.url_api(CV, '43301'), texto='<html>manutenção</html>')
+    sessao.responder(CV + 'materia/43301', fixture='sapl/sapl.cascavel.pr.leg.br/materia_43301.html')
+    linha = m.raspar_materia(_link(CV, '43301'), cliente, fontes)
+    assert (linha['status'], linha['fonte']) == ('ok', 'html') and fontes.de(CV) == 'api'

@@ -263,16 +263,32 @@ def extrair_api(dados, casa_url, consultas):
 # --- Raspagem de uma matéria ------------------------------------------------
 
 class Fontes:
-    """Fonte de dados de cada casa: 'api' (padrão) ou 'html' (casa sem API)."""
+    """Fonte de dados de cada casa: 'api' (padrão) ou 'html' (casa sem API).
+
+    Uma casa só passa para 'html' enquanto a API dela nunca funcionou nesta
+    execução. Depois que a API devolveu uma matéria, um 404 isolado (falha
+    pontual do site) só manda aquela matéria para o HTML.
+    """
 
     def __init__(self):
         self._por_host = {}
         self._consultas = {}
+        self._api_confirmada = set()
 
     def de(self, casa_url):
         return self._por_host.get(host(casa_url), 'api')
 
+    def confirmar_api(self, casa_url):
+        self._api_confirmada.add(host(casa_url))
+
+    def api_confirmada(self, casa_url):
+        return host(casa_url) in self._api_confirmada
+
     def usar_html(self, casa_url, motivo):
+        if self.api_confirmada(casa_url):
+            log.warning('API de %s falhou para uma matéria (%s): só essa vai pelo HTML',
+                        host(casa_url), motivo)
+            return
         if self.de(casa_url) != 'html':
             log.info('Casa %s sem API de matérias (%s): usando as páginas HTML',
                      host(casa_url), motivo)
@@ -301,7 +317,7 @@ def raspar_materia(link, cliente, fontes):
     """Raspa uma matéria e devolve a linha (COLUNAS_MATERIAS) com `status` ok ou erro.
 
     Tenta a API; se a casa não tiver API (404 ou resposta que não é JSON),
-    passa a usar o HTML para essa casa. Uma requisição que falha nunca é
+    passa a usar o HTML para essa casa (veja `Fontes`). Uma requisição que falha nunca é
     lida como se fosse a matéria: a linha sai com `status = erro` e o motivo.
     """
     casa = link['Link Casa']
@@ -318,6 +334,7 @@ def raspar_materia(link, cliente, fontes):
             if isinstance(dados, dict) and 'id' in dados:
                 linha.update(extrair_api(dados, casa, fontes.consultas(cliente, casa)))
                 linha.update(fonte='api', status='ok')
+                fontes.confirmar_api(casa)
                 return linha
             fontes.usar_html(casa, 'resposta não é JSON')
         elif resposta.status != 404:

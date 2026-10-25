@@ -41,7 +41,7 @@ Rules for every task:
 
 ## Phase B — HTTP and logging
 
-- [ ] **T04 Logging setup** — FR-25
+- [x] **T04 Logging setup** — FR-25
   - `registro.py`: `configurar(pasta, nome)` → terminal `INFO`, file
     `<nome>.log` `DEBUG`; idempotent (calling twice adds no handlers).
   - `tests/test_registro.py`: both handlers, levels, file created, no

@@ -13,10 +13,13 @@ Garante, para cada site (host):
 (fim da paginação, casa sem API, matéria inexistente).
 
 Cada tentativa gera uma linha DEBUG no log:
-`<host> | <url> | <status ou erro> | tentativa <n> | espera <s>`.
+`<host> | <url> | <status ou erro> | tentativa <n> | espera <s> | enviada <hora>`.
+A hora de envio (com milissegundos) é a que conta para o limite; a hora da
+linha do log é a da resposta, que pode chegar segundos depois.
 """
 from collections import defaultdict, deque
 from dataclasses import dataclass
+from datetime import datetime
 from email.utils import parsedate_to_datetime
 import time
 from urllib.parse import urlparse
@@ -127,6 +130,7 @@ class ClienteSAPL:
         for tentativa in range(1, tentativas + 1):
             self._aguardar_vez(host)
             self.total_requisicoes += 1
+            enviada = datetime.now().strftime('%H:%M:%S.%f')[:-3]
             bruta = None
             try:
                 bruta = self.sessao.get(url, timeout=timeout or self.timeout, stream=stream)
@@ -137,12 +141,12 @@ class ClienteSAPL:
             else:
                 status = bruta.status_code
                 if status == 200:
-                    self._registrar(host, url, status, tentativa, 0)
+                    self._registrar(host, url, status, tentativa, 0, enviada)
                     return Resposta(url, True, status, '', tentativa, bruta)
                 erro = f'HTTP {status}'
                 if status != 429 and status < 500:
                     # 404 e demais 4xx: definitivos, sem nova tentativa
-                    self._registrar(host, url, status, tentativa, 0)
+                    self._registrar(host, url, status, tentativa, 0, enviada)
                     return Resposta(url, False, status, erro, tentativa, bruta)
 
             ultima = tentativa == tentativas
@@ -151,7 +155,7 @@ class ClienteSAPL:
             else:
                 espera = ESPERAS_ERRO[min(tentativa - 1, len(ESPERAS_ERRO) - 1)]
             self._registrar(host, url, status if status is not None else erro,
-                            tentativa, 0 if ultima else espera)
+                            tentativa, 0 if ultima else espera, enviada)
             if bruta is not None:
                 bruta.close()
             if ultima:
@@ -165,5 +169,6 @@ class ClienteSAPL:
         return Resposta(url, False, status, erro, tentativas, None)
 
     @staticmethod
-    def _registrar(host, url, resultado, tentativa, espera):
-        log.debug('%s | %s | %s | tentativa %d | espera %g', host, url, resultado, tentativa, espera)
+    def _registrar(host, url, resultado, tentativa, espera, enviada):
+        log.debug('%s | %s | %s | tentativa %d | espera %g | enviada %s',
+                  host, url, resultado, tentativa, espera, enviada)

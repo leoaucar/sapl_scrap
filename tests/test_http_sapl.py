@@ -1,5 +1,6 @@
 """Cliente HTTP: limite por site, retentativas e motivos de falha."""
 import logging
+import re
 
 import pytest
 import requests
@@ -193,10 +194,12 @@ def test_uma_linha_de_log_por_tentativa(cliente, sessao, caplog):
     with caplog.at_level(logging.DEBUG, logger='sapl_scrap.http'):
         cliente.get(A)
     linhas = [r.getMessage() for r in caplog.records if r.name == 'sapl_scrap.http']
-    assert linhas == [
+    assert [l.split(' | enviada ')[0] for l in linhas] == [
         f'sapl.a.leg.br | {A} | 503 | tentativa 1 | espera 5',
         f'sapl.a.leg.br | {A} | 200 | tentativa 2 | espera 0',
     ]
+    # hora de envio com milissegundos, para conferir o limite pelo log
+    assert all(re.search(r' \| enviada \d\d:\d\d:\d\d\.\d{3}$', l) for l in linhas)
 
 
 def test_log_de_erro_de_rede_e_aviso_final(cliente, sessao, caplog):
@@ -204,7 +207,8 @@ def test_log_de_erro_de_rede_e_aviso_final(cliente, sessao, caplog):
     with caplog.at_level(logging.DEBUG, logger='sapl_scrap.http'):
         cliente.get(A, max_tentativas=1)
     mensagens = [r.getMessage() for r in caplog.records]
-    assert f'sapl.a.leg.br | {A} | timeout | tentativa 1 | espera 0' in mensagens
+    assert any(m.startswith(f'sapl.a.leg.br | {A} | timeout | tentativa 1 | espera 0 | enviada ')
+               for m in mensagens)
     assert any('Falha em' in m and 'timeout' in m for m in mensagens)
 
 

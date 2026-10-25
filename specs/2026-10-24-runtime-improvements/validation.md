@@ -114,18 +114,24 @@ print(df[df.status == 'erro'].erro.value_counts())
 
 Count requests per host in any 60-second window from the DEBUG lines of the
 HTTP client. Line format:
-`2026-10-24 10:00:00,123 DEBUG sapl_scrap.http <host> | <url> | <status ou erro> | tentativa <n> | espera <s>`
+`2026-10-24 10:00:00,123 DEBUG sapl_scrap.http <host> | <url> | <status ou erro> | tentativa <n> | espera <s> | enviada <hh:mm:ss.mmm>`
+(the send time is what the limit applies to; the line's own time is when the
+response arrived)
 
 ```python
 import re, collections, datetime as dt
 linhas = open('val_a_proj/val_a.log', encoding='utf-8').read().splitlines()
-pat = re.compile(r'^(\S+ \S+) DEBUG sapl_scrap\.http (\S+) \| \S+ \| (\S+) \| tentativa')
+pat = re.compile(r'^(\S+ \S+) DEBUG sapl_scrap\.http (\S+) \| \S+ \| (\S+) \| tentativa'
+                 r'.*?(?:\| enviada (\S+))?$')
 por_host = collections.defaultdict(list)
 status = collections.Counter()
 for l in linhas:
     m = pat.match(l)
     if m:
-        t = dt.datetime.strptime(m.group(1)[:19], '%Y-%m-%d %H:%M:%S')
+        t = dt.datetime.strptime(m.group(1), '%Y-%m-%d %H:%M:%S,%f')   # hora da resposta
+        if m.group(4):   # hora de envio, que é a que conta para o limite
+            env = dt.datetime.combine(t.date(), dt.datetime.strptime(m.group(4), '%H:%M:%S.%f').time())
+            t = env - dt.timedelta(days=1) if env > t else env
         por_host[m.group(2)].append(t)
         status[m.group(3)] += 1
 print(status)                                     # 429 count, timeouts...

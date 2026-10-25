@@ -101,7 +101,8 @@ Resolver antes de qualquer outra coisa, porque hoje uma execução completa
       nem chega a acontecer)
 - [x] Nunca gravar a página de erro como matéria: marcar a linha com
       `status = erro` e listar as falhas no fim da execução
-- [ ] Testar de novo com as 10 casas do teste: 0 matérias vazias esperadas
+- [x] Testar de novo com as 10 casas do teste: 0 matérias vazias esperadas
+      (24–25/10/2026: 1189 matérias, todas com dados, 0 erros)
 
 ### Fase 1: Correção e robustez
 - [x] Sessão HTTP única (`requests.Session`) com `timeout` e retentativas
@@ -114,9 +115,9 @@ Resolver antes de qualquer outra coisa, porque hoje uma execução completa
 - [x] Logging (`logging`) em vez de `print`, com um arquivo de log por projeto
 - [x] Retomar uma execução interrompida (pular matérias já raspadas)
 
-> Fase 1 e "Prioridade máxima" implementadas na spec
-> [`specs/2026-10-24-runtime-improvements/`](specs/2026-10-24-runtime-improvements/);
-> falta a validação contra os sites reais.
+> Fase 1 e "Prioridade máxima" implementadas e validadas contra os sites reais
+> na spec [`specs/2026-10-24-runtime-improvements/`](specs/2026-10-24-runtime-improvements/)
+> (veja `validation.md`).
 
 ### Fase 1b: Organização do código, nova identidade e pendências
 Próxima spec (`specs/<data>-organizacao-e-pendencias/`), depois da validação

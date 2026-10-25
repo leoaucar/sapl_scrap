@@ -1,6 +1,6 @@
 # Tasks: Runtime improvements
 
-- **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Status:** Approved
+- **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Status:** Done
 - **Branch:** `spec/2026-10-24-runtime-improvements` (from `main`)
 
 Rules for every task:
@@ -214,7 +214,7 @@ Rules for every task:
 - [x] **T25 Update `validation.md`** — it was written before implementation;
   align commands, prompt answers, file names, column names and the log
   regex (§2.2) with what was built.
-- [ ] **T26 Run validation**, record results in `validation.md`, fix what
+- [x] **T26 Run validation**, record results in `validation.md`, fix what
   fails (new tasks if needed), then merge the branch into `main`.
 
 ## Traceability (TR-10)

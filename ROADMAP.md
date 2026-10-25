@@ -48,7 +48,11 @@ bloqueadas falham na hora e viram linhas vazias.
 
 ## 3. Bugs e riscos conhecidos
 
-Em ordem de prioridade:
+> **Situação:** os itens 1–9, 11 e 12 foram corrigidos na spec
+> `2026-10-24-runtime-improvements`. O item 10 e as pendências encontradas
+> depois estão na Fase 1b.
+
+Em ordem de prioridade (lista original de 15/10/2026):
 
 1. **Limite de requisições (429) ignorado** (`raspador.py`): as matérias
    bloqueadas viram linhas vazias. *Correção:* checar `status_code`, esperar o
@@ -114,30 +118,68 @@ Resolver antes de qualquer outra coisa, porque hoje uma execução completa
 > [`specs/2026-10-24-runtime-improvements/`](specs/2026-10-24-runtime-improvements/);
 > falta a validação contra os sites reais.
 
-### Fase 1b: Organização geral do código
-Próxima spec depois das melhorias de execução (Fase 1). A Fase 1 só reorganiza
-o necessário para testar; esta fase arruma a estrutura antes do paralelismo.
+### Fase 1b: Organização do código, nova identidade e pendências
+Próxima spec (`specs/<data>-organizacao-e-pendencias/`), depois da validação
+da Fase 1. A Fase 1 só reorganizou o necessário para testar; esta fase arruma
+a estrutura antes do paralelismo e fecha os bugs que ficaram de fora.
 
-- [ ] Transformar o projeto em um pacote Python (`sapl_scrap/`) com
-      `pyproject.toml`, separando camadas: HTTP, busca, matérias (API/HTML),
-      downloads, estado/projeto, interface (perguntas)
-- [ ] Um único ponto de entrada (`python -m sapl_scrap`), mantendo
+**Organização do código**
+- [ ] Transformar o projeto em um pacote Python com `pyproject.toml`,
+      separando camadas: HTTP, busca, matérias (API/HTML), downloads,
+      estado/projeto, interface (perguntas)
+- [ ] Um único ponto de entrada (`python -m <pacote>`), mantendo
       `programa.py` como atalho
-- [ ] Trazer `autoria_e_tramitacao/` para dentro do pacote
-- [ ] Nomes consistentes (funções, colunas, arquivos de saída) e um único
-      lugar para definir as colunas do resultado
+- [ ] Trazer `autoria_e_tramitacao/` para dentro do pacote, como mais uma
+      opção do programa (sem o ajuste de `sys.path`)
+- [ ] Nomes consistentes (funções, colunas, arquivos de saída)
 - [ ] Tipagem (type hints) e docstrings nas funções públicas
 - [ ] Formatação e lint automáticos (`ruff`) rodando também no CI
+- [ ] Separar dados de entrada de dados gerados: `arquivos_csv/` só com as
+      planilhas de entrada; a tabela geral de casas testadas
+      (`casas_resultado.csv`, reescrita pelo programa) fora do git;
+      rever `palavras_chave_res.csv` e `teste_raspagem.csv`
+- [ ] Tirar do repositório dados de pesquisa que não são exemplo
+      (`autoria_e_tramitacao/tabela_limpa_2.csv`)
 - [ ] Remover código morto e comentários desatualizados que sobrarem
-- [ ] **Nova identidade: Puxa Projeto Sapl.** Projeto de código aberto que
-      ajuda qualquer pessoa a acompanhar o que está acontecendo em várias
-      casas legislativas do Brasil ao mesmo tempo.
-  - [ ] Renomear o repositório no GitHub para `puxa_projetos_sapl`
-        (e o pacote Python, se for o caso), atualizando links e o badge do CI
-  - [ ] Pequena identidade visual para o README (nome, logotipo simples,
-        cores)
-  - [ ] Reescrever a descrição do README e os nomes no código e na
-        documentação com a nova marca
+
+**Nova identidade: Puxa Projeto Sapl.** Projeto de código aberto que ajuda
+qualquer pessoa a acompanhar o que está acontecendo em várias casas
+legislativas do Brasil ao mesmo tempo.
+- [ ] Renomear o repositório no GitHub para `puxa_projetos_sapl` (e o pacote
+      Python), atualizando links e o badge do CI. *A decidir: "Projeto" ou
+      "Projetos" — a marca está no singular e o repositório no plural.*
+- [ ] Pequena identidade visual para o README (nome, logotipo simples, cores)
+- [ ] Reescrever a descrição do README e os nomes no código e na
+      documentação com a nova marca
+
+**Bugs e pendências que ficaram de fora da Fase 1**
+- [ ] **Autoria e tramitação não retoma:** o script só grava no fim; uma
+      interrupção perde tudo. Usar o mesmo estado e gravação linha a linha
+      do programa principal.
+- [ ] **Autoria e tramitação pela API** (`/api/materia/autoria/?materia=`,
+      `/api/materia/tramitacao/?materia=`), com o HTML como reserva, como já
+      é feito com as matérias.
+- [ ] **Modo atualização perde colunas da pessoa:** colunas acrescentadas à
+      mão no resultado final (ex.: `Relevante`, anotações) não passam para o
+      arquivo `_ATUALIZADO_`. Preservá-las, e reativar como opção o filtro
+      "só as relevantes" (hoje comentado).
+- [ ] **Arquivo bruto da busca grande** (item 10 do §3; ~1 GB numa execução
+      completa): guardar só os links extraídos de cada página, mantendo a
+      retomada.
+- [ ] **Palavras de projeto retomado:** vêm do `config.json`; mudar o arquivo
+      de palavras não tem efeito e ninguém é avisado. Avisar quando forem
+      diferentes.
+- [ ] **Erros permanentes tratados como temporários:** erro de certificado
+      (SSL) ou de DNS é tentado 4 vezes, com esperas. Não repetir esses.
+- [ ] **Retomada refaz a sondagem da API e as consultas de nomes** (tipo,
+      regime): guardar a fonte de cada casa e os nomes no projeto.
+- [ ] **Log sem limite:** o `.log` cresce a cada retomada; separar por
+      execução ou rodar o arquivo.
+- [ ] **Casas que redirecionam para outro domínio:** links absolutos para o
+      domínio novo são descartados. Tratar os dois domínios como a mesma casa
+      (se a validação confirmar o caso).
+- [ ] **Achados da validação da Fase 1** (lista em
+      `specs/2026-10-24-runtime-improvements/validation.md`, "Issues found").
 
 ### Fase 2: Velocidade (paralelismo)
 O limite é **por site**, então o ganho vem de **processar várias casas ao mesmo
@@ -154,7 +196,7 @@ tempo**, nunca de acelerar dentro da mesma casa.
       (`stream=True`) e opção de baixar só as matérias marcadas como relevantes.
 - [ ] Evolução opcional: `asyncio` + `httpx`/`aiohttp` para milhares de
       conexões simultâneas.
-- [ ] Não guardar o HTML bruto da busca, só os links extraídos.
+- (Não guardar o HTML bruto da busca: passou para a Fase 1b.)
 
 Estimativa com 20 casas em paralelo: a execução completa passa a ser limitada
 pela casa com mais matérias, algo como **30–60 min**, em vez de 10–20 h.

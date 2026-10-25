@@ -85,7 +85,7 @@ Rules for every task:
 
 ## Phase D — Matter data
 
-- [ ] **T09 Keys, link extraction and dedup** — FR-12, FR-13
+- [x] **T09 Keys, link extraction and dedup** — FR-12, FR-13
   - `materias.py`: `normalizar_link`, `chave`; `raspador.raspar_resultados`
     rewritten to use it (explicit parser, FR-11); `deduplicar_links`.
   - `tests/test_raspador.py`: links from the three real `busca_p1.html`
@@ -94,7 +94,7 @@ Rules for every task:
   - `tests/test_materias.py` (dedup part): one row per key, `Palavras`
     joined in order, same id in two houses not merged.
 
-- [ ] **T10 HTML extraction** — FR-8 (parse part), FR-10 (HTML), FR-10a, FR-11
+- [x] **T10 HTML extraction** — FR-8 (parse part), FR-10 (HTML), FR-10a, FR-11
   - `materias.extrair_html(html, casa_url)` → dict of `COLUNAS_FINAIS`
     fields; `COLUNAS_FINAIS` constant; value normalisation (dates
     `dd/mm/aaaa`, whitespace, `None` → `''`).
@@ -103,7 +103,7 @@ Rules for every task:
     `materia_sem_data`, `materia_sem_pdf` give empty fields;
     `Ultima Atualizacao` empty for HTML.
 
-- [ ] **T11 API extraction and lookups** — FR-10 (API), FR-10a, FR-10b
+- [x] **T11 API extraction and lookups** — FR-10 (API), FR-10a, FR-10b
   - `materias.extrair_api(json, casa_url, consultas)`; `Consultas` cache per
     house (tipo, regime, anexadas) through `ClienteSAPL`.
   - Tests: Rio Branco 34049 / 46496 and Cascavel 43301 mapped with lookup
@@ -112,7 +112,7 @@ Rules for every task:
     lookup → empty field + warning, matter still `ok`; cache: one request
     per distinct id; output has no `ip`/`user`.
 
-- [ ] **T12 Scraping one matter with source choice** — FR-8, FR-9, FR-10
+- [x] **T12 Scraping one matter with source choice** — FR-8, FR-9, FR-10
   - `materias.raspar_materia(chave, link, cliente, fontes, consultas)`:
     API first; switch house to `html` only on final 404 / non-JSON 200;
     errors after retries → `status = erro`, `erro` reason, not parsed;

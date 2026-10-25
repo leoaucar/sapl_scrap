@@ -159,7 +159,8 @@ def main(entrada=input, cliente=None, raiz='.'):
                 log.info('Retomando o projeto %s', projeto.nome)
             log.info('Buscando os termos: %s', ', '.join(config['palavras']))
             texto = executar_projeto(projeto, config, cliente, raiz)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
+        # Ctrl+C a qualquer momento, ou Ctrl+D / fim da entrada numa pergunta
         print(MENSAGEM_INTERROMPIDO)
         return 1
     log.info(texto)

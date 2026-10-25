@@ -148,3 +148,11 @@ def test_palavras_csv_tem_prioridade(projeto_tmp):
         'Palavras\n"professor,  conviccoes morais"\n\n', encoding='utf-8')
     termos = preparar_termos(importar_palavras(projeto_tmp / 'arquivos_csv'))
     assert termos == ['"professor"+"conviccoes+morais"']
+
+
+def test_fim_da_entrada_numa_pergunta_sai_com_mensagem(projeto_tmp, cliente, capsys):
+    """Achado V5: Ctrl+D (ou respostas acabando) numa pergunta não gera traceback."""
+    def sem_mais_respostas(texto=''):
+        raise EOFError
+    assert programa.main(sem_mais_respostas, cliente, projeto_tmp) == 1
+    assert 'retomar' in capsys.readouterr().out

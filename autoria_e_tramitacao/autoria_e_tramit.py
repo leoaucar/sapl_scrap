@@ -114,7 +114,11 @@ def processar(caminho, cliente):
 
 def main(pasta='.', entrada=input, cliente=None):
     registro.configurar(pasta, 'autoria_tramitacao')
-    caminho = escolher_csv(pasta, entrada)
+    try:
+        caminho = escolher_csv(pasta, entrada)
+    except (KeyboardInterrupt, EOFError):
+        print('\nInterrompido.')
+        return 1
     if caminho is None:
         print('Nenhum arquivo .csv nesta pasta. Copie para cá o resultado final de um projeto.')
         return 1

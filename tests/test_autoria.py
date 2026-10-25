@@ -69,3 +69,12 @@ def test_main_escolhe_arquivo_e_grava_novo(tmp_path, cliente, sessao):
 def test_main_sem_csv(tmp_path, capsys):
     assert at.main(tmp_path, roteiro(), None) == 1
     assert 'Nenhum arquivo .csv' in capsys.readouterr().out
+
+
+def test_main_interrompido_na_pergunta(tmp_path, capsys):
+    (tmp_path / 'a.csv').write_text('Link Materia\nx\n')
+
+    def sem_mais_respostas(texto=''):
+        raise EOFError
+    assert at.main(tmp_path, sem_mais_respostas, None) == 1
+    assert 'Interrompido' in capsys.readouterr().out

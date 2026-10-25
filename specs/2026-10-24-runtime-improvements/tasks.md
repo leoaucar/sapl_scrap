@@ -160,7 +160,7 @@ Rules for every task:
 
 ## Phase F — Projects, main flow, summary
 
-- [ ] **T18 Projects: create or reopen** — FR-19, FR-20, FR-24
+- [x] **T18 Projects: create or reopen** — FR-19, FR-20, FR-24
   - `gerenciador_projetos.py`: `abrir_ou_criar(nome, raiz, entrada)` with
     the resume / other-name menu; `config.json` save/load; `os.makedirs(...,
     exist_ok=True)` for download folders; remove unused helpers (FR-30).

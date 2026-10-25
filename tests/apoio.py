@@ -114,3 +114,15 @@ class SessaoFalsa:
     def contar(self, trecho):
         """Quantos pedidos continham `trecho` na URL."""
         return sum(trecho in u for u in self.pedidos)
+
+
+def roteiro(*respostas):
+    """Função de entrada que devolve as respostas em ordem e registra as perguntas."""
+    fila = list(respostas)
+    perguntas = []
+
+    def ler(texto=''):
+        perguntas.append(texto)
+        return fila.pop(0)
+    ler.perguntas = perguntas
+    return ler

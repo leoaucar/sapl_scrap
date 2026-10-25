@@ -1,17 +1,6 @@
 """Perguntas no terminal: respostas inválidas são pedidas de novo."""
 import entrada
-
-
-def roteiro(*respostas):
-    """Função de entrada que devolve as respostas em ordem e registra as perguntas."""
-    fila = list(respostas)
-    perguntas = []
-
-    def ler(texto=''):
-        perguntas.append(texto)
-        return fila.pop(0)
-    ler.perguntas = perguntas
-    return ler
+from tests.apoio import roteiro
 
 
 def test_opcao_invalida_vazia_e_fora_da_faixa_sao_pedidas_de_novo(capsys):

@@ -203,9 +203,9 @@ def test_falha_fecha_respostas_intermediarias(cliente, sessao):
 
 def test_uma_linha_de_log_por_tentativa(cliente, sessao, caplog):
     sessao.responder(A, status=503).responder(A, texto='ok')
-    with caplog.at_level(logging.DEBUG, logger='sapl_scrap.http'):
+    with caplog.at_level(logging.DEBUG, logger='sapyl.http'):
         cliente.get(A)
-    linhas = [r.getMessage() for r in caplog.records if r.name == 'sapl_scrap.http']
+    linhas = [r.getMessage() for r in caplog.records if r.name == 'sapyl.http']
     assert [lin.split(' | enviada ')[0] for lin in linhas] == [
         f'sapl.a.leg.br | {A} | 503 | tentativa 1 | espera 5',
         f'sapl.a.leg.br | {A} | 200 | tentativa 2 | espera 0',
@@ -216,7 +216,7 @@ def test_uma_linha_de_log_por_tentativa(cliente, sessao, caplog):
 
 def test_log_de_erro_de_rede_e_aviso_final(cliente, sessao, caplog):
     sessao.responder(A, erro=requests.Timeout())
-    with caplog.at_level(logging.DEBUG, logger='sapl_scrap.http'):
+    with caplog.at_level(logging.DEBUG, logger='sapyl.http'):
         cliente.get(A, max_tentativas=1)
     mensagens = [r.getMessage() for r in caplog.records]
     assert any(
@@ -236,7 +236,8 @@ def test_resposta_json_e_texto(cliente, sessao):
 
 
 def test_sessao_padrao_tem_user_agent():
-    assert 'sapl_scrap' in http_sapl.criar_sessao().headers['User-Agent']
+    agente = http_sapl.criar_sessao().headers['User-Agent']
+    assert agente.startswith('SAPyL/0.2.0 ') and 'github.com/leoaucar/sapyl' in agente
 
 
 # --- Limite entre execuções (achado V2 da validação) ------------------------

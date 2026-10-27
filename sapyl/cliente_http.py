@@ -36,7 +36,7 @@ from urllib.parse import urlparse
 
 import requests
 
-from sapyl import registro
+from sapyl import __version__, registro
 
 # Limite observado nos servidores do SAPL (teste de 15/10/2026)
 LIMITE_POR_MINUTO = 35
@@ -47,7 +47,7 @@ RETRY_AFTER_PADRAO = 60
 RETRY_AFTER_MAXIMO = 300
 TIMEOUT_PADRAO = (10, 30)  # (conexão, leitura), em segundos
 ESPERA_MINIMA = 0.01  # segundos
-USER_AGENT = 'sapl_scrap (pesquisa; +https://github.com/leoaucar/sapl_scrap)'
+USER_AGENT = f'SAPyL/{__version__} (pesquisa; +https://github.com/leoaucar/sapyl)'
 
 log = registro.logger('http')
 

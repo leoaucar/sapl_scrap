@@ -1,9 +1,21 @@
-# sapl_scrap
+# SAPyL
+
+**Raspador do Sistema de Apoio Legislativo**
+
+Acompanhe, num só lugar, o que está tramitando em dezenas de câmaras e
+assembleias brasileiras que usam o SAPL. Software livre (AGPL-3.0).
 
 [![testes](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml/badge.svg)](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml)
 
-Raspador de matérias legislativas em Câmaras Municipais e Assembleias que usam o
-**SAPL** (Sistema de Apoio ao Processo Legislativo, do Interlegis).
+## Para que serve
+
+Muitas Câmaras Municipais e Assembleias Legislativas publicam seus projetos
+de lei, requerimentos e outras matérias no **SAPL** (Sistema de Apoio ao
+Processo Legislativo, do Interlegis). Cada casa tem o seu site, e não há uma
+busca que junte todas. O SAPyL faz essa busca por você: é feito para
+pesquisadoras e pesquisadores, jornalistas, organizações da sociedade civil e
+qualquer pessoa que queira saber o que está sendo proposto sobre um tema em
+muitas casas legislativas ao mesmo tempo.
 
 O programa pesquisa uma lista de palavras-chave na busca de cada casa legislativa,
 coleta os links das matérias encontradas, obtém os dados de cada matéria (título,

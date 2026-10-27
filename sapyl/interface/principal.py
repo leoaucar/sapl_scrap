@@ -47,6 +47,7 @@ from sapyl.materias import raspar_todas
 from sapyl.palavras import importar_palavras, preparar_termos
 from sapyl.tabela import ler_final, montar_final, salvar_final
 
+BOAS_VINDAS = f'{registro.NOME} (versão {__version__})\n'
 PERGUNTA_ATUALIZAR = 'Deseja apenas atualizar a tabela de algum projeto anterior? 1- sim, 2- não\n'
 PERGUNTA_TABELA = 'Deseja usar a mesma tabela de casas do último projeto? 1- sim, 2- não\n'
 PERGUNTA_SUL = 'Deseja restringir a busca a Sul e Sudeste? 1- sim, 2- não\n'
@@ -184,6 +185,7 @@ def main(
     """
     raiz = Path(raiz)
     cliente = cliente or ClienteSAPL(historico=str(raiz / ARQUIVO_HISTORICO))
+    print(BOAS_VINDAS)
     try:
         if perguntar_sim_nao(PERGUNTA_ATUALIZAR, entrada):
             texto = executar_atualizacao(raiz, cliente, entrada)

@@ -1,4 +1,4 @@
-# Tech stack — sapl_scrap
+# Tech stack — SAPyL (formerly sapl_scrap)
 
 Current stack, and what is planned for later specs. Changing anything in
 "Current" requires a note in the spec's plan.

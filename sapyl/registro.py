@@ -1,6 +1,6 @@
 """Registro da execução (log) e resumo final.
 
-Todas as mensagens passam pelo logger `sapl_scrap`:
+Todas as mensagens passam pelo logger `sapyl`:
 - no terminal, nível INFO (progresso e avisos);
 - no arquivo `<pasta>/<nome>.log`, nível DEBUG (inclui uma linha por
   requisição HTTP, usada para conferir o limite de requisições).
@@ -13,13 +13,15 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Protocol
 
+from sapyl import __version__
 from sapyl.colunas import ETAPA_MATERIA, ETAPA_PDF, SEPARADOR, Linha
 
-LOGGER = 'sapl_scrap'
+LOGGER = 'sapyl'
+NOME = 'SAPyL: Raspador do Sistema de Apoio Legislativo'
 FORMATO_ARQUIVO = '%(asctime)s %(levelname)s %(name)s %(message)s'
 
 # Marca os handlers criados aqui, para `configurar` poder ser chamada de novo
-_MARCA = '_sapl_scrap'
+_MARCA = '_sapyl'
 
 
 class _Contagens(Protocol):
@@ -50,11 +52,13 @@ def configurar(pasta: str | Path, nome: str) -> str:
     for handler in (terminal, arquivo):
         setattr(handler, _MARCA, True)
         logger.addHandler(handler)
+    # Cabeçalho, só no arquivo: cada execução começa com o nome e a versão
+    logger.debug('%s %s: início da execução', NOME, __version__)
     return caminho
 
 
 def logger(nome: str | None = None) -> logging.Logger:
-    """Logger de um módulo: `sapl_scrap` ou `sapl_scrap.<nome>`."""
+    """Logger de um módulo: `sapyl` ou `sapyl.<nome>`."""
     return logging.getLogger(LOGGER if not nome else f'{LOGGER}.{nome}')
 
 
@@ -73,7 +77,7 @@ def resumo(
     do projeto inteiro, também depois de uma retomada.
     """
     chaves = {link['chave'] for link in links}
-    linhas = ['', '===== Resumo =====']
+    linhas = ['', f'===== Resumo (SAPyL {__version__}) =====']
     falhas = False
     if buscas is not None:
         casas = {casa for casa, _ in buscas}

@@ -1,4 +1,4 @@
-# Constitution — sapl_scrap
+# Constitution — SAPyL (formerly sapl_scrap)
 
 Non-negotiable principles for every spec, plan and change in this project.
 A spec or plan that conflicts with one of these must say so explicitly and

@@ -105,11 +105,14 @@ Rules for every task (same as Phase 1):
   - Check that a fresh clone without `casas_resultado.csv` doesn't offer
     to reuse a table (there's already a test for the prompt; add one for a
     missing file).
-- [ ] **T09 SAPyL identity** (FR-11, FR-13)
+- [x] **T09 SAPyL identity** (FR-11, FR-13)
   - README header and "Para que serve", the `User-Agent`, the welcome line
     and summary/log header, and the `AUTHORS.md` citation.
   - Tests: the `User-Agent` contains `SAPyL/0.2.0`, and the summary and the
     welcome line contain `SAPyL`.
+  - *As built:* the logger is renamed `sapl_scrap` → `sapyl` (its name is on
+    every log line), and each log file starts with a DEBUG line with the name
+    and version. Badge and clone URLs keep `sapl_scrap` until T24.
 
 ## Phase D: Leftover issues
 

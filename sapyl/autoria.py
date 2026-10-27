@@ -24,6 +24,7 @@ from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.interface.entrada import Leitor, perguntar_opcao
 
+BOAS_VINDAS = f'{registro.NOME}: autoria e tramitação\n'
 SUFIXO_SAIDA = '_autoria_tramitacao'
 log = registro.logger('autoria')
 
@@ -124,6 +125,7 @@ def main(
     Devolve o código de saída (0 ou 1).
     """
     registro.configurar(pasta, 'autoria_tramitacao')
+    print(BOAS_VINDAS)
     try:
         caminho = escolher_csv(pasta, entrada)
     except (KeyboardInterrupt, EOFError):

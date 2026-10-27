@@ -98,7 +98,7 @@ NOVO = ('2', 'p', '2', '1', '1')  # projeto novo "p", sem filtro, todas as casas
 @pytest.fixture
 def execucao(projeto_tmp, caplog):
     cliente, sessao, horarios = montar(projeto_tmp)
-    with caplog.at_level(logging.INFO, logger='sapl_scrap'):
+    with caplog.at_level(logging.INFO, logger='sapyl'):
         assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
     resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
     return projeto_tmp / 'p_proj', sessao, horarios, resumo

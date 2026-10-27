@@ -25,7 +25,7 @@ def bloquear_rede(monkeypatch):
 def limpar_log():
     """Remove os handlers de log criados por `registro.configurar` em cada teste."""
     yield
-    log = logging.getLogger('sapl_scrap')
+    log = logging.getLogger('sapyl')
     for handler in list(log.handlers):
         log.removeHandler(handler)
         handler.close()

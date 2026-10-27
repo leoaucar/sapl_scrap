@@ -2,6 +2,7 @@
 
 import importlib
 import json
+import logging
 
 import pytest
 
@@ -156,7 +157,7 @@ def test_ctrl_c_no_meio_da_raspagem_permite_retomar(
 def test_resumo_aparece_no_fim(projeto_tmp, cliente, sessao, sapl, caplog):
     import logging
 
-    with caplog.at_level(logging.INFO, logger='sapl_scrap'):
+    with caplog.at_level(logging.INFO, logger='sapyl'):
         programa.main(roteiro(*NOVO), cliente, projeto_tmp)
     resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()]
     assert resumo and 'Matérias: 5 encontradas, 4 únicas, 2 raspadas, 2 com erro' in resumo[-1]
@@ -181,3 +182,12 @@ def test_fim_da_entrada_numa_pergunta_sai_com_mensagem(projeto_tmp, cliente, cap
 
     assert programa.main(sem_mais_respostas, cliente, projeto_tmp) == 1
     assert 'retomar' in capsys.readouterr().out
+
+
+def test_boas_vindas_e_resumo_com_o_nome_sapyl(projeto_tmp, cliente, sessao, sapl, caplog, capsys):
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    saida = capsys.readouterr().out
+    assert saida.startswith('SAPyL: Raspador do Sistema de Apoio Legislativo (versão 0.2.0)')
+    resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
+    assert '===== Resumo (SAPyL 0.2.0) =====' in resumo

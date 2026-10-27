@@ -6,9 +6,7 @@ from sapyl import registro
 
 
 def _handlers():
-    return [
-        h for h in logging.getLogger(registro.LOGGER).handlers if getattr(h, '_sapl_scrap', False)
-    ]
+    return [h for h in logging.getLogger(registro.LOGGER).handlers if getattr(h, '_sapyl', False)]
 
 
 def test_configurar_cria_terminal_info_e_arquivo_debug(tmp_path):
@@ -22,8 +20,8 @@ def test_configurar_cria_terminal_info_e_arquivo_debug(tmp_path):
     for h in handlers:
         h.flush()
     texto = open(caminho, encoding='utf-8').read()
-    assert 'DEBUG sapl_scrap.http linha de depuração' in texto
-    assert 'INFO sapl_scrap linha de progresso' in texto
+    assert 'DEBUG sapyl.http linha de depuração' in texto
+    assert 'INFO sapyl linha de progresso' in texto
 
 
 def test_configurar_duas_vezes_nao_duplica(tmp_path):
@@ -89,3 +87,9 @@ def test_resumo_depois_de_retomada_conta_o_projeto_inteiro(tmp_path):
     retomado.registrar('materia', 'h/2', 'ok')
     retomado.registrar('materia', 'h/3', 'ok')
     assert '3 raspadas, 0 com erro' in registro.resumo(retomado, _links(), 'f.csv')
+
+
+def test_log_comeca_com_nome_e_versao(tmp_path):
+    caminho = registro.configurar(tmp_path, 'p')
+    primeira = open(caminho, encoding='utf-8').readline()
+    assert 'DEBUG sapyl SAPyL: Raspador do Sistema de Apoio Legislativo 0.2.0' in primeira

@@ -64,6 +64,31 @@ Planilha com uma coluna chamada **`Palavras`**. Cada linha é uma busca.
 Se existir um `arquivos_csv/palavras_chave.csv` com a mesma coluna, ele tem
 prioridade sobre o `.xlsx`.
 
+#### Arquivos de exemplo
+
+`arquivos_csv/exemplo_palavras_chave.csv` mostra cada formato. Para usá-lo,
+copie-o para `arquivos_csv/palavras_chave.csv`. Cada linha vira a busca:
+
+| Linha do arquivo                 | Busca no SAPL                       | Significa                              |
+|----------------------------------|-------------------------------------|----------------------------------------|
+| `orçamento`                      | `"orçamento"`                       | uma palavra                            |
+| `plano diretor`                  | `"plano+diretor"`                   | a expressão exata                      |
+| `lei orgânica`                   | `"lei+orgânica"`                    | a expressão exata                      |
+| `"orçamento, emenda impositiva"` | `"orçamento"+"emenda+impositiva"`   | os dois termos juntos na mesma matéria |
+| `saneamento básico`              | `"saneamento+básico"`               | com acento                             |
+| `saneamento basico`              | `"saneamento+basico"`               | a mesma ideia sem acento               |
+
+Variantes de grafia (com e sem acento, com hífen ou espaço) vão em linhas
+separadas. Cada linha é mais uma busca em cada casa, e todas contam no limite
+de 35 requisições por minuto de cada site.
+
+`arquivos_csv/exemplo_palavras_chave_educacao.csv` é uma lista real de
+pesquisa (educação, gênero e ideologia), com 23 buscas por casa: um teste
+maior, de cerca de uma hora para 10 casas por causa do limite.
+
+Use o `palavras_chave.csv` (fora do git) para as suas próprias listas, em vez
+de editar o `palavras_chave.xlsx`, que é o exemplo guardado no repositório.
+
 ### Casas legislativas — `arquivos_csv/casas_legislativas.xlsx`
 
 Lista das casas que usam o SAPL. O programa usa as colunas **`UF`** e

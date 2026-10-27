@@ -20,6 +20,13 @@ env/
 # Saídas de teste
 arquivos_csv/teste_raspagem.csv
 
+# Dados gerados pelo programa: a tabela geral de casas testadas é reescrita
+# a cada execução com todas as casas, então fica só no disco de cada pessoa
+arquivos_csv/casas_resultado.csv
+
+# Dados de pesquisa (não são exemplo): ficam no disco de quem pesquisa
+autoria_e_tramitacao/tabela_limpa_2.csv
+
 # Editores / sistema
 .vscode/
 .idea/

@@ -90,7 +90,7 @@ Rules for every task (same as Phase 1):
 
 ## Phase C: Data and identity
 
-- [ ] **T08 Stop tracking generated and research data** (FR-8, FR-9, FR-10)
+- [x] **T08 Stop tracking generated and research data** (FR-8, FR-9, FR-10)
   - `git rm --cached` + `.gitignore` with comments.
   - Replace `palavras_chave_res.csv` with `exemplo_palavras_chave.csv`
     (plan §6) and add the README table.

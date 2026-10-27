@@ -40,3 +40,17 @@ Particularidades usadas nos testes:
 
 Respostas que não vêm de arquivo (429 com `Retry-After`, erros 5xx, timeouts,
 casas sem API) são montadas nos próprios testes com `tests/apoio.py`.
+
+## `projeto_fase1/` — pasta de projeto gravada pela versão da Fase 1
+
+Gravada em 27/10/2026 por [`gerar_projeto_fase1.py`](gerar_projeto_fase1.py),
+com o código da Fase 1 (antes do pacote `sapyl`), contra o SAPL falso
+`tests.apoio.sapl_fase1`: Rio Branco (API) e Cascavel (só HTML), 8 matérias,
+com downloads. A matéria `sapl.riobranco.ac.leg.br/44086` ficou com `erro`
+(HTTP 503). Tem o arquivo bruto antigo (`_resultados_crus_casas.csv`, com o
+HTML das páginas) e o log antigo (`fase1.log`).
+
+Serve para conferir que projetos antigos continuam retomando e atualizando
+(`tests/test_compat_fase1.py`). **Não regrave:** o script importa módulos da
+Fase 1 que deixam de existir depois da mudança para o pacote. Os testes
+sempre trabalham numa cópia.

@@ -15,7 +15,7 @@ Rules for every task (same as Phase 1):
 
 ## Phase A: Before moving anything
 
-- [ ] **T01 Branch and Phase 1 project fixture** (TR-4)
+- [x] **T01 Branch and Phase 1 project fixture** (TR-4)
   - Create the branch from the updated `main`.
   - `tests/fixtures/gerar_projeto_fase1.py`: runs the **Phase 1** `programa.main`
     against `SaplFalso` (two houses, one matter failing) and copies the project

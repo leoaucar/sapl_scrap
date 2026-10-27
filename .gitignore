@@ -36,3 +36,7 @@ htmlcov/
 .claude/
 CLAUDE.md
 CLAUDE.local.md
+
+# Exceção: pasta de projeto de exemplo usada nos testes de compatibilidade
+# (vem por último para valer também contra *_proj/, *.pdf e *.log)
+!tests/fixtures/projeto_fase1/**

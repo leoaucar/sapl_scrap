@@ -1,0 +1,68 @@
+2026-10-27 20:25:59,401 INFO sapl_scrap Buscando os termos: "plano+diretor", "orçamento"+"emenda+impositiva"
+2026-10-27 20:25:59,405 INFO sapl_scrap Testando 2 casas legislativas
+2026-10-27 20:25:59,406 INFO sapl_scrap.casas Testando casa 1 de 2: https://sapl.riobranco.ac.leg.br/
+2026-10-27 20:25:59,406 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.406
+2026-10-27 20:25:59,406 INFO sapl_scrap.casas Testando casa 2 de 2: https://sapl.cascavel.pr.leg.br/
+2026-10-27 20:25:59,406 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.406
+2026-10-27 20:25:59,413 INFO sapl_scrap Casas: 2, das quais 2 no ar
+2026-10-27 20:25:59,414 INFO sapl_scrap.busca Busca na casa 1 de 2: https://sapl.riobranco.ac.leg.br/
+2026-10-27 20:25:59,414 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q="plano+diretor" | 200 | tentativa 1 | espera 0 | enviada 20:25:59.414
+2026-10-27 20:25:59,415 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/sistema/search/?page=2&q="plano+diretor" | 404 | tentativa 1 | espera 0 | enviada 20:25:59.415
+2026-10-27 20:25:59,415 INFO sapl_scrap.busca   "plano+diretor": 1 página(s)
+2026-10-27 20:25:59,415 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/sistema/search/?page=1&q="orçamento"+"emenda+impositiva" | 200 | tentativa 1 | espera 0 | enviada 20:25:59.415
+2026-10-27 20:25:59,415 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/sistema/search/?page=2&q="orçamento"+"emenda+impositiva" | 404 | tentativa 1 | espera 0 | enviada 20:25:59.415
+2026-10-27 20:25:59,416 INFO sapl_scrap.busca   "orçamento"+"emenda+impositiva": 1 página(s)
+2026-10-27 20:25:59,416 INFO sapl_scrap.busca Busca na casa 2 de 2: https://sapl.cascavel.pr.leg.br/
+2026-10-27 20:25:59,416 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/sistema/search/?page=1&q="plano+diretor" | 200 | tentativa 1 | espera 0 | enviada 20:25:59.416
+2026-10-27 20:25:59,416 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/sistema/search/?page=2&q="plano+diretor" | 404 | tentativa 1 | espera 0 | enviada 20:25:59.416
+2026-10-27 20:25:59,416 INFO sapl_scrap.busca   "plano+diretor": 1 página(s)
+2026-10-27 20:25:59,417 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/sistema/search/?page=1&q="orçamento"+"emenda+impositiva" | 200 | tentativa 1 | espera 0 | enviada 20:25:59.416
+2026-10-27 20:25:59,417 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/sistema/search/?page=2&q="orçamento"+"emenda+impositiva" | 404 | tentativa 1 | espera 0 | enviada 20:25:59.417
+2026-10-27 20:25:59,417 INFO sapl_scrap.busca   "orçamento"+"emenda+impositiva": 1 página(s)
+2026-10-27 20:25:59,464 INFO sapl_scrap Links de matérias: 8 encontrados, 8 únicos
+2026-10-27 20:25:59,465 INFO sapl_scrap.materias Matérias: 8 a raspar, 0 já raspadas
+2026-10-27 20:25:59,465 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/46496/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.465
+2026-10-27 20:25:59,466 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/tipomaterialegislativa/15/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.465
+2026-10-27 20:25:59,466 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/regimetramitacao/1/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.466
+2026-10-27 20:25:59,466 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/37559/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.466
+2026-10-27 20:25:59,466 INFO sapl_scrap.materias Matéria 1 de 8 (sapl.riobranco.ac.leg.br/46496): Veto nº 23 de 2026
+2026-10-27 20:25:59,466 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/34049/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.466
+2026-10-27 20:25:59,467 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/tipomaterialegislativa/1/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.467
+2026-10-27 20:25:59,467 INFO sapl_scrap.materias Matéria 2 de 8 (sapl.riobranco.ac.leg.br/34049): Projeto de Lei Ordinária nº 89 de 2025
+2026-10-27 20:25:59,467 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/37559/ | 200 | tentativa 1 | espera 0 | enviada 20:25:59.467
+2026-10-27 20:25:59,467 INFO sapl_scrap.materias Matéria 3 de 8 (sapl.riobranco.ac.leg.br/37559): Projeto de Lei Complementar nº 26 de 2025
+2026-10-27 20:25:59,467 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/44086/ | 503 | tentativa 1 | espera 5 | enviada 20:25:59.467
+2026-10-27 20:25:59,467 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/44086/ | 503 | tentativa 2 | espera 15 | enviada 20:25:59.467
+2026-10-27 20:25:59,467 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/44086/ | 503 | tentativa 3 | espera 45 | enviada 20:25:59.467
+2026-10-27 20:25:59,467 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/44086/ | 503 | tentativa 4 | espera 0 | enviada 20:25:59.467
+2026-10-27 20:25:59,467 WARNING sapl_scrap.http Falha em https://sapl.riobranco.ac.leg.br/api/materia/materialegislativa/44086/: HTTP 503 (4 tentativas)
+2026-10-27 20:25:59,467 INFO sapl_scrap.materias Matéria 4 de 8 (sapl.riobranco.ac.leg.br/44086): ERRO: HTTP 503
+2026-10-27 20:25:59,467 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/api/materia/materialegislativa/38415/ | 404 | tentativa 1 | espera 0 | enviada 20:25:59.467
+2026-10-27 20:25:59,468 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/materia/38415 | 200 | tentativa 1 | espera 0 | enviada 20:25:59.467
+2026-10-27 20:25:59,540 INFO sapl_scrap.materias Casa sapl.cascavel.pr.leg.br sem API de matérias (API respondeu 404): usando as páginas HTML
+2026-10-27 20:25:59,540 INFO sapl_scrap.materias Matéria 5 de 8 (sapl.cascavel.pr.leg.br/38415): Requerimento nº 683 de 2025
+2026-10-27 20:25:59,541 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/materia/43301 | 200 | tentativa 1 | espera 0 | enviada 20:25:59.540
+2026-10-27 20:25:59,557 INFO sapl_scrap.materias Matéria 6 de 8 (sapl.cascavel.pr.leg.br/43301): Projeto de Lei Ordinária nº 178 de 2026
+2026-10-27 20:25:59,558 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/materia/43300 | 200 | tentativa 1 | espera 0 | enviada 20:25:59.557
+2026-10-27 20:25:59,573 INFO sapl_scrap.materias Matéria 7 de 8 (sapl.cascavel.pr.leg.br/43300): Projeto de Lei nº 103 de 2024
+2026-10-27 20:25:59,573 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/materia/42263 | 200 | tentativa 1 | espera 0 | enviada 20:25:59.573
+2026-10-27 20:25:59,590 INFO sapl_scrap.materias Matéria 8 de 8 (sapl.cascavel.pr.leg.br/42263): Projeto de Lei Ordinária nº 178 de 2026
+2026-10-27 20:25:59,592 INFO sapl_scrap.download Downloads: 7 matérias
+2026-10-27 20:25:59,592 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/media/sapl/public/materialegislativa/2026/46496/oficio-572-2026_-_veto_parcial_1.pdf | 200 | tentativa 1 | espera 0 | enviada 20:25:59.592
+2026-10-27 20:25:59,593 INFO sapl_scrap.download Download 1 de 7 (sapl.riobranco.ac.leg.br/46496): sapl.riobranco.ac.leg.br_46496.pdf
+2026-10-27 20:25:59,593 DEBUG sapl_scrap.http sapl.riobranco.ac.leg.br | https://sapl.riobranco.ac.leg.br/media/sapl/public/materialegislativa/2025/34049/projeto_de_lei_-_politica_municipal_de_habitacao_de_interesse_social_-_assinado.pdf | 200 | tentativa 1 | espera 0 | enviada 20:25:59.593
+2026-10-27 20:25:59,593 INFO sapl_scrap.download Download 2 de 7 (sapl.riobranco.ac.leg.br/34049): sapl.riobranco.ac.leg.br_34049.pdf
+2026-10-27 20:25:59,593 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/media/sapl/public/materialegislativa/2025/38415/req_683_2025.pdf | 200 | tentativa 1 | espera 0 | enviada 20:25:59.593
+2026-10-27 20:25:59,593 INFO sapl_scrap.download Download 4 de 7 (sapl.cascavel.pr.leg.br/38415): sapl.cascavel.pr.leg.br_38415.pdf
+2026-10-27 20:25:59,594 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/media/sapl/public/materialegislativa/2026/43301/pl_178_2026.pdf | 404 | tentativa 1 | espera 0 | enviada 20:25:59.594
+2026-10-27 20:25:59,594 INFO sapl_scrap.download Download 5 de 7 (sapl.cascavel.pr.leg.br/43301): HTTP 404
+2026-10-27 20:25:59,594 DEBUG sapl_scrap.http sapl.cascavel.pr.leg.br | https://sapl.cascavel.pr.leg.br/media/sapl/public/materialegislativa/2026/43301/pl_178_2026.pdf | 404 | tentativa 1 | espera 0 | enviada 20:25:59.594
+2026-10-27 20:25:59,594 INFO sapl_scrap.download Download 7 de 7 (sapl.cascavel.pr.leg.br/42263): HTTP 404
+2026-10-27 20:25:59,596 INFO sapl_scrap 
+===== Resumo =====
+Casas pesquisadas: 2 (0 com alguma busca incompleta; 0 fora do ar, não pesquisadas)
+Buscas: 4 (0 incompletas)
+Matérias: 8 encontradas, 8 únicas, 7 raspadas, 1 com erro
+Downloads: 3 baixados, 2 com erro, 2 sem texto original
+Resultado: fase1_proj/fase1_resultado_final.csv
+Houve falhas (veja as colunas status/erro e o arquivo .log). Para tentar de novo só o que falhou, rode o programa outra vez e escolha retomar este projeto.

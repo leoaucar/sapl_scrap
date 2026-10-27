@@ -203,3 +203,46 @@ class SaplFalso:
         if achado and achado.group(1) in casa['pdfs']:
             return RespostaFalsa(200, conteudo=casa['pdfs'][achado.group(1)])
         return RespostaFalsa(404, 'não existe')
+
+
+# Projeto de exemplo da Fase 1 (tests/fixtures/projeto_fase1/, veja o README
+# das fixtures). O mesmo SAPL falso serve para gerar a pasta e para retomá-la.
+RB_FASE1 = 'https://sapl.riobranco.ac.leg.br/'
+CV_FASE1 = 'https://sapl.cascavel.pr.leg.br/'
+PALAVRAS_FASE1 = ['plano diretor', 'orçamento, emenda impositiva']
+FALHA_FASE1 = f'{RB_FASE1}api/materia/materialegislativa/44086/'
+
+
+def sapl_fase1(falhar=True):
+    """Rio Branco (com API) e Cascavel (só HTML), 4 matérias cada.
+
+    Com `falhar=True`, a matéria 44086 de Rio Branco responde 503 nas 4
+    tentativas e fica com status `erro` (como ficou na pasta gravada).
+    """
+    import copy
+    rb, cv = 'sapl/sapl.riobranco.ac.leg.br/', 'sapl/sapl.cascavel.pr.leg.br/'
+    p, o = '"plano+diretor"', '"orçamento"+"emenda+impositiva"'
+
+    def api_minima(sapl_id, titulo):
+        dados = copy.deepcopy(json.loads(ler_fixture(rb + 'api_materia_34049.json')))
+        dados.update(id=int(sapl_id), __str__=titulo, anexadas=[], texto_original=None)
+        return dados
+
+    falso = SaplFalso()
+    falso.casa(RB_FASE1, buscas={p: [rb + 'busca_p1.html'], o: [rb + 'busca_vazia.html']},
+               api={'34049': rb + 'api_materia_34049.json', '46496': rb + 'api_materia_46496.json',
+                    '37559': api_minima('37559', 'Projeto de Lei Complementar nº 26 de 2025'),
+                    '44086': api_minima('44086', 'Indicação nº 1 de 2026')},
+               nomes={('tipomaterialegislativa', '1'): 'Projeto de Lei Ordinária',
+                      ('tipomaterialegislativa', '15'): 'Veto',
+                      ('regimetramitacao', '1'): 'Ordinária'},
+               pdfs={'34049': b'%PDF-34049', '46496': b'%PDF-46496'})
+    falso.casa(CV_FASE1, api=None,
+               buscas={p: [cv + 'busca_p1.html'], o: [cv + 'busca_vazia.html']},
+               html={'38415': cv + 'materia_38415.html', '43301': cv + 'materia_43301.html',
+                     '43300': 'sinteticas/materia_sem_pdf.html',
+                     '42263': 'sinteticas/materia_sem_data.html'},
+               pdfs={'38415': b'%PDF-38415'})
+    if falhar:
+        falso.falhar(FALHA_FASE1, 503, 503, 503, 503)
+    return falso

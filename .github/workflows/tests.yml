@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  pytest:
+  testes:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -17,8 +17,29 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-          cache-dependency-path: requirements*.txt
-      - name: Instalar dependências
-        run: pip install -r requirements-dev.txt
+          cache-dependency-path: pyproject.toml
+      - name: Instalar o programa e as dependências de desenvolvimento
+        run: pip install -e ".[dev]"
+      # Até a T07 (tipagem e formatação) o código antigo ainda não passa no ruff
+      - name: ruff check
+        run: ruff check .
+        continue-on-error: true
+      - name: ruff format --check
+        run: ruff format --check .
+        continue-on-error: true
       - name: Rodar os testes (offline)
         run: pytest
+
+  instalacao:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar num ambiente limpo
+        run: |
+          python -m venv /tmp/limpo
+          /tmp/limpo/bin/pip install .
+      - name: Conferir a instalação
+        run: /tmp/limpo/bin/python -c "import importlib.metadata as m; print('sapyl', m.version('sapyl'))"

@@ -32,13 +32,17 @@ Rules for every task (same as Phase 1):
 
 ## Phase B: Packaging and the move (no behaviour change)
 
-- [ ] **T03 `pyproject.toml` packaging and CI jobs** (FR-1, FR-6 config, TR-5, TR-6)
+- [x] **T03 `pyproject.toml` packaging and CI jobs** (FR-1, FR-6 config, TR-5, TR-6)
   - `[project]`, `[project.scripts]`, the `dev` extra, `[tool.ruff]`, and
     coverage of `sapyl`. Add `ruff` to the dev extra. `requirements*.txt`
     become wrappers.
   - CI: `testes` job (ruff steps allowed to fail until T07) and
     `instalacao` job.
   - Done when CI is green, with the ruff steps marked `continue-on-error`.
+  - *As built:* the `sapyl/` folder doesn't exist yet, so coverage stays on
+    `.` until T04, and the `instalacao` job only checks the installed
+    version. Its `sapyl --version` / `python -m sapyl --version` steps are
+    added in T06.
 - [ ] **T04 Move modules into `sapyl/`** (FR-3, TR-1)
   - `git mv` every module to the plan §3 path (still the old module
     contents). Change imports to absolute and update the tests' imports only.

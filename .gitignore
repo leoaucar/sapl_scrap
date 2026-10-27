@@ -2,6 +2,11 @@
 __pycache__/
 *.py[cod]
 
+# Instalação do pacote (pip install / pip install -e)
+*.egg-info/
+build/
+dist/
+
 # Ambientes virtuais
 .venv/
 venv/

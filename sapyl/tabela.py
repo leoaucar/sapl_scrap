@@ -2,7 +2,8 @@
 import pandas as pd
 
 from sapyl.estado import ler_csv
-from sapyl.materias import COLUNAS_FINAIS, COLUNAS_MATERIAS, linha_vazia
+from sapyl.colunas import COLUNAS_FINAIS, COLUNAS_MATERIAS
+from sapyl.materias import linha_vazia
 
 
 def montar_final(arquivo_materias, links):

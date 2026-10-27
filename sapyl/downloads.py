@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 import requests
 
 from sapyl import registro
+from sapyl.colunas import ETAPA_PDF
 
 TAMANHO_PEDACO = 64 * 1024
 TIMEOUT_DOWNLOAD = (10, 60)
@@ -64,20 +65,20 @@ def baixar_todos(final, pasta, cliente, estado):
         link = final.at[i, 'texto_original']
         if not link:
             final.at[i, 'arquivo_pdf'], final.at[i, 'download_status'] = '', 'sem_pdf'
-            if estado.status('pdf', chave) != 'sem_pdf':
-                estado.registrar('pdf', chave, 'sem_pdf')
+            if estado.status(ETAPA_PDF, chave) != 'sem_pdf':
+                estado.registrar(ETAPA_PDF, chave, 'sem_pdf')
             continue
         nome = nome_arquivo(chave, link)
         destino = os.path.join(pasta, nome)
-        if estado.status('pdf', chave) == 'ok' and os.path.exists(destino):
+        if estado.status(ETAPA_PDF, chave) == 'ok' and os.path.exists(destino):
             final.at[i, 'arquivo_pdf'], final.at[i, 'download_status'] = nome, 'ok'
             continue
         erro = baixar_arquivo(link, destino, cliente)
         if erro:
             final.at[i, 'arquivo_pdf'], final.at[i, 'download_status'] = '', 'erro'
-            estado.registrar('pdf', chave, 'erro', erro)
+            estado.registrar(ETAPA_PDF, chave, 'erro', erro)
         else:
             final.at[i, 'arquivo_pdf'], final.at[i, 'download_status'] = nome, 'ok'
-            estado.registrar('pdf', chave, 'ok')
+            estado.registrar(ETAPA_PDF, chave, 'ok')
         log.info('Download %d de %d (%s): %s', n, len(a_baixar), chave, erro or nome)
     return final

@@ -24,6 +24,7 @@ import sys
 
 from sapyl.busca import buscar, buscas_pendentes, chave_busca
 from sapyl import casas as cl
+from sapyl.colunas import COLUNAS_ORIGEM, ETAPA_BUSCA
 from sapyl.downloads import baixar_todos
 from sapyl.entrada import perguntar_opcao, perguntar_sim_nao
 from sapyl.estado import Estado
@@ -109,7 +110,7 @@ def executar_projeto(projeto, config, cliente, raiz):
             final = baixar_todos(final, str(projeto.downloads), cliente, estado)
         salvar_final(final, projeto.final)
         ativas = casas[casas['ativa']]['url']
-        buscas = [(casa, estado.status('busca', chave_busca(casa, p)) or 'não feita')
+        buscas = [(casa, estado.status(ETAPA_BUSCA, chave_busca(casa, p)) or 'não feita')
                   for casa in ativas for p in palavras]
         return registro.resumo(estado, links, projeto.final, buscas=buscas,
                                casas_inativas=int((~casas['ativa']).sum()),
@@ -129,7 +130,7 @@ def executar_atualizacao(raiz, cliente, entrada=input, hoje=None):
     tabela = ler_final(base.final)
     if 'Palavras' not in tabela.columns:
         tabela['Palavras'] = ''
-    links = deduplicar_links(tabela[['Link Materia', 'Link Casa', 'Palavras']].to_dict('records'))
+    links = deduplicar_links(tabela[COLUNAS_ORIGEM].to_dict('records'))
     estado = Estado(projeto.estado)
     try:
         raspar_todas(links, cliente, estado, projeto.materias)

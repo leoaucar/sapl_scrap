@@ -16,21 +16,8 @@ from bs4 import BeautifulSoup
 
 from sapyl.estado import ArquivoCSV, ler_csv
 from sapyl import registro
-
-# Colunas do resultado final, na ordem. As 11 primeiras são as da versão
-# anterior (sem `Assuntos` e `texto_integral`, que não existem mais no SAPL).
-COLUNAS_DADOS = [
-    'Titulo', 'Ementa', 'Ano', 'Data', 'Numero', 'Observacao',
-    'Tipo de Materia Legislativa', 'texto_original',
-    'Indexacao', 'Em Tramitacao', 'Regime Tramitacao', 'Materia Anexada', 'Resultado',
-    'Data Publicacao', 'Numero Protocolo', 'Ultima Atualizacao',
-]
-COLUNAS_FINAIS = (['Link Materia', 'Link Casa', 'Palavras'] + COLUNAS_DADOS
-                  + ['sapl_id', 'fonte', 'status', 'erro', 'raspada_em',
-                     'arquivo_pdf', 'download_status'])
-# O arquivo de matérias raspadas guarda também a chave
-COLUNAS_MATERIAS = ['chave'] + COLUNAS_FINAIS
-COLUNAS_LINKS = ['chave', 'Link Materia', 'Link Casa', 'Palavras', 'sapl_id']
+from sapyl.colunas import (COLUNAS_DADOS, COLUNAS_FINAIS, COLUNAS_LINKS, COLUNAS_MATERIAS,  # noqa: F401
+                           ETAPA_MATERIA)
 
 SEPARADOR = '; '
 _RE_MATERIA = re.compile(r'^/materia/(\d+)(?:/ta)?/?$')
@@ -379,14 +366,14 @@ def raspar_todas(links, cliente, estado, arquivo_materias, fontes=None):
     raspada de novo (a linha mais recente vale na tabela final).
     """
     fontes = fontes or Fontes()
-    pendentes = [l for l in links if estado.status('materia', l['chave']) != 'ok']
+    pendentes = [l for l in links if estado.status(ETAPA_MATERIA, l['chave']) != 'ok']
     log.info('Matérias: %d a raspar, %d já raspadas', len(pendentes), len(links) - len(pendentes))
     arquivo = ArquivoCSV(arquivo_materias, COLUNAS_MATERIAS)
     try:
         for i, link in enumerate(pendentes, start=1):
             linha = raspar_materia(link, cliente, fontes)
             arquivo.anexar(linha)
-            estado.registrar('materia', link['chave'], linha['status'], linha['erro'])
+            estado.registrar(ETAPA_MATERIA, link['chave'], linha['status'], linha['erro'])
             detalhe = linha['Titulo'] if linha['status'] == 'ok' else f"ERRO: {linha['erro']}"
             log.info('Matéria %d de %d (%s): %s', i, len(pendentes), link['chave'], detalhe)
     finally:

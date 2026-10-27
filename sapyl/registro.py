@@ -8,6 +8,8 @@ Todas as mensagens passam pelo logger `sapl_scrap`:
 import logging
 import os
 
+from sapyl.colunas import ETAPA_MATERIA, ETAPA_PDF
+
 LOGGER = 'sapl_scrap'
 FORMATO_ARQUIVO = '%(asctime)s %(levelname)s %(name)s %(message)s'
 
@@ -65,12 +67,12 @@ def resumo(estado, links, caminho_final, buscas=None, casas_inativas=0, download
         linhas.append(f'Buscas: {len(buscas)} ({len(incompletas)} incompletas)')
         falhas = falhas or bool(incompletas)
     encontradas = sum(len([p for p in link['Palavras'].split('; ') if p]) for link in links)
-    materias = estado.contagens('materia', chaves)
+    materias = estado.contagens(ETAPA_MATERIA, chaves)
     linhas.append(f'Matérias: {encontradas} encontradas, {len(chaves)} únicas, '
                   f'{materias.get("ok", 0)} raspadas, {materias.get("erro", 0)} com erro')
     falhas = falhas or materias.get('erro', 0) > 0
     if downloads:
-        pdfs = estado.contagens('pdf', chaves)
+        pdfs = estado.contagens(ETAPA_PDF, chaves)
         linhas.append(f'Downloads: {pdfs.get("ok", 0)} baixados, {pdfs.get("erro", 0)} com erro, '
                       f'{pdfs.get("sem_pdf", 0)} sem texto original')
         falhas = falhas or pdfs.get('erro', 0) > 0

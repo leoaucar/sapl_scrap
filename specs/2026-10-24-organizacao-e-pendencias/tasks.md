@@ -56,7 +56,7 @@ Rules for every task (same as Phase 1):
     `sapyl`, version read from `sapyl.__version__`. `autoria.py` lost its
     `sys.path` hack (run as `python -m sapyl.autoria` until T18) and keeps
     `.sapl_historico.json` in the folder it runs in.
-- [ ] **T05 Single source for columns and stages** (FR-4)
+- [x] **T05 Single source for columns and stages** (FR-4)
   - `sapyl/colunas.py`. Every module imports from it.
   - Test: no other module defines a list containing `'Link Materia'` or
     `'etapa'` (AST scan).

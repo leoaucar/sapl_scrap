@@ -9,10 +9,10 @@ import os
 import pandas as pd
 
 from sapyl import registro
+from sapyl.colunas import COLUNAS_CASAS
 
 # Estados usados quando a busca é restrita a Sul e Sudeste
 ESTADOS_SUL_SUDESTE = ['RJ', 'SP', 'RS', 'SC', 'MG', 'ES', 'PR']
-COLUNAS_CASAS = ['url', 'ativa', 'motivo', 'uf']
 
 # Opções do menu de limite de casas (para testes)
 OPCOES_LIMITE = {

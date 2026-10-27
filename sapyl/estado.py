@@ -17,9 +17,10 @@ os arquivos de dados do projeto.
 from collections import Counter
 import csv
 from datetime import datetime
+
+from sapyl.colunas import CAMPOS_ESTADO
 import os
 
-CAMPOS_ESTADO = ['etapa', 'chave', 'status', 'erro', 'quando']
 
 
 def _agora():

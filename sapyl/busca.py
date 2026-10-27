@@ -12,8 +12,8 @@ from urllib.parse import urlparse
 
 from sapyl.estado import ArquivoCSV
 from sapyl import registro
+from sapyl.colunas import COLUNAS_CRU, ETAPA_BUSCA
 
-COLUNAS_CRU = ['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link']
 # Proteção contra paginação sem fim (Rio Branco, a maior do teste, tem ~400)
 MAX_PAGINAS = 5000
 
@@ -33,7 +33,7 @@ def buscas_pendentes(casas, palavras, estado):
     return [(casa, palavra)
             for casa in casas[casas['ativa']]['url']
             for palavra in palavras
-            if estado.status('busca', chave_busca(casa, palavra)) != 'completa']
+            if estado.status(ETAPA_BUSCA, chave_busca(casa, palavra)) != 'completa']
 
 
 def buscar_palavra(casa, palavra, cliente, estado, cru):
@@ -49,15 +49,15 @@ def buscar_palavra(casa, palavra, cliente, estado, cru):
             pagina += 1
             continue
         if resposta.status == 404 and pagina > 1:
-            estado.registrar('busca', chave, 'completa')
+            estado.registrar(ETAPA_BUSCA, chave, 'completa')
             return pagina - 1
         # 404 já na primeira página não é "sem resultados" (isso volta 200):
         # a busca dessa casa não está funcionando.
         erro = resposta.erro if pagina > 1 or resposta.status != 404 else 'HTTP 404 na primeira página'
         log.warning('Busca incompleta em %s para %s (página %d): %s', casa, palavra, pagina, erro)
-        estado.registrar('busca', chave, 'incompleta', f'página {pagina}: {erro}')
+        estado.registrar(ETAPA_BUSCA, chave, 'incompleta', f'página {pagina}: {erro}')
         return pagina - 1
-    estado.registrar('busca', chave, 'incompleta', f'mais de {MAX_PAGINAS} páginas')
+    estado.registrar(ETAPA_BUSCA, chave, 'incompleta', f'mais de {MAX_PAGINAS} páginas')
     return pagina - 1
 
 

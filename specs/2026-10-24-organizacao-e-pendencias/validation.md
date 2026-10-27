@@ -137,6 +137,8 @@ Restore the original house table afterwards.
 | README install/use sections match what was run in §1 | yes | |
 | `AUTHORS.md` citation uses SAPyL | yes | |
 | `User-Agent` in the log/headers says `SAPyL/0.2.0` | yes | |
+| `docs/index.html` opened locally: sections of FR-13a, readable at phone width and in dark mode | yes | |
+| Site install/use steps say the same as the README | yes | |
 
 ## 9. After the merge: rename on GitHub — AC 9
 
@@ -149,6 +151,10 @@ Only with the user's go-ahead.
 | `git remote -v` points to the new URL | yes | |
 | README badge renders and links to the new Actions page | yes | |
 | Clone URL in README works | yes | |
+| Pages switched on (GitHub Actions), `pages` workflow green | yes | |
+| `https://leoaucar.github.io/sapyl/` opens and matches `docs/` | yes | |
+| Install steps from the site work in a fresh virtual environment | yes | |
+| Repository homepage points to the site | yes | |
 
 ## 10. Result
 
@@ -163,6 +169,7 @@ Only with the user's go-ahead.
 | 7. Search file ≥ 10× smaller | 4 | |
 | 8. DNS failure after one attempt | 7 | |
 | 9. Repository renamed, links updated | 9 | |
+| 10. Project site online, install steps work | 8, 9 | |
 
 **Issues found** (each becomes a task in `tasks.md`):
 

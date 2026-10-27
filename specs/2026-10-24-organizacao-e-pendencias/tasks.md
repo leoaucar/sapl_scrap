@@ -173,6 +173,9 @@ Rules for every task (same as Phase 1):
   - README (install, `sapyl`, menu, logs, update with `Relevante`, authors
     and procedure), tech-stack (package, ruff), CLAUDE.md (local),
     ROADMAP ticks.
+- [ ] **T21a Project site** (FR-13a, TR-8)
+  - `docs/index.html`, `docs/estilo.css` (plan §6), `.github/workflows/pages.yml`.
+  - `tests/test_site.py` (TR-8). README gets a link to the site.
 
 ## Phase F: Validation, merge, rename
 
@@ -183,6 +186,9 @@ Rules for every task (same as Phase 1):
   with the user's go-ahead at that moment**: `gh repo rename sapyl`,
   `git remote set-url`, and update the badge, clone URL and links on `main`.
   Check that the CI badge renders and that the old URL redirects.
+  - Then, also with the go-ahead: switch Pages on (source: GitHub Actions),
+    run the `pages` workflow, set the repository homepage to
+    `https://leoaucar.github.io/sapyl/`, and check the site opens.
 
 ## Traceability
 
@@ -199,6 +205,7 @@ Rules for every task (same as Phase 1):
 | FR-11 | T09 | review |
 | FR-12 | T24 | manual check (validation) |
 | FR-13 | T09 | `test_registro`, `test_principal` |
+| FR-13a | T21a, T24 | `test_site`, manual check (validation §9) |
 | FR-14, FR-15, FR-16 | T17 | `test_autoria` |
 | FR-17, FR-18 | T18 | `test_autoria`, `test_ponta_a_ponta` |
 | FR-19, FR-20 | T16 | `test_principal`, `test_ponta_a_ponta` |
@@ -217,5 +224,6 @@ Rules for every task (same as Phase 1):
 | TR-5 | T03, T06 | CI `instalacao`, `test_instalacao` |
 | TR-6 | T03, T07 | CI |
 | TR-7 | T20 | `test_ponta_a_ponta` |
+| TR-8 | T21a | `test_site` |
 | NFR-3 | T14 | `test_busca` |
 | NFR-4 | T21 | review |

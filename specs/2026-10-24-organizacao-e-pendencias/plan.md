@@ -1,6 +1,6 @@
 # Plan: Code organization, SAPyL identity and leftover issues
 
-- **Spec:** [spec.md](spec.md) · **Status:** Approved 2026-10-27 · **Date:** 2026-10-24
+- **Spec:** [spec.md](spec.md) · **Status:** Approved 2026-10-27, amended 2026-10-27 (§6 project site) · **Date:** 2026-10-24
 - **Branch for implementation:** `spec/2026-10-24-organizacao-e-pendencias`,
   from `main` **after** the runtime-improvements branch is merged
 
@@ -178,6 +178,23 @@ tests becomes `sapyl.materias`.
   the existing sections, updated for `pip install .` and `sapyl`.
 - `User-Agent`: `SAPyL/<versão> (pesquisa; +https://github.com/leoaucar/sapyl)`.
 - `AUTHORS.md` citation title: *SAPyL: Raspador do Sistema de Apoio Legislativo*.
+- Project site (FR-13a), written in T21a, after the features it describes:
+  - `docs/index.html` and `docs/estilo.css`, Portuguese, sections: what it is
+    · for whom · what it produces · requirements · installation · use (menu,
+    input files, outputs, resume, update, authors/procedure) · rate limit
+    and run time · citation and license. Text-only, like the README header.
+    Colours as CSS variables with a `prefers-color-scheme: dark` variant;
+    one column, max width ~45 rem, works at phone width.
+  - Commands shown in `<pre><code>` blocks copied from the README, so both
+    say the same. Links to the repository, README, AUTHORS and LICENSE use
+    the post-rename URL `https://github.com/leoaucar/sapyl`.
+  - `.github/workflows/pages.yml`: on push to `main` touching `docs/**` (and
+    by hand), `actions/upload-pages-artifact` with `path: docs` and
+    `actions/deploy-pages`, with `pages: write` and `id-token: write`
+    permissions. It does nothing until Pages is switched on.
+  - Switching Pages on (`gh api -X POST repos/leoaucar/sapyl/pages -f
+    build_type=workflow`) and setting the repository homepage to the site
+    URL are part of T24, after the rename, **with the user's go-ahead**.
 - The rename on GitHub (FR-12) is the last task, after the merge:
   `gh repo rename sapyl`, then `git remote set-url origin …`, then update the
   badge/clone URLs in one commit on `main`. **It needs the user's go-ahead
@@ -345,3 +362,5 @@ Listed in spec §9 when the Phase 1 validation ends. Each becomes a task
 - Keys stay on the original house URL even when it redirects (§7.6).
 - `palavras_chave_res.csv` replaced by a neutral example file, plus the old
   list cleaned as an alternative test (Q1).
+- Project site: one static page in `docs/`, published by Actions, switched
+  on after the rename (Q3, §6).

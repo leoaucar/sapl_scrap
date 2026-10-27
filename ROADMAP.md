@@ -152,6 +152,10 @@ acontecendo em várias casas legislativas do Brasil ao mesmo tempo.
       logotipo
 - [ ] Reescrever a descrição do README e os nomes no código e na
       documentação com a nova marca
+- [ ] Página do projeto no GitHub Pages (`docs/`, uma página estática em
+      português): o que é, para quem serve, o que produz, instalação e
+      uso. Publicada por um workflow do GitHub Actions, depois da troca de
+      nome do repositório (endereço `leoaucar.github.io/sapyl`)
 
 **Bugs e pendências que ficaram de fora da Fase 1**
 - [ ] **Autoria e tramitação não retoma:** o script só grava no fim; uma

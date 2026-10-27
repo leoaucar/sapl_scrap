@@ -23,13 +23,15 @@ A hora de envio (com milissegundos) é a que conta para o limite; a hora da
 linha do log é a da resposta, que pode chegar segundos depois.
 """
 
-from collections import defaultdict, deque
-from dataclasses import dataclass
-from datetime import datetime
-from email.utils import parsedate_to_datetime
 import json
 import os
 import time
+from collections import defaultdict, deque
+from collections.abc import Callable, Iterator
+from dataclasses import dataclass
+from datetime import datetime
+from email.utils import parsedate_to_datetime
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
@@ -56,34 +58,38 @@ class Resposta:
 
     url: str
     ok: bool
-    status: object = None  # int ou None (erro de rede)
+    status: int | None = None  # None: erro de rede
     erro: str = ''
     tentativas: int = 0
-    bruta: object = None  # requests.Response (ou equivalente)
+    bruta: Any = None  # requests.Response (ou equivalente)
 
     @property
-    def texto(self):
+    def texto(self) -> str:
+        """Corpo da resposta como texto ('' se não houve resposta)."""
         return self.bruta.text if self.bruta is not None else ''
 
-    def json(self):
+    def json(self) -> Any:
         """Corpo como JSON. Lança ValueError se não for JSON."""
         return self.bruta.json()
 
-    def iter_content(self, tamanho):
+    def iter_content(self, tamanho: int) -> Iterator[bytes]:
+        """Corpo aos pedaços de `tamanho` bytes (para downloads com `stream=True`)."""
         return self.bruta.iter_content(tamanho)
 
-    def fechar(self):
+    def fechar(self) -> None:
+        """Libera a conexão (necessário com `stream=True`)."""
         if self.bruta is not None:
             self.bruta.close()
 
 
-def criar_sessao():
+def criar_sessao() -> requests.Session:
+    """Sessão `requests` com o User-Agent do programa."""
     sessao = requests.Session()
     sessao.headers['User-Agent'] = USER_AGENT
     return sessao
 
 
-def ler_retry_after(valor, agora_epoch=None):
+def ler_retry_after(valor: str | None, agora_epoch: float | None = None) -> float:
     """Segundos de espera a partir do cabeçalho Retry-After (número ou data HTTP)."""
     if valor is None or str(valor).strip() == '':
         return RETRY_AFTER_PADRAO
@@ -105,15 +111,15 @@ class ClienteSAPL:
 
     def __init__(
         self,
-        sessao=None,
-        relogio=time.monotonic,
-        dormir=time.sleep,
-        limite_por_minuto=LIMITE_POR_MINUTO,
-        max_tentativas=MAX_TENTATIVAS,
-        timeout=TIMEOUT_PADRAO,
-        historico=None,
-        relogio_parede=time.time,
-    ):
+        sessao: Any = None,
+        relogio: Callable[[], float] = time.monotonic,
+        dormir: Callable[[float], None] = time.sleep,
+        limite_por_minuto: int = LIMITE_POR_MINUTO,
+        max_tentativas: int = MAX_TENTATIVAS,
+        timeout: tuple[float, float] = TIMEOUT_PADRAO,
+        historico: str | None = None,
+        relogio_parede: Callable[[], float] = time.time,
+    ) -> None:
         self.sessao = sessao if sessao is not None else criar_sessao()
         self.relogio = relogio
         self.relogio_parede = relogio_parede
@@ -191,7 +197,14 @@ class ClienteSAPL:
             # Espera mínima: evita laço infinito com esperas de 1e-14 s (arredondamento)
             self.dormir(max(espera, ESPERA_MINIMA))
 
-    def get(self, url, stream=False, timeout=None, max_tentativas=None):
+    def get(
+        self,
+        url: str,
+        stream: bool = False,
+        timeout: tuple[float, float] | None = None,
+        max_tentativas: int | None = None,
+    ) -> Resposta:
+        """GET respeitando o limite do site, com retentativas. Nunca lança erro de rede."""
         host = urlparse(url).hostname or ''
         tentativas = max_tentativas or self.max_tentativas
         status, erro = None, ''

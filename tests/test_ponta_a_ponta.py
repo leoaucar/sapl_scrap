@@ -13,17 +13,17 @@ import logging
 import pytest
 
 from sapyl import materias
-from sapyl.interface import principal as programa
-from sapyl.estado import Estado
 from sapyl.cliente_http import ClienteSAPL
-from tests.apoio import RelogioFalso, SaplFalso, SessaoFalsa, ler_fixture, roteiro
+from sapyl.estado import Estado
+from sapyl.interface import principal as programa
 from sapyl.tabela import ler_final
+from tests.apoio import RelogioFalso, SaplFalso, SessaoFalsa, ler_fixture, roteiro
 
 RB = 'https://sapl.riobranco.ac.leg.br/'
 CV = 'https://sapl.cascavel.pr.leg.br/'
 F_RB, F_CV = 'sapl/sapl.riobranco.ac.leg.br/', 'sapl/sapl.cascavel.pr.leg.br/'
 P = '"plano+diretor"'
-O = '"orçamento"+"emenda+impositiva"'
+ORC = '"orçamento"+"emenda+impositiva"'
 PAGINAS_RB = 40
 FALHA = materias.url_api(RB, '44086')  # falha de vez (4 × 503)
 
@@ -41,7 +41,7 @@ def montar(projeto_tmp):
         RB,
         buscas={
             P: [F_RB + 'busca_p1.html'] + ['<a href="/materia/34049">x</a>'] * (PAGINAS_RB - 1),
-            O: [F_RB + 'busca_vazia.html'],
+            ORC: [F_RB + 'busca_vazia.html'],
         },
         api={
             '34049': F_RB + 'api_materia_34049.json',
@@ -59,7 +59,7 @@ def montar(projeto_tmp):
     falso.casa(
         CV,
         api=None,
-        buscas={P: [F_CV + 'busca_p1.html'], O: ['<a href="/materia/38415">r</a>']},
+        buscas={P: [F_CV + 'busca_p1.html'], ORC: ['<a href="/materia/38415">r</a>']},
         html={
             '38415': F_CV + 'materia_38415.html',
             '43301': F_CV + 'materia_43301.html',
@@ -107,14 +107,14 @@ def execucao(projeto_tmp, caplog):
 def test_tabela_final(execucao):
     pasta, _, _, _ = execucao
     final = ler_final(pasta / 'p_resultado_final.csv')
-    chaves = list(zip(final['Link Casa'], final['sapl_id']))
+    chaves = list(zip(final['Link Casa'], final['sapl_id'], strict=True))
     assert len(chaves) == len(set(chaves)) == 8  # sem duplicatas
     ok = final[final['status'] == 'ok']
     assert (ok['Titulo'] != '').all()  # nenhuma linha ok vazia
     erros = final[final['status'] == 'erro']
     assert erros['sapl_id'].tolist() == ['44086'] and erros['erro'].tolist() == ['HTTP 503']
     por_id = final.set_index('sapl_id')
-    assert por_id.at['38415', 'Palavras'] == f'{P}; {O}'
+    assert por_id.at['38415', 'Palavras'] == f'{P}; {ORC}'
     assert por_id.at['34049', 'fonte'] == 'api' and por_id.at['38415', 'fonte'] == 'html'
     assert por_id.at['46496', 'Materia Anexada'] == 'Projeto de Lei Complementar nº 26 de 2025'
     assert por_id.at['46496', 'Tipo de Materia Legislativa'] == 'Veto'

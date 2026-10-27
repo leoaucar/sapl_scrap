@@ -75,10 +75,18 @@ Rules for every task (same as Phase 1):
     `colunas.py` (`SEPARADOR`) so `links` doesn't import `materias`. The
     `instalacao` CI job now runs `sapyl --version` and `python -m sapyl
     --version` outside the repository.
-- [ ] **T07 Types, docstrings, ruff** (FR-5, FR-6)
+- [x] **T07 Types, docstrings, ruff** (FR-5, FR-6)
   - Type hints and docstrings on public functions. `ruff format` goes in
     its own commit (T07a). Then `ruff check` is clean (T07b), and CI drops
     `continue-on-error`.
+  - *As built:* `tests/test_tipagem.py` checks (AST) that every public
+    function and method in `sapyl/` has parameter and return types and a
+    docstring. Shared aliases: `colunas.Linha` (`dict[str, str]`) and
+    `interface.entrada.Leitor`. `registro.resumo` types its `estado` with a
+    small `Protocol`, so the bottom layer doesn't import `Estado`. Naming
+    (FR-5): functions that do something use verbs; functions that only
+    compute a value are named after it (`chave`, `host`, `url_api`,
+    `nome_arquivo`), so those were kept.
 
 ## Phase C: Data and identity
 

@@ -5,10 +5,10 @@ import os
 import pandas as pd
 import pytest
 
-from sapyl import downloads as d
-from sapyl.estado import Estado
-from sapyl.cliente_http import ClienteSAPL
 from sapyl import colunas
+from sapyl import downloads as d
+from sapyl.cliente_http import ClienteSAPL
+from sapyl.estado import Estado
 
 RB = 'https://sapl.riobranco.ac.leg.br/'
 PDF1 = RB + 'media/sapl/public/materialegislativa/2025/1/a.pdf'

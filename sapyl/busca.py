@@ -9,11 +9,15 @@ como `incompleta` no estado e aparece no resumo; ao retomar o projeto, ela é
 refeita. Buscas `completa` não são repetidas.
 """
 
+from pathlib import Path
 from urllib.parse import urlparse
 
-from sapyl.estado import ArquivoCSV
+import pandas as pd
+
 from sapyl import registro
+from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_CRU, ETAPA_BUSCA
+from sapyl.estado import ArquivoCSV, Estado
 
 # Proteção contra paginação sem fim (Rio Branco, a maior do teste, tem ~400)
 MAX_PAGINAS = 5000
@@ -21,15 +25,19 @@ MAX_PAGINAS = 5000
 log = registro.logger('busca')
 
 
-def chave_busca(casa_url, palavra):
+def chave_busca(casa_url: str, palavra: str) -> str:
+    """Chave de uma busca no estado: `<host>|<palavra>`."""
     return f'{urlparse(casa_url).hostname}|{palavra}'
 
 
-def url_busca(casa_url, palavra, pagina):
+def url_busca(casa_url: str, palavra: str, pagina: int) -> str:
+    """URL de uma página de resultados da busca de `palavra` na casa."""
     return f'{casa_url}sistema/search/?page={pagina}&q={palavra}'
 
 
-def buscas_pendentes(casas, palavras, estado):
+def buscas_pendentes(
+    casas: pd.DataFrame, palavras: list[str], estado: Estado
+) -> list[tuple[str, str]]:
     """(casa, palavra) das casas ativas cuja busca ainda não está `completa`."""
     return [
         (casa, palavra)
@@ -39,7 +47,9 @@ def buscas_pendentes(casas, palavras, estado):
     ]
 
 
-def buscar_palavra(casa, palavra, cliente, estado, cru):
+def buscar_palavra(
+    casa: str, palavra: str, cliente: ClienteSAPL, estado: Estado, cru: ArquivoCSV
+) -> int:
     """Busca uma palavra numa casa, página a página. Devolve o nº de páginas gravadas."""
     chave = chave_busca(casa, palavra)
     pagina = 1
@@ -74,7 +84,13 @@ def buscar_palavra(casa, palavra, cliente, estado, cru):
     return pagina - 1
 
 
-def buscar(casas, palavras, cliente, estado, arquivo_cru):
+def buscar(
+    casas: pd.DataFrame,
+    palavras: list[str],
+    cliente: ClienteSAPL,
+    estado: Estado,
+    arquivo_cru: str | Path,
+) -> None:
     """Faz as buscas pendentes. `casas`: DataFrame com `url` e `ativa`."""
     pendentes = buscas_pendentes(casas, palavras, estado)
     total_casas = len({c for c, _ in pendentes})

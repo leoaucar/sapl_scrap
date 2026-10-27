@@ -9,8 +9,8 @@ import requests
 from sapyl import colunas
 from sapyl import links as lk
 from sapyl import materias as m
-from sapyl.materias import valores
 from sapyl.cliente_http import ClienteSAPL
+from sapyl.materias import valores
 from tests.apoio import ler_fixture
 
 RB = 'https://sapl.riobranco.ac.leg.br/'
@@ -397,7 +397,7 @@ def test_raspar_todas_grava_cada_materia_e_o_estado(tmp_path, cliente, sessao):
     estado = Estado(tmp_path / 'e.csv')
     m.raspar_todas(_links_cascavel(), cliente, estado, tmp_path / 'mat.csv')
     linhas = ler_csv(tmp_path / 'mat.csv', colunas.COLUNAS_MATERIAS)
-    assert [(l['chave'], l['status']) for l in linhas] == [
+    assert [(lin['chave'], lin['status']) for lin in linhas] == [
         ('sapl.cascavel.pr.leg.br/38415', 'ok'),
         ('sapl.cascavel.pr.leg.br/43301', 'ok'),
         ('sapl.cascavel.pr.leg.br/99', 'erro'),

@@ -206,12 +206,12 @@ def test_uma_linha_de_log_por_tentativa(cliente, sessao, caplog):
     with caplog.at_level(logging.DEBUG, logger='sapl_scrap.http'):
         cliente.get(A)
     linhas = [r.getMessage() for r in caplog.records if r.name == 'sapl_scrap.http']
-    assert [l.split(' | enviada ')[0] for l in linhas] == [
+    assert [lin.split(' | enviada ')[0] for lin in linhas] == [
         f'sapl.a.leg.br | {A} | 503 | tentativa 1 | espera 5',
         f'sapl.a.leg.br | {A} | 200 | tentativa 2 | espera 0',
     ]
     # hora de envio com milissegundos, para conferir o limite pelo log
-    assert all(re.search(r' \| enviada \d\d:\d\d:\d\d\.\d{3}$', l) for l in linhas)
+    assert all(re.search(r' \| enviada \d\d:\d\d:\d\d\.\d{3}$', lin) for lin in linhas)
 
 
 def test_log_de_erro_de_rede_e_aviso_final(cliente, sessao, caplog):

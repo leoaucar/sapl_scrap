@@ -15,22 +15,24 @@ meio por uma queda do programa é ignorada.
 os arquivos de dados do projeto.
 """
 
-from collections import Counter
 import csv
-from datetime import datetime
-
-from sapyl.colunas import CAMPOS_ESTADO
 import os
+from collections import Counter
+from collections.abc import Iterable, Mapping
+from datetime import datetime
+from pathlib import Path
+
+from sapyl.colunas import CAMPOS_ESTADO, Linha
 
 
-def _agora():
+def _agora() -> str:
     return datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 
 
 class ArquivoCSV:
     """CSV em que só se acrescentam linhas; cria o cabeçalho se o arquivo é novo."""
 
-    def __init__(self, caminho, campos):
+    def __init__(self, caminho: str | Path, campos: Iterable[str]) -> None:
         self.caminho = caminho
         self.campos = list(campos)
         novo = not os.path.exists(caminho) or os.path.getsize(caminho) == 0
@@ -44,7 +46,7 @@ class ArquivoCSV:
             self._escritor.writeheader()
             self._arquivo.flush()
 
-    def _consertar_final(self):
+    def _consertar_final(self) -> None:
         """Se o arquivo não termina em quebra de linha (queda no meio de uma
         gravação), começa a próxima linha numa linha nova."""
         with open(self.caminho, 'rb+') as arquivo:
@@ -52,15 +54,17 @@ class ArquivoCSV:
             if arquivo.read(1) not in (b'\n', b'\r'):
                 arquivo.write(b'\n')
 
-    def anexar(self, linha):
+    def anexar(self, linha: Mapping[str, object]) -> None:
+        """Grava uma linha (colunas que faltam ficam vazias) e manda para o disco."""
         self._escritor.writerow({c: linha.get(c, '') for c in self.campos})
         self._arquivo.flush()
 
-    def fechar(self):
+    def fechar(self) -> None:
+        """Fecha o arquivo."""
         self._arquivo.close()
 
 
-def ler_csv(caminho, campos):
+def ler_csv(caminho: str | Path, campos: list[str]) -> list[Linha]:
     """Linhas (dicts) de um CSV gravado por ArquivoCSV, sem as linhas incompletas."""
     if not os.path.exists(caminho):
         return []
@@ -72,41 +76,44 @@ def ler_csv(caminho, campos):
             raise ValueError(f'Cabeçalho inesperado em {caminho}: {cabecalho}')
         for valores in leitor:
             if len(valores) == len(campos):
-                linhas.append(dict(zip(campos, valores)))
+                linhas.append(dict(zip(campos, valores, strict=False)))
     return linhas
 
 
 class Estado:
     """Lê e grava o progresso do projeto (veja o início do módulo)."""
 
-    def __init__(self, caminho):
+    def __init__(self, caminho: str | Path) -> None:
         self.caminho = caminho
         self._ultimo = {}
         for linha in ler_csv(caminho, CAMPOS_ESTADO):
             self._ultimo[(linha['etapa'], linha['chave'])] = (linha['status'], linha['erro'])
         self._arquivo = ArquivoCSV(caminho, CAMPOS_ESTADO)
 
-    def registrar(self, etapa, chave, status, erro=''):
+    def registrar(self, etapa: str, chave: str, status: str, erro: str = '') -> None:
+        """Acrescenta o novo status de (etapa, chave) ao arquivo de estado."""
         self._arquivo.anexar(
             {'etapa': etapa, 'chave': chave, 'status': status, 'erro': erro, 'quando': _agora()}
         )
         self._ultimo[(etapa, chave)] = (status, erro)
 
-    def status(self, etapa, chave):
+    def status(self, etapa: str, chave: str) -> str | None:
         """Último status registrado, ou None se nunca foi registrado."""
         return self._ultimo.get((etapa, chave), (None, ''))[0]
 
-    def erro(self, etapa, chave):
+    def erro(self, etapa: str, chave: str) -> str:
+        """Motivo do último status de (etapa, chave), ou ''."""
         return self._ultimo.get((etapa, chave), (None, ''))[1]
 
-    def chaves(self, etapa, status=None):
+    def chaves(self, etapa: str, status: str | None = None) -> list[str]:
+        """Chaves da etapa (só as que estão em `status`, se dado)."""
         return [
             k
             for (e, k), (s, _) in self._ultimo.items()
             if e == etapa and (status is None or s == status)
         ]
 
-    def contagens(self, etapa, chaves=None):
+    def contagens(self, etapa: str, chaves: Iterable[str] | None = None) -> Counter[str]:
         """Quantas chaves da etapa estão em cada status (só `chaves`, se dado)."""
         contagem = Counter()
         for (e, k), (s, _) in self._ultimo.items():
@@ -114,5 +121,6 @@ class Estado:
                 contagem[s] += 1
         return contagem
 
-    def fechar(self):
+    def fechar(self) -> None:
+        """Fecha o arquivo de estado."""
         self._arquivo.fechar()

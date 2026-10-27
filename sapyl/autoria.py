@@ -13,27 +13,27 @@ As requisições passam pelo mesmo cliente do raspador (limite de 35 por
 minuto por site, retentativas em 429/5xx).
 """
 
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 
-from bs4 import BeautifulSoup
 import pandas as pd
+from bs4 import BeautifulSoup
 
-from sapyl.interface.entrada import perguntar_opcao
-from sapyl.cliente_http import ClienteSAPL
 from sapyl import registro
+from sapyl.cliente_http import ClienteSAPL
+from sapyl.interface.entrada import Leitor, perguntar_opcao
 
 SUFIXO_SAIDA = '_autoria_tramitacao'
 log = registro.logger('autoria')
 
 
-def link_base(link):
+def link_base(link: object) -> str:
     """Link da matéria sem `/ta` nem barra final."""
     return re.sub(r'/ta/?$', '', str(link).strip()).rstrip('/')
 
 
-def ler_tabela(html):
+def ler_tabela(html: str) -> list[dict[str, str]]:
     """Linhas da primeira tabela da página, como dicts {cabeçalho: texto}."""
     tabela = BeautifulSoup(html, 'html.parser').find('table')
     if tabela is None:
@@ -43,11 +43,11 @@ def ler_tabela(html):
     for tr in tabela.find_all('tr'):
         celulas = [' '.join(td.get_text(' ').split()) for td in tr.find_all('td')]
         if celulas:
-            linhas.append(dict(zip(cabecalhos, celulas)))
+            linhas.append(dict(zip(cabecalhos, celulas, strict=False)))
     return linhas
 
 
-def buscar_autoria(link, cliente):
+def buscar_autoria(link: str, cliente: ClienteSAPL) -> tuple[str, str]:
     """(texto, erro). Texto: 'AUTOR (Descrição); ...'."""
     resposta = cliente.get(link_base(link) + '/autoria')
     if not resposta.ok:
@@ -61,7 +61,7 @@ def buscar_autoria(link, cliente):
     return '; '.join(autores), ''
 
 
-def buscar_tramitacao(link, cliente):
+def buscar_tramitacao(link: str, cliente: ClienteSAPL) -> tuple[str, str]:
     """(texto, erro). Texto da tramitação mais recente (a primeira da tabela)."""
     resposta = cliente.get(link_base(link) + '/tramitacao')
     if not resposta.ok:
@@ -74,7 +74,7 @@ def buscar_tramitacao(link, cliente):
     return ' | '.join(ultima.get(c, '') for c in campos), ''
 
 
-def escolher_csv(pasta, entrada=input):
+def escolher_csv(pasta: str | Path, entrada: Leitor = input) -> Path | None:
     """Lista os CSVs da pasta (menos as saídas deste script) e pergunta qual usar."""
     arquivos = sorted(p for p in Path(pasta).glob('*.csv') if not p.stem.endswith(SUFIXO_SAIDA))
     if not arquivos:
@@ -86,7 +86,7 @@ def escolher_csv(pasta, entrada=input):
     return arquivos[int(escolha) - 1]
 
 
-def processar(caminho, cliente):
+def processar(caminho: str | Path, cliente: ClienteSAPL) -> Path:
     """Lê o CSV, busca autoria e tramitação de cada matéria e grava o novo arquivo."""
     dados = pd.read_csv(caminho, dtype=str, keep_default_na=False)
     dados = dados.drop(columns=[c for c in dados.columns if c.startswith('Unnamed')])
@@ -116,7 +116,13 @@ def processar(caminho, cliente):
     return saida
 
 
-def main(pasta='.', entrada=input, cliente=None):
+def main(
+    pasta: str | Path = '.', entrada: Leitor = input, cliente: ClienteSAPL | None = None
+) -> int:
+    """Escolhe um CSV da pasta e grava a cópia com autoria e tramitação.
+
+    Devolve o código de saída (0 ou 1).
+    """
     registro.configurar(pasta, 'autoria_tramitacao')
     try:
         caminho = escolher_csv(pasta, entrada)

@@ -2,9 +2,9 @@
 
 from urllib.parse import urljoin
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
-from sapyl.colunas import COLUNAS_DADOS, SEPARADOR
+from sapyl.colunas import COLUNAS_DADOS, SEPARADOR, Linha
 from sapyl.materias.valores import limpar
 
 # Coluna -> sufixo do id da div na página HTML (`div_id_<sufixo>`)
@@ -25,7 +25,7 @@ CAMPOS_HTML = {
 }
 
 
-def _valor_div(div):
+def _valor_div(div: Tag) -> str:
     alvo = div.select_one('.form-control-static')
     if alvo is None:
         alvo = div
@@ -37,7 +37,7 @@ def _valor_div(div):
     return limpar(alvo.get_text(' '))
 
 
-def _primeiro_valor(soup, sufixo):
+def _primeiro_valor(soup: BeautifulSoup, sufixo: str) -> str:
     """Valor da primeira `div_id_<sufixo>` que não esteja vazia."""
     for div in soup.find_all('div', id=f'div_id_{sufixo}'):
         valor = _valor_div(div)
@@ -46,7 +46,7 @@ def _primeiro_valor(soup, sufixo):
     return ''
 
 
-def extrair_html(html, casa_url):
+def extrair_html(html: str, casa_url: str) -> Linha:
     """Campos de COLUNAS_DADOS a partir da página HTML de uma matéria."""
     soup = BeautifulSoup(html, 'html.parser')
     titulo = soup.find('h1', class_='page-header')

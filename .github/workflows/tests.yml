@@ -20,13 +20,10 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Instalar o programa e as dependências de desenvolvimento
         run: pip install -e ".[dev]"
-      # Até a T07 (tipagem e formatação) o código antigo ainda não passa no ruff
       - name: ruff check
         run: ruff check .
-        continue-on-error: true
       - name: ruff format --check
         run: ruff format --check .
-        continue-on-error: true
       - name: Rodar os testes (offline)
         run: pytest
 

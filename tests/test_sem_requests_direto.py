@@ -1,7 +1,7 @@
 """Nenhum módulo acessa a rede por fora do cliente HTTP (FR-1)."""
 
-from pathlib import Path
 import re
+from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 PROIBIDO = re.compile(r'\brequests\.(get|post|head|request|Session)\s*\(')

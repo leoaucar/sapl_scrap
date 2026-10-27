@@ -19,28 +19,32 @@ No modo "atualizar", as matérias de um `_resultado_final.csv` existente são
 raspadas de novo, com saída em arquivos `_ATUALIZADO_<data>`.
 """
 
+import sys
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
-import sys
+from typing import Any
 
-from sapyl import __version__
-from sapyl.busca import buscar, buscas_pendentes, chave_busca
+import pandas as pd
+
+from sapyl import __version__, registro
 from sapyl import casas as cl
+from sapyl import projeto as gp
+from sapyl.busca import buscar, buscas_pendentes, chave_busca
+from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_ORIGEM, ETAPA_BUSCA
 from sapyl.downloads import baixar_todos
+from sapyl.estado import Estado
 from sapyl.interface.entrada import (
+    Leitor,
     abrir_ou_criar,
     escolher_projeto_existente,
     perguntar_opcao,
     perguntar_sim_nao,
 )
-from sapyl.estado import Estado
-from sapyl import projeto as gp
-from sapyl.cliente_http import ClienteSAPL
 from sapyl.links import deduplicar_links, ler_links, raspar_resultados, salvar_links
 from sapyl.materias import raspar_todas
 from sapyl.palavras import importar_palavras, preparar_termos
-from sapyl import registro
 from sapyl.tabela import ler_final, montar_final, salvar_final
 
 PERGUNTA_ATUALIZAR = 'Deseja apenas atualizar a tabela de algum projeto anterior? 1- sim, 2- não\n'
@@ -58,11 +62,11 @@ MENSAGEM_INTERROMPIDO = (
 log = registro.logger()
 
 
-def _pasta_csv(raiz):
+def _pasta_csv(raiz: str | Path) -> Path:
     return Path(raiz) / 'arquivos_csv'
 
 
-def perguntar_configuracao(raiz, entrada=input):
+def perguntar_configuracao(raiz: str | Path, entrada: Leitor = input) -> dict[str, Any]:
     """Perguntas de um projeto novo. Devolve o dict salvo em config.json."""
     tabela_global = _pasta_csv(raiz) / 'casas_resultado.csv'
     reusar = tabela_global.exists() and perguntar_sim_nao(PERGUNTA_TABELA, entrada)
@@ -79,7 +83,9 @@ def perguntar_configuracao(raiz, entrada=input):
     }
 
 
-def preparar_casas(projeto, config, cliente, raiz):
+def preparar_casas(
+    projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
+) -> pd.DataFrame:
     """Tabela de casas do projeto. Na retomada, usa a que já foi salva no projeto."""
     planilha = _pasta_csv(raiz) / 'casas_legislativas.xlsx'
     if projeto.casas.exists():
@@ -104,7 +110,9 @@ def preparar_casas(projeto, config, cliente, raiz):
     return casas
 
 
-def executar_projeto(projeto, config, cliente, raiz):
+def executar_projeto(
+    projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
+) -> str:
     """Executa (ou retoma) um projeto do começo ao fim. Devolve o texto do resumo."""
     estado = Estado(projeto.estado)
     try:
@@ -141,7 +149,9 @@ def executar_projeto(projeto, config, cliente, raiz):
         estado.fechar()
 
 
-def executar_atualizacao(raiz, cliente, entrada=input, hoje=None):
+def executar_atualizacao(
+    raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = input, hoje: str | None = None
+) -> str:
     """Modo atualização: raspa de novo as matérias de um resultado final existente."""
     base = escolher_projeto_existente(raiz, entrada)
     downloads = perguntar_sim_nao(PERGUNTA_DOWNLOAD, entrada)
@@ -165,7 +175,13 @@ def executar_atualizacao(raiz, cliente, entrada=input, hoje=None):
         estado.fechar()
 
 
-def main(entrada=input, cliente=None, raiz='.'):
+def main(
+    entrada: Leitor = input, cliente: ClienteSAPL | None = None, raiz: str | Path = '.'
+) -> int:
+    """Pergunta o modo e roda o projeto (novo, retomado ou atualização).
+
+    Devolve o código de saída: 0, ou 1 se a execução foi interrompida.
+    """
     raiz = Path(raiz)
     cliente = cliente or ClienteSAPL(historico=str(raiz / ARQUIVO_HISTORICO))
     try:
@@ -193,7 +209,7 @@ def main(entrada=input, cliente=None, raiz='.'):
 USO = 'Uso: sapyl [--version]\nSem argumentos, o programa faz as perguntas no terminal.'
 
 
-def executar(argumentos=None):
+def executar(argumentos: Sequence[str] | None = None) -> int:
     """Comando `sapyl`. Só aceita `--version`; as opções de linha de comando vêm depois."""
     argumentos = sys.argv[1:] if argumentos is None else list(argumentos)
     if argumentos == ['--version']:

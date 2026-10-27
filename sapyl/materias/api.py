@@ -1,7 +1,10 @@
 """Extração dos dados de uma matéria pela API JSON do SAPL."""
 
+from typing import Any
+
 from sapyl import registro
-from sapyl.colunas import SEPARADOR
+from sapyl.cliente_http import ClienteSAPL
+from sapyl.colunas import SEPARADOR, Linha
 from sapyl.materias.valores import data_br, data_hora_br, esquema_da_casa, limpar, sim_nao
 
 log = registro.logger('materias')
@@ -14,12 +17,12 @@ class Consultas:
     deixa o campo vazio e gera um aviso; não derruba a matéria.
     """
 
-    def __init__(self, cliente, casa_url):
+    def __init__(self, cliente: ClienteSAPL, casa_url: str) -> None:
         self.cliente = cliente
         self.base = casa_url.rstrip('/')
         self._cache = {}
 
-    def _nome(self, caminho, campo):
+    def _nome(self, caminho: str, campo: str) -> str:
         url = f'{self.base}/api/{caminho}/'
         if url not in self._cache:
             nome = ''
@@ -39,21 +42,25 @@ class Consultas:
             self._cache[url] = nome
         return self._cache[url]
 
-    def tipo(self, id_):
+    def tipo(self, id_: int | None) -> str:
+        """Nome do tipo de matéria (ex.: 'Projeto de Lei Ordinária')."""
         return self._nome(f'materia/tipomaterialegislativa/{id_}', 'descricao') if id_ else ''
 
-    def regime(self, id_):
+    def regime(self, id_: int | None) -> str:
+        """Nome do regime de tramitação."""
         return self._nome(f'materia/regimetramitacao/{id_}', 'descricao') if id_ else ''
 
-    def materia(self, id_):
+    def materia(self, id_: int | None) -> str:
+        """Título de outra matéria (usado nas matérias anexadas)."""
         return self._nome(f'materia/materialegislativa/{id_}', '__str__') if id_ else ''
 
 
-def url_api(casa_url, sapl_id):
+def url_api(casa_url: str, sapl_id: str) -> str:
+    """URL da matéria na API, com a barra final (sem ela, a API redireciona)."""
     return f'{casa_url.rstrip("/")}/api/materia/materialegislativa/{sapl_id}/'
 
 
-def extrair_api(dados, casa_url, consultas):
+def extrair_api(dados: dict[str, Any], casa_url: str, consultas: Consultas) -> Linha:
     """Campos de COLUNAS_DADOS a partir do JSON da API. Ignora `ip`, `user` etc."""
     anexadas = dados.get('anexadas') or []
     return {

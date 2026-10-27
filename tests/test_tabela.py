@@ -2,11 +2,11 @@
 
 import pandas as pd
 
+from sapyl import colunas
+from sapyl import links as lk
 from sapyl import materias as m
 from sapyl import tabela as t
 from sapyl.estado import ArquivoCSV
-from sapyl import links as lk
-from sapyl import colunas
 
 CV = 'https://sapl.cascavel.pr.leg.br/'
 

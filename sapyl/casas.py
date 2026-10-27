@@ -6,10 +6,12 @@ A tabela de casas (`casas_resultado.csv`) tem as colunas
 """
 
 import os
+from pathlib import Path
 
 import pandas as pd
 
 from sapyl import registro
+from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_CASAS
 
 # Estados usados quando a busca é restrita a Sul e Sudeste
@@ -29,12 +31,12 @@ PERGUNTA_LIMITE = 'Deseja limitar sua busca para teste?\n' + ''.join(
 log = registro.logger('casas')
 
 
-def _com_barra(url):
+def _com_barra(url: object) -> str:
     url = str(url).strip()
     return url if url.endswith('/') else url + '/'
 
 
-def importar_casas(planilha):
+def importar_casas(planilha: str | Path) -> pd.DataFrame:
     """Lê a planilha de casas e devolve um DataFrame com `url` e `uf`."""
     df = pd.read_excel(planilha)
     df = df[df['URL do serviço'].notna()]
@@ -46,7 +48,7 @@ def importar_casas(planilha):
     ).reset_index(drop=True)
 
 
-def testar_casas(casas, cliente):
+def testar_casas(casas: pd.DataFrame, cliente: ClienteSAPL) -> pd.DataFrame:
     """Testa se o site de cada casa responde. Nenhuma casa sai da lista.
 
     Devolve as colunas `url, ativa, motivo, uf`; `motivo` explica por que a
@@ -63,11 +65,11 @@ def testar_casas(casas, cliente):
     return pd.DataFrame(linhas, columns=COLUNAS_CASAS)
 
 
-def _para_bool(valor):
+def _para_bool(valor: object) -> bool:
     return str(valor).strip().lower() in ('true', '1', 'sim', 's')
 
 
-def ler_tabela_casas(caminho, planilha=None):
+def ler_tabela_casas(caminho: str | Path, planilha: str | Path | None = None) -> pd.DataFrame:
     """Lê `casas_resultado.csv` (formato novo ou antigo) com as colunas de COLUNAS_CASAS.
 
     Se a tabela não tiver UF, ela é buscada na `planilha` de casas pela URL.
@@ -84,19 +86,21 @@ def ler_tabela_casas(caminho, planilha=None):
         if planilha is not None and os.path.exists(planilha):
             ufs = dict(importar_casas(planilha)[['url', 'uf']].values)
         atual = df['uf'] if 'uf' in df.columns else pd.Series([''] * len(df))
-        df['uf'] = [u if u else ufs.get(url, '') for u, url in zip(atual, df['url'])]
+        df['uf'] = [u if u else ufs.get(url, '') for u, url in zip(atual, df['url'], strict=True)]
     return df[COLUNAS_CASAS].reset_index(drop=True)
 
 
-def salvar_tabela_casas(casas, caminho):
+def salvar_tabela_casas(casas: pd.DataFrame, caminho: str | Path) -> None:
+    """Grava a tabela de casas (COLUNAS_CASAS), substituindo o arquivo."""
     casas[COLUNAS_CASAS].to_csv(caminho, index=False)
 
 
-def filtrar_sul_sudeste(casas):
+def filtrar_sul_sudeste(casas: pd.DataFrame) -> pd.DataFrame:
+    """Só as casas dos estados de ESTADOS_SUL_SUDESTE."""
     return casas[casas['uf'].isin(ESTADOS_SUL_SUDESTE)].reset_index(drop=True)
 
 
-def limitar_casas(casas, opcao):
+def limitar_casas(casas: pd.DataFrame, opcao: str) -> pd.DataFrame:
     """Aplica a opção do menu de limite (veja OPCOES_LIMITE)."""
     opcao = str(opcao)
     if opcao == '2':

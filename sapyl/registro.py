@@ -8,8 +8,12 @@ Todas as mensagens passam pelo logger `sapl_scrap`:
 
 import logging
 import os
+from collections import Counter
+from collections.abc import Iterable
+from pathlib import Path
+from typing import Protocol
 
-from sapyl.colunas import ETAPA_MATERIA, ETAPA_PDF, SEPARADOR
+from sapyl.colunas import ETAPA_MATERIA, ETAPA_PDF, SEPARADOR, Linha
 
 LOGGER = 'sapl_scrap'
 FORMATO_ARQUIVO = '%(asctime)s %(levelname)s %(name)s %(message)s'
@@ -18,7 +22,13 @@ FORMATO_ARQUIVO = '%(asctime)s %(levelname)s %(name)s %(message)s'
 _MARCA = '_sapl_scrap'
 
 
-def configurar(pasta, nome):
+class _Contagens(Protocol):
+    """O que o resumo usa do estado do projeto (`sapyl.estado.Estado`)."""
+
+    def contagens(self, etapa: str, chaves: Iterable[str] | None = None) -> Counter[str]: ...
+
+
+def configurar(pasta: str | Path, nome: str) -> str:
     """Liga o log no terminal e em `<pasta>/<nome>.log`. Pode ser chamada várias vezes."""
     logger = logging.getLogger(LOGGER)
     logger.setLevel(logging.DEBUG)
@@ -43,12 +53,19 @@ def configurar(pasta, nome):
     return caminho
 
 
-def logger(nome=None):
+def logger(nome: str | None = None) -> logging.Logger:
     """Logger de um módulo: `sapl_scrap` ou `sapl_scrap.<nome>`."""
     return logging.getLogger(LOGGER if not nome else f'{LOGGER}.{nome}')
 
 
-def resumo(estado, links, caminho_final, buscas=None, casas_inativas=0, downloads=False):
+def resumo(
+    estado: _Contagens,
+    links: list[Linha],
+    caminho_final: str | Path,
+    buscas: list[tuple[str, str]] | None = None,
+    casas_inativas: int = 0,
+    downloads: bool = False,
+) -> str:
     """Texto do resumo do fim da execução, contado a partir do estado do projeto.
 
     `buscas`: lista de (casa, status) das buscas do projeto (None no modo

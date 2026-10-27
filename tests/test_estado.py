@@ -2,7 +2,7 @@
 
 import pytest
 
-from sapyl.estado import ArquivoCSV, Estado, ler_csv, CAMPOS_ESTADO
+from sapyl.estado import CAMPOS_ESTADO, ArquivoCSV, Estado, ler_csv
 
 
 def test_registrar_e_ler(tmp_path):
@@ -15,11 +15,11 @@ def test_registrar_e_ler(tmp_path):
     assert estado.erro('materia', 'h/1') == 'HTTP 429'
     estado.fechar()
     linhas = ler_csv(caminho, CAMPOS_ESTADO)
-    assert [(l['etapa'], l['chave'], l['status']) for l in linhas] == [
+    assert [(lin['etapa'], lin['chave'], lin['status']) for lin in linhas] == [
         ('materia', 'h/1', 'erro'),
         ('materia', 'h/2', 'ok'),
     ]
-    assert all(l['quando'] for l in linhas)
+    assert all(lin['quando'] for lin in linhas)
 
 
 def test_ultima_linha_vale_e_historico_e_mantido(tmp_path):

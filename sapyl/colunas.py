@@ -4,6 +4,9 @@
 nenhuma delas (conferido por tests/test_colunas.py).
 """
 
+# Uma linha de qualquer um destes arquivos (coluna -> valor)
+Linha = dict[str, str]
+
 # Separador de valores múltiplos numa célula (palavras, autores, anexadas)
 SEPARADOR = '; '
 

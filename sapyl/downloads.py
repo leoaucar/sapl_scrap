@@ -13,10 +13,13 @@
 import os
 from urllib.parse import urlparse
 
+import pandas as pd
 import requests
 
 from sapyl import registro
+from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import ETAPA_PDF
+from sapyl.estado import Estado
 
 TAMANHO_PEDACO = 64 * 1024
 TIMEOUT_DOWNLOAD = (10, 60)
@@ -25,7 +28,7 @@ EXTENSOES = ('.pdf', '.doc', '.docx', '.odt', '.rtf', '.txt', '.html', '.zip')
 log = registro.logger('download')
 
 
-def nome_arquivo(chave, link):
+def nome_arquivo(chave: str, link: str) -> str:
     """`sapl.x.leg.br/123` + link do texto -> `sapl.x.leg.br_123.pdf`."""
     extensao = os.path.splitext(urlparse(link).path)[1].lower()
     if extensao not in EXTENSOES:
@@ -33,7 +36,7 @@ def nome_arquivo(chave, link):
     return chave.replace('/', '_') + extensao
 
 
-def baixar_arquivo(link, destino, cliente):
+def baixar_arquivo(link: str, destino: str, cliente: ClienteSAPL) -> str:
     """Baixa `link` para `destino`. Devolve '' se deu certo, ou o motivo da falha."""
     parcial = destino + '.part'
     resposta = cliente.get(link, stream=True, timeout=TIMEOUT_DOWNLOAD)
@@ -55,7 +58,9 @@ def baixar_arquivo(link, destino, cliente):
             os.remove(parcial)
 
 
-def baixar_todos(final, pasta, cliente, estado):
+def baixar_todos(
+    final: pd.DataFrame, pasta: str, cliente: ClienteSAPL, estado: Estado
+) -> pd.DataFrame:
     """Baixa os textos das matérias `ok` da tabela final e preenche as colunas de download."""
     os.makedirs(pasta, exist_ok=True)
     final = final.copy()

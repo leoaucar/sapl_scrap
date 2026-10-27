@@ -4,10 +4,16 @@
 uma função que devolve respostas roteirizadas.
 """
 
+from collections.abc import Callable, Sequence
+from pathlib import Path
+
 from sapyl.projeto import Projeto, nome_limpo, projetos_existentes
 
+# Função que mostra a pergunta e devolve a resposta (`input`, ou um roteiro nos testes)
+Leitor = Callable[[str], str]
 
-def perguntar_opcao(texto, opcoes, entrada=input):
+
+def perguntar_opcao(texto: str, opcoes: Sequence[object], entrada: Leitor = input) -> str:
     """Repete a pergunta até a resposta ser uma das `opcoes`. Devolve a opção (str)."""
     opcoes = [str(o) for o in opcoes]
     if len(opcoes) > 1:
@@ -21,12 +27,12 @@ def perguntar_opcao(texto, opcoes, entrada=input):
         print(f'Digite apenas {lista}.')
 
 
-def perguntar_sim_nao(texto, entrada=input):
+def perguntar_sim_nao(texto: str, entrada: Leitor = input) -> bool:
     """Pergunta com as opções '1- sim, 2- não'. Devolve True para sim."""
     return perguntar_opcao(texto, ['1', '2'], entrada) == '1'
 
 
-def perguntar_texto(texto, entrada=input):
+def perguntar_texto(texto: str, entrada: Leitor = input) -> str:
     """Texto não vazio, sem barras (usado para nomes de projeto e de arquivo)."""
     while True:
         resposta = str(entrada(texto)).strip()
@@ -38,7 +44,7 @@ def perguntar_texto(texto, entrada=input):
             return resposta
 
 
-def abrir_ou_criar(raiz, entrada=input):
+def abrir_ou_criar(raiz: str | Path, entrada: Leitor = input) -> tuple[Projeto, bool]:
     """Pergunta o nome; cria o projeto ou, se já existe, oferece retomá-lo.
 
     Devolve (Projeto, novo). Nunca sobrescreve um projeto existente.
@@ -58,7 +64,7 @@ def abrir_ou_criar(raiz, entrada=input):
             return projeto, False
 
 
-def escolher_projeto_existente(raiz, entrada=input):
+def escolher_projeto_existente(raiz: str | Path, entrada: Leitor = input) -> Projeto:
     """Para o modo atualização: pergunta até achar um projeto com resultado final."""
     existentes = projetos_existentes(raiz)
     if existentes:

@@ -4,8 +4,8 @@ import pandas as pd
 import pytest
 
 from sapyl import busca as buscador
-from sapyl.estado import Estado, ler_csv
 from sapyl.cliente_http import ClienteSAPL
+from sapyl.estado import Estado, ler_csv
 from sapyl.links import raspar_resultados
 from tests.apoio import RespostaFalsa
 

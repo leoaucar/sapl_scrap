@@ -4,14 +4,14 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 
-def limpar(valor):
+def limpar(valor: object) -> str:
     """Texto numa linha só, sem espaços sobrando; None vira ''."""
     if valor is None:
         return ''
     return ' '.join(str(valor).split())
 
 
-def data_br(valor):
+def data_br(valor: object) -> str:
     """'2025-07-02' -> '02/07/2025'. Outros formatos voltam como vieram."""
     valor = limpar(valor)
     try:
@@ -20,7 +20,7 @@ def data_br(valor):
         return valor
 
 
-def data_hora_br(valor):
+def data_hora_br(valor: object) -> str:
     """'2026-09-21T13:25:49.124190-03:00' -> '21/09/2026 13:25' (hora local do site)."""
     valor = limpar(valor)
     try:
@@ -29,13 +29,14 @@ def data_hora_br(valor):
         return valor
 
 
-def sim_nao(valor):
+def sim_nao(valor: object) -> str:
+    """True -> 'Sim', False -> 'Não', vazio -> ''."""
     if valor is None or valor == '':
         return ''
     return 'Sim' if valor else 'Não'
 
 
-def esquema_da_casa(link, casa_url):
+def esquema_da_casa(link: str, casa_url: str) -> str:
     """Troca o esquema/host do link pelos da casa (a API devolve `http://`)."""
     if not link:
         return ''

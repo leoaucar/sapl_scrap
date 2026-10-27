@@ -7,10 +7,12 @@ antigas do SAPL, em `html.py`). As duas fontes produzem as mesmas colunas
 """
 
 from datetime import datetime
+from pathlib import Path
 
 from sapyl import registro
-from sapyl.colunas import COLUNAS_LINKS, COLUNAS_MATERIAS, ETAPA_MATERIA
-from sapyl.estado import ArquivoCSV
+from sapyl.cliente_http import ClienteSAPL
+from sapyl.colunas import COLUNAS_LINKS, COLUNAS_MATERIAS, ETAPA_MATERIA, Linha
+from sapyl.estado import ArquivoCSV, Estado
 from sapyl.links import host
 from sapyl.materias.api import Consultas, extrair_api, url_api
 from sapyl.materias.html import extrair_html
@@ -37,21 +39,25 @@ class Fontes:
     pontual do site) só manda aquela matéria para o HTML.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._por_host = {}
         self._consultas = {}
         self._api_confirmada = set()
 
-    def de(self, casa_url):
+    def de(self, casa_url: str) -> str:
+        """Fonte atual da casa: 'api' ou 'html'."""
         return self._por_host.get(host(casa_url), 'api')
 
-    def confirmar_api(self, casa_url):
+    def confirmar_api(self, casa_url: str) -> None:
+        """Marca que a API da casa já devolveu uma matéria nesta execução."""
         self._api_confirmada.add(host(casa_url))
 
-    def api_confirmada(self, casa_url):
+    def api_confirmada(self, casa_url: str) -> bool:
+        """Se a API da casa já funcionou nesta execução."""
         return host(casa_url) in self._api_confirmada
 
-    def usar_html(self, casa_url, motivo):
+    def usar_html(self, casa_url: str, motivo: str) -> None:
+        """Passa a casa para o HTML, a menos que a API dela já tenha funcionado."""
         if self.api_confirmada(casa_url):
             log.warning(
                 'API de %s falhou para uma matéria (%s): só essa vai pelo HTML',
@@ -65,18 +71,19 @@ class Fontes:
             )
         self._por_host[host(casa_url)] = 'html'
 
-    def consultas(self, cliente, casa_url):
+    def consultas(self, cliente: ClienteSAPL, casa_url: str) -> Consultas:
+        """Consultas de nomes da casa (uma instância por casa, com cache)."""
         h = host(casa_url)
         if h not in self._consultas:
             self._consultas[h] = Consultas(cliente, casa_url)
         return self._consultas[h]
 
 
-def _agora():
+def _agora() -> str:
     return datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 
 
-def linha_vazia(link):
+def linha_vazia(link: Linha) -> Linha:
     """Linha com COLUNAS_MATERIAS a partir de um item de links (COLUNAS_LINKS)."""
     linha = {c: '' for c in COLUNAS_MATERIAS}
     for c in COLUNAS_LINKS:
@@ -84,7 +91,7 @@ def linha_vazia(link):
     return linha
 
 
-def raspar_materia(link, cliente, fontes):
+def raspar_materia(link: Linha, cliente: ClienteSAPL, fontes: Fontes) -> Linha:
     """Raspa uma matéria e devolve a linha (COLUNAS_MATERIAS) com `status` ok ou erro.
 
     Tenta a API; se a casa não tiver API (404 ou resposta que não é JSON),
@@ -128,7 +135,13 @@ def raspar_materia(link, cliente, fontes):
     return linha
 
 
-def raspar_todas(links, cliente, estado, arquivo_materias, fontes=None):
+def raspar_todas(
+    links: list[Linha],
+    cliente: ClienteSAPL,
+    estado: Estado,
+    arquivo_materias: str | Path,
+    fontes: Fontes | None = None,
+) -> Fontes:
     """Raspa as matérias que ainda não estão `ok` no estado.
 
     Cada matéria é gravada em `arquivo_materias` **antes** de o estado ser
@@ -136,7 +149,7 @@ def raspar_todas(links, cliente, estado, arquivo_materias, fontes=None):
     raspada de novo (a linha mais recente vale na tabela final).
     """
     fontes = fontes or Fontes()
-    pendentes = [l for l in links if estado.status(ETAPA_MATERIA, l['chave']) != 'ok']
+    pendentes = [item for item in links if estado.status(ETAPA_MATERIA, item['chave']) != 'ok']
     log.info('Matérias: %d a raspar, %d já raspadas', len(pendentes), len(links) - len(pendentes))
     arquivo = ArquivoCSV(arquivo_materias, COLUNAS_MATERIAS)
     try:

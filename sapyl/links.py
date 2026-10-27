@@ -11,11 +11,13 @@ Os links vêm das páginas de busca, guardadas no arquivo bruto do projeto
 import csv
 import re
 import sys
+from collections.abc import Iterable
+from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
-from sapyl.colunas import COLUNAS_LINKS, SEPARADOR
+from sapyl.colunas import COLUNAS_LINKS, SEPARADOR, Linha
 from sapyl.estado import ler_csv
 
 # O HTML de cada página fica numa célula do CSV; aumenta o limite de tamanho
@@ -24,15 +26,17 @@ csv.field_size_limit(min(sys.maxsize, 2**31 - 1))
 _RE_MATERIA = re.compile(r'^/materia/(\d+)(?:/ta)?/?$')
 
 
-def host(url):
+def host(url: str) -> str:
+    """Host de uma URL (`sapl.x.leg.br`), ou ''."""
     return urlparse(url).hostname or ''
 
 
-def chave(casa_url, sapl_id):
+def chave(casa_url: str, sapl_id: str) -> str:
+    """Chave da matéria: `<host>/<sapl_id>`."""
     return f'{host(casa_url)}/{sapl_id}'
 
 
-def normalizar_link(casa_url, href):
+def normalizar_link(casa_url: str, href: object) -> tuple[str, str] | None:
     """Link canônico de uma matéria e seu id, ou None se não for página de matéria.
 
     Aceita links relativos e absolutos; remove `/ta` (texto articulado), barra
@@ -49,7 +53,7 @@ def normalizar_link(casa_url, href):
     return f'{casa.scheme}://{casa.netloc}/materia/{sapl_id}', sapl_id
 
 
-def deduplicar_links(links):
+def deduplicar_links(links: Iterable[Linha]) -> list[Linha]:
     """Junta links repetidos (mesma chave) numa linha só.
 
     `links`: lista de dicts com `Link Materia`, `Link Casa`, `Palavras` (uma
@@ -81,7 +85,7 @@ def deduplicar_links(links):
     return list(unicos.values())
 
 
-def links_da_pagina(html, casa_url):
+def links_da_pagina(html: str, casa_url: str) -> list[str]:
     """Links de matérias de uma página de busca, em ordem, sem repetição.
 
     Ficam de fora a paginação, PDFs (`/media/`), documentos acessórios e
@@ -97,7 +101,7 @@ def links_da_pagina(html, casa_url):
     return links
 
 
-def raspar_resultados(arquivo_cru):
+def raspar_resultados(arquivo_cru: str | Path) -> list[Linha]:
     """Lê o arquivo bruto da busca e devolve dicts `Link Materia, Link Casa, Palavras`.
 
     Pode haver repetições (a mesma matéria em várias buscas); use
@@ -115,7 +119,7 @@ def raspar_resultados(arquivo_cru):
     return links
 
 
-def salvar_links(links, caminho):
+def salvar_links(links: list[Linha], caminho: str | Path) -> None:
     """Grava a lista de links únicos (COLUNAS_LINKS), substituindo o arquivo."""
     with open(caminho, 'w', newline='', encoding='utf-8') as arquivo:
         escritor = csv.DictWriter(arquivo, fieldnames=COLUNAS_LINKS, extrasaction='ignore')
@@ -123,5 +127,6 @@ def salvar_links(links, caminho):
         escritor.writerows(links)
 
 
-def ler_links(caminho):
+def ler_links(caminho: str | Path) -> list[Linha]:
+    """Lê a lista de links únicos gravada por `salvar_links`."""
     return ler_csv(caminho, COLUNAS_LINKS)

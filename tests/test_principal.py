@@ -5,16 +5,16 @@ import json
 
 import pytest
 
-from sapyl.interface import principal as programa
-from sapyl.estado import Estado
 from sapyl.cliente_http import ClienteSAPL
-from tests.apoio import SaplFalso, roteiro
+from sapyl.estado import Estado
+from sapyl.interface import principal as programa
 from sapyl.tabela import ler_final
+from tests.apoio import SaplFalso, roteiro
 
 A = 'https://sapl.a.ac.leg.br/'
 CV = 'sapl/sapl.cascavel.pr.leg.br/'
 P = '"plano+diretor"'
-O = '"orçamento"+"emenda+impositiva"'
+ORC = '"orçamento"+"emenda+impositiva"'
 
 
 @pytest.fixture
@@ -23,13 +23,13 @@ def sapl(sessao):
     falso.casa(
         A,
         api=None,
-        buscas={P: [CV + 'busca_p1.html'], O: ['<a href="/materia/43301">x</a>']},
+        buscas={P: [CV + 'busca_p1.html'], ORC: ['<a href="/materia/43301">x</a>']},
         html={'38415': CV + 'materia_38415.html', '43301': CV + 'materia_43301.html'},
         pdfs={'38415': b'%PDF-um', '43301': b'%PDF-dois'},
     )
     falso.casa(
         'https://sapl.b.pr.leg.br/',
-        buscas={P: [CV + 'busca_vazia.html'], O: [CV + 'busca_vazia.html']},
+        buscas={P: [CV + 'busca_vazia.html'], ORC: [CV + 'busca_vazia.html']},
     )
     falso.casa('https://sapl.c.sp.leg.br/', ativa=False)
     sessao.rota(falso)
@@ -55,7 +55,7 @@ def test_projeto_novo_do_comeco_ao_fim(projeto_tmp, cliente, sessao, sapl):
     assert final['sapl_id'].tolist() == ['38415', '43301', '43300', '42263']
     assert final['status'].tolist() == ['ok', 'ok', 'erro', 'erro']
     assert final['erro'].tolist()[2:] == ['HTTP 404', 'HTTP 404']
-    assert final['Palavras'].tolist()[1] == f'{P}; {O}'
+    assert final['Palavras'].tolist()[1] == f'{P}; {ORC}'
     assert final['fonte'].tolist()[:2] == ['html', 'html']
     assert final['download_status'].tolist() == ['ok', 'ok', '', '']
     assert sorted(p.name for p in (pasta / 'downloads').iterdir()) == [
@@ -63,7 +63,7 @@ def test_projeto_novo_do_comeco_ao_fim(projeto_tmp, cliente, sessao, sapl):
         'sapl.a.ac.leg.br_43301.pdf',
     ]
     config = json.loads((pasta / 'config.json').read_text(encoding='utf-8'))
-    assert config['palavras'] == [P, O] and config['downloads'] is True
+    assert config['palavras'] == [P, ORC] and config['downloads'] is True
     assert (pasta / 'teste.log').exists()
     # todas as casas testadas e sem filtro: a tabela geral é atualizada
     geral = (projeto_tmp / 'arquivos_csv' / 'casas_resultado.csv').read_text()

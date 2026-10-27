@@ -9,11 +9,11 @@ import shutil
 
 import pytest
 
-from sapyl.interface import principal as programa
 from sapyl.cliente_http import ClienteSAPL
+from sapyl.interface import principal as programa
 from sapyl.links import raspar_resultados
-from tests.apoio import FALHA_FASE1, PASTA_FIXTURES, RelogioFalso, SessaoFalsa, roteiro, sapl_fase1
 from sapyl.tabela import ler_final
+from tests.apoio import FALHA_FASE1, PASTA_FIXTURES, RelogioFalso, SessaoFalsa, roteiro, sapl_fase1
 
 ORIGEM = PASTA_FIXTURES / 'projeto_fase1' / 'fase1_proj'
 ARQUIVOS = [

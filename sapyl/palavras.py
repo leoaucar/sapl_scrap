@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 
-def importar_palavras(pasta='arquivos_csv'):
+def importar_palavras(pasta: str | os.PathLike[str] = 'arquivos_csv') -> list[str]:
     """Lê a coluna `Palavras` de `<pasta>/palavras_chave.csv` ou, se não existir, do `.xlsx`."""
     csv = os.path.join(pasta, 'palavras_chave.csv')
     if os.path.exists(csv):
@@ -15,7 +15,7 @@ def importar_palavras(pasta='arquivos_csv'):
     return [str(p) for p in df['Palavras'].dropna() if str(p).strip()]
 
 
-def preparar_termos(palavras):
+def preparar_termos(palavras: list[str]) -> list[str]:
     """Converte cada linha de palavras-chave em uma consulta para a busca do SAPL.
 
     Termos separados por vírgula viram expressões exatas unidas por '+':

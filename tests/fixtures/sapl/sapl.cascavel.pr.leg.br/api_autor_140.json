@@ -1,0 +1,16 @@
+{
+  "id": 140,
+  "__str__": "Everton Guimarães",
+  "link_detail_backend": "/sistema/autor/140",
+  "metadata": {},
+  "autor_related": {
+    "value": 86,
+    "text": "Everton Guimarães"
+  },
+  "object_id": 86,
+  "nome": "Everton Guimarães",
+  "cargo": "",
+  "tipo": 1,
+  "content_type": 27,
+  "operadores": null
+}

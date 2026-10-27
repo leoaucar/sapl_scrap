@@ -1,0 +1,8 @@
+{
+  "id": 1,
+  "__str__": "Parlamentar",
+  "link_detail_backend": "/sistema/autor/tipo/1",
+  "metadata": {},
+  "descricao": "Parlamentar",
+  "content_type": 27
+}

@@ -22,9 +22,17 @@ só registram os cabeçalhos dos PDFs, sem arquivo).
 | `materia_34049_assunto.html` | aba "Assunto" (vazia; motivo de remover a coluna `Assuntos`) |
 | `api_materia_<id>.json` | `/api/materia/materialegislativa/<id>/` |
 | `api_tipomateria_1.json`, `api_regime_1.json`, `api_autor_145.json` | consultas de nomes na API |
-| `api_tramitacao_34049.json`, `api_autoria_34049.json` | listas da API (referência para specs futuras) |
+| `api_autoria_<id>.json`, `api_tramitacao_<id>.json` | listas `/api/materia/autoria/?materia=<id>` e `/api/materia/tramitacao/?materia=<id>` (34049 em 24/10; as demais em 27/10/2026) |
+| `api_autor_<id>.json`, `api_tipoautor_<id>.json` | `/api/base/autor/<id>/` e `/api/base/tipoautor/<id>/` |
+| `api_statustramitacao_<id>.json`, `api_unidadetramitacao_<id>.json` | nomes do status e das unidades do último trâmite |
 
 Particularidades usadas nos testes:
+
+- Autoria e tramitação pela API existem para 34049 e 46496 (Rio Branco) e
+  38415 e 43301 (Cascavel), as mesmas matérias que têm as abas HTML. Em
+  27/10/2026 o último trâmite e os autores pela API batiam com as páginas
+  HTML de 24/10. O nome do autor no HTML é o `__str__` da API (`nome - cargo`
+  quando há cargo, ex.: "Executivo Municipal - sapladm"), não o campo `nome`.
 
 - `sapl.riobranco.ac.leg.br/materia_34049.html` tem **dois**
   `div_id_texto_original`; só o primeiro tem o link do PDF.

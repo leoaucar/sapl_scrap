@@ -1,0 +1,57 @@
+{
+  "pagination": {
+    "links": {
+      "next": null,
+      "previous": null
+    },
+    "previous_page": null,
+    "next_page": null,
+    "start_index": 1,
+    "end_index": 2,
+    "total_entries": 2,
+    "total_pages": 1,
+    "page": 1
+  },
+  "results": [
+    {
+      "id": 72572,
+      "__str__": "Projeto de Lei Ordinária nº 178 de 2026 | Aguardando a inclusão na ordem do dia | 20/10/2026",
+      "link_detail_backend": "/materia/tramitacao/72572",
+      "metadata": {},
+      "timestamp": "2026-10-21T09:22:36.846302-03:00",
+      "data_tramitacao": "2026-10-20",
+      "data_encaminhamento": null,
+      "urgente": false,
+      "turno": "",
+      "texto": "",
+      "data_fim_prazo": null,
+      "ip": null,
+      "ultima_edicao": "2026-10-21T09:22:29.036872-03:00",
+      "status": 30,
+      "materia": 43301,
+      "unidade_tramitacao_local": 3,
+      "unidade_tramitacao_destino": 2,
+      "user": null
+    },
+    {
+      "id": 72571,
+      "__str__": "Projeto de Lei Ordinária nº 178 de 2026 | Autuada e incluída no Pequeno Expediente para leitura. | 20/10/2026",
+      "link_detail_backend": "/materia/tramitacao/72571",
+      "metadata": {},
+      "timestamp": "2026-10-21T09:22:23.773090-03:00",
+      "data_tramitacao": "2026-10-20",
+      "data_encaminhamento": null,
+      "urgente": false,
+      "turno": "",
+      "texto": "",
+      "data_fim_prazo": null,
+      "ip": null,
+      "ultima_edicao": "2026-10-21T09:22:10.011109-03:00",
+      "status": 68,
+      "materia": 43301,
+      "unidade_tramitacao_local": 2,
+      "unidade_tramitacao_destino": 3,
+      "user": null
+    }
+  ]
+}

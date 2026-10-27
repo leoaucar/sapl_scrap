@@ -1,0 +1,26 @@
+{
+  "pagination": {
+    "links": {
+      "next": null,
+      "previous": null
+    },
+    "previous_page": null,
+    "next_page": null,
+    "start_index": 1,
+    "end_index": 1,
+    "total_entries": 1,
+    "total_pages": 1,
+    "page": 1
+  },
+  "results": [
+    {
+      "id": 53533,
+      "__str__": "Autoria: Prefeito Municipal - Prefeito - Projeto de Lei Ordinária nº 178 de 2026",
+      "link_detail_backend": "/materia/autoria/53533",
+      "metadata": {},
+      "primeiro_autor": true,
+      "autor": 6,
+      "materia": 43301
+    }
+  ]
+}

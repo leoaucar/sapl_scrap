@@ -23,6 +23,7 @@ Rio Branco:
 |---|---|---|
 | Authors API | `/api/materia/autoria/?materia=<id>` → paginated list (`results`, `pagination.total_entries`) with `autor` id and `primeiro_autor` | 1 request per matter + cached author lookups |
 | Author names | `/api/base/autor/<id>/` → `nome`, `cargo`, `tipo` (id); `/api/base/tipoautor/<id>/` → `__str__` ("Parlamentar") | `Autoria` = `nome (tipo)`, same as HTML "Autor (Descrição)" |
+| Author text (checked 2026-10-27, T02) | the HTML author column is the API `__str__`, which is `nome - cargo` when `cargo` is set ("Executivo Municipal - sapladm"), else `nome` | use `__str__`, not `nome`, so API and HTML give the same `Autoria` |
 | Procedure API | `/api/materia/tramitacao/?materia=<id>` → newest first (same order as the HTML table, checked on both houses) | first result = latest step |
 | Procedure names | `status` → `/api/materia/statustramitacao/<id>/` (`descricao`); units → `/api/materia/unidadetramitacao/<id>/` (`__str__`) | cached lookups, like `tipo`/`regime` today |
 | Staff data | list items carry `ip`, `user` | never stored; removed from fixtures |

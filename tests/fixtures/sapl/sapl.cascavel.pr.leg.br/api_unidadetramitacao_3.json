@@ -1,0 +1,9 @@
+{
+  "id": 3,
+  "__str__": "Plenário da Câmara - PLEN",
+  "link_detail_backend": "/sistema/materia/unidade-tramitacao/3",
+  "metadata": {},
+  "comissao": null,
+  "orgao": 3,
+  "parlamentar": null
+}

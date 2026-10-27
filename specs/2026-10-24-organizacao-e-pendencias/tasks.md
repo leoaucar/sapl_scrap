@@ -22,7 +22,7 @@ Rules for every task (same as Phase 1):
     folder to `tests/fixtures/projeto_fase1/`.
   - `tests/test_compat_fase1.py` (first version): the fixture has the expected
     files, and the Phase 1 code resumes it without requesting finished matters.
-- [ ] **T02 New API fixtures** (TR-2)
+- [x] **T02 New API fixtures** (TR-2)
   - autoria, autor, tipoautor, tramitação, statustramitacao and
     unidadetramitacao for Cascavel and Rio Branco (≤ 15 requests per house,
     3 s apart). Remove `ip`/`user`, then update `index.json` and the

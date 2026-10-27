@@ -1,0 +1,9 @@
+{
+  "id": 30,
+  "__str__": "Aguardando a inclusão na ordem do dia",
+  "link_detail_backend": "/sistema/materia/status-tramitacao/30",
+  "metadata": {},
+  "sigla": "AGORDIA",
+  "descricao": "Aguardando a inclusão na ordem do dia",
+  "indicador": "R"
+}

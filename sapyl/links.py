@@ -9,7 +9,7 @@ import sys
 
 from bs4 import BeautifulSoup
 
-from materias import normalizar_link
+from sapyl.materias import normalizar_link
 
 # O HTML de cada página fica numa célula do CSV; aumenta o limite de tamanho
 csv.field_size_limit(min(sys.maxsize, 2**31 - 1))

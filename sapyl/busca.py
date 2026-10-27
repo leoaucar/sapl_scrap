@@ -10,8 +10,8 @@ refeita. Buscas `completa` não são repetidas.
 """
 from urllib.parse import urlparse
 
-from estado import ArquivoCSV
-import registro
+from sapyl.estado import ArquivoCSV
+from sapyl import registro
 
 COLUNAS_CRU = ['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link']
 # Proteção contra paginação sem fim (Rio Branco, a maior do teste, tem ~400)

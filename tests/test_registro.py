@@ -1,7 +1,7 @@
 """Configuração do log (terminal + arquivo) e resumo final."""
 import logging
 
-import registro
+from sapyl import registro
 
 
 def _handlers():
@@ -32,7 +32,7 @@ def test_configurar_duas_vezes_nao_duplica(tmp_path):
 
 # --- Resumo final (FR-26) ---------------------------------------------------
 
-from estado import Estado  # noqa: E402
+from sapyl.estado import Estado  # noqa: E402
 
 
 def _links():

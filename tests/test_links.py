@@ -3,7 +3,7 @@ import csv
 
 import pytest
 
-from raspador import links_da_pagina, raspar_resultados
+from sapyl.links import links_da_pagina, raspar_resultados
 from tests.apoio import ler_fixture
 
 ESPERADOS = {

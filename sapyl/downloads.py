@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 
 import requests
 
-import registro
+from sapyl import registro
 
 TAMANHO_PEDACO = 64 * 1024
 TIMEOUT_DOWNLOAD = (10, 60)

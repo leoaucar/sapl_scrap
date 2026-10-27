@@ -43,12 +43,19 @@ Rules for every task (same as Phase 1):
     `.` until T04, and the `instalacao` job only checks the installed
     version. Its `sapyl --version` / `python -m sapyl --version` steps are
     added in T06.
-- [ ] **T04 Move modules into `sapyl/`** (FR-3, TR-1)
+- [x] **T04 Move modules into `sapyl/`** (FR-3, TR-1)
   - `git mv` every module to the plan §3 path (still the old module
     contents). Change imports to absolute and update the tests' imports only.
     Add `sapyl/__init__.py` with `__version__ = '0.2.0'`.
   - Done when the suite is green with **no assertion changed** and
     `test_compat_fase1` passes.
+  - *As built:* test files renamed with their modules (`test_cliente_http`,
+    `test_busca`, `test_links`, `test_tabela`, `test_downloads`,
+    `test_projeto`, `test_principal`); tests keep the old local names as
+    import aliases (`from sapyl import busca as buscador`). Coverage now on
+    `sapyl`, version read from `sapyl.__version__`. `autoria.py` lost its
+    `sys.path` hack (run as `python -m sapyl.autoria` until T18) and keeps
+    `.sapl_historico.json` in the folder it runs in.
 - [ ] **T05 Single source for columns and stages** (FR-4)
   - `sapyl/colunas.py`. Every module imports from it.
   - Test: no other module defines a list containing `'Link Materia'` or

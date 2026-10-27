@@ -8,7 +8,7 @@ import os
 
 import pandas as pd
 
-import registro
+from sapyl import registro
 
 # Estados usados quando a busca é restrita a Sul e Sudeste
 ESTADOS_SUL_SUDESTE = ['RJ', 'SP', 'RS', 'SC', 'MG', 'ES', 'PR']

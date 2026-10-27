@@ -3,8 +3,8 @@ import pandas as pd
 import pytest
 import requests
 
-import casas_legislativas as cl
-from http_sapl import ClienteSAPL
+from sapyl import casas as cl
+from sapyl.cliente_http import ClienteSAPL
 
 
 @pytest.fixture

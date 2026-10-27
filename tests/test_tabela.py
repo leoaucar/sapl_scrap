@@ -1,9 +1,9 @@
 """Tabela final: ordem das colunas, tentativa mais recente, compatibilidade."""
 import pandas as pd
 
-import materias as m
-import tratamento_resultado as t
-from estado import ArquivoCSV
+from sapyl import materias as m
+from sapyl import tabela as t
+from sapyl.estado import ArquivoCSV
 
 CV = 'https://sapl.cascavel.pr.leg.br/'
 

@@ -2,8 +2,8 @@
 import pandas as pd
 import pytest
 
-from autoria_e_tramitacao import autoria_e_tramit as at
-from http_sapl import ClienteSAPL
+from sapyl import autoria as at
+from sapyl.cliente_http import ClienteSAPL
 from tests.apoio import ler_fixture, roteiro
 
 AL = 'https://sapl.al.ac.leg.br/'

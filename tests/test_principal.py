@@ -4,11 +4,11 @@ import json
 
 import pytest
 
-import programa
-from estado import Estado
-from http_sapl import ClienteSAPL
+from sapyl import principal as programa
+from sapyl.estado import Estado
+from sapyl.cliente_http import ClienteSAPL
 from tests.apoio import SaplFalso, roteiro
-from tratamento_resultado import ler_final
+from sapyl.tabela import ler_final
 
 A = 'https://sapl.a.ac.leg.br/'
 CV = 'sapl/sapl.cascavel.pr.leg.br/'
@@ -117,7 +117,7 @@ def test_ctrl_c_sai_com_mensagem(projeto_tmp, cliente, capsys):
 
 
 def test_ctrl_c_no_meio_da_raspagem_permite_retomar(projeto_tmp, cliente, sessao, sapl, monkeypatch):
-    import materias
+    from sapyl import materias
     original = materias.raspar_materia
     chamadas = []
 
@@ -143,7 +143,7 @@ def test_resumo_aparece_no_fim(projeto_tmp, cliente, sessao, sapl, caplog):
 
 
 def test_palavras_csv_tem_prioridade(projeto_tmp):
-    from palavras_chave import importar_palavras, preparar_termos
+    from sapyl.palavras import importar_palavras, preparar_termos
     (projeto_tmp / 'arquivos_csv' / 'palavras_chave.csv').write_text(
         'Palavras\n"professor,  conviccoes morais"\n\n', encoding='utf-8')
     termos = preparar_termos(importar_palavras(projeto_tmp / 'arquivos_csv'))

@@ -1,7 +1,7 @@
 """Acrescenta as colunas Autoria e Tramite a uma planilha de resultados.
 
-Uso (de dentro desta pasta):
-    python autoria_e_tramit.py
+Uso (de dentro da pasta com o CSV):
+    python -m sapyl.autoria
 O programa lista os CSVs da pasta e pergunta qual usar. O arquivo escolhido
 não é alterado: o resultado vai para `<nome>_autoria_tramitacao.csv`.
 
@@ -19,12 +19,9 @@ import sys
 from bs4 import BeautifulSoup
 import pandas as pd
 
-# Permite rodar de dentro desta pasta e importar os módulos da raiz do projeto
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from entrada import perguntar_opcao  # noqa: E402
-from http_sapl import ClienteSAPL  # noqa: E402
-import registro  # noqa: E402
+from sapyl.entrada import perguntar_opcao
+from sapyl.cliente_http import ClienteSAPL
+from sapyl import registro
 
 SUFIXO_SAIDA = '_autoria_tramitacao'
 log = registro.logger('autoria')
@@ -123,7 +120,8 @@ def main(pasta='.', entrada=input, cliente=None):
         print('Nenhum arquivo .csv nesta pasta. Copie para cá o resultado final de um projeto.')
         return 1
     try:
-        historico = Path(__file__).resolve().parent.parent / '.sapl_historico.json'
+        # mesmo arquivo do programa principal quando roda na mesma pasta
+        historico = Path(pasta) / '.sapl_historico.json'
         processar(caminho, cliente or ClienteSAPL(historico=str(historico)))
     except KeyboardInterrupt:
         print('\nInterrompido. O arquivo de entrada não foi alterado.')

@@ -5,8 +5,8 @@ import re
 import pytest
 import requests
 
-import http_sapl
-from http_sapl import ClienteSAPL, ler_retry_after
+from sapyl import cliente_http as http_sapl
+from sapyl.cliente_http import ClienteSAPL, ler_retry_after
 
 A = 'https://sapl.a.leg.br/'
 B = 'https://sapl.b.leg.br/'

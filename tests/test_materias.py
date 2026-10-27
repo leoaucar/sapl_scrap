@@ -5,8 +5,8 @@ import logging
 import pytest
 import requests
 
-import materias as m
-from http_sapl import ClienteSAPL
+from sapyl import materias as m
+from sapyl.cliente_http import ClienteSAPL
 from tests.apoio import ler_fixture
 
 RB = 'https://sapl.riobranco.ac.leg.br/'
@@ -289,7 +289,7 @@ def test_erro_de_rede_no_html(cliente, sessao):
 
 # --- Etapa de raspagem e retomada (FR-9, FR-18, FR-19) ----------------------
 
-from estado import Estado, ler_csv  # noqa: E402
+from sapyl.estado import Estado, ler_csv  # noqa: E402
 
 
 def _links_cascavel():
@@ -336,7 +336,7 @@ def test_materia_gravada_sem_estado_e_refeita(tmp_path, cliente, sessao):
     _responder_cascavel(sessao, falha_99=False)
     links = _links_cascavel()
     # simula queda depois de gravar a matéria e antes de gravar o estado
-    from estado import ArquivoCSV
+    from sapyl.estado import ArquivoCSV
     arquivo = ArquivoCSV(tmp_path / 'mat.csv', m.COLUNAS_MATERIAS)
     arquivo.anexar({**m.linha_vazia(links[0]), 'status': 'ok', 'Titulo': 'antigo'})
     arquivo.fechar()

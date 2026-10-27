@@ -4,10 +4,10 @@ import os
 import pandas as pd
 import pytest
 
-import download_pdf as d
-import materias as m
-from estado import Estado
-from http_sapl import ClienteSAPL
+from sapyl import downloads as d
+from sapyl import materias as m
+from sapyl.estado import Estado
+from sapyl.cliente_http import ClienteSAPL
 
 RB = 'https://sapl.riobranco.ac.leg.br/'
 PDF1 = RB + 'media/sapl/public/materialegislativa/2025/1/a.pdf'

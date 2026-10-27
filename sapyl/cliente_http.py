@@ -33,7 +33,7 @@ from urllib.parse import urlparse
 
 import requests
 
-import registro
+from sapyl import registro
 
 # Limite observado nos servidores do SAPL (teste de 15/10/2026)
 LIMITE_POR_MINUTO = 35

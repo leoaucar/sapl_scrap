@@ -14,8 +14,8 @@ from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
-from estado import ArquivoCSV, ler_csv
-import registro
+from sapyl.estado import ArquivoCSV, ler_csv
+from sapyl import registro
 
 # Colunas do resultado final, na ordem. As 11 primeiras são as da versão
 # anterior (sem `Assuntos` e `texto_integral`, que não existem mais no SAPL).

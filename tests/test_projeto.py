@@ -1,5 +1,5 @@
 """Projetos: criar, retomar, nunca sobrescrever, configuração salva."""
-import gerenciador_projetos as gp
+from sapyl import projeto as gp
 from tests.apoio import roteiro
 
 

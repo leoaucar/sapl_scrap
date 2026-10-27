@@ -175,17 +175,15 @@ pode ser retomada no mesmo dia.
 
 ## Autoria e tramitação
 
-O script `autoria_e_tramitacao/autoria_e_tramit.py` acrescenta as colunas
-`Autoria` e `Tramite` (a tramitação mais recente) a uma planilha de
-resultados.
+O módulo `sapyl/autoria.py` acrescenta as colunas `Autoria` e `Tramite` (a
+tramitação mais recente) a uma planilha de resultados.
 
-1. Copie o CSV de resultados (com a coluna `Link Materia`) para a pasta
-   `autoria_e_tramitacao/`.
-2. Rode o script de dentro da pasta e escolha o arquivo na lista:
+1. Copie o CSV de resultados (com a coluna `Link Materia`) para a pasta onde
+   você roda o programa (a raiz do repositório).
+2. Rode, dessa pasta, e escolha o arquivo na lista:
 
    ```bash
-   cd autoria_e_tramitacao
-   python autoria_e_tramit.py
+   python -m sapyl.autoria
    ```
 
 O arquivo escolhido não é alterado; o resultado vai para
@@ -200,28 +198,31 @@ Os testes rodam sem internet, com páginas reais do SAPL salvas em
 ```bash
 pip install -r requirements-dev.txt
 pytest                                   # todos os testes, com cobertura
-pytest tests/test_http_sapl.py -k 429    # só alguns
+pytest tests/test_cliente_http.py -k 429    # só alguns
 ```
 
 Eles também rodam no GitHub Actions a cada push, em Python 3.10 e 3.12.
 
 ## Estrutura do código
 
-| Arquivo                   | Função                                                        |
-|---------------------------|---------------------------------------------------------------|
-| `programa.py`             | Ponto de entrada; perguntas e etapas, novo/retomar/atualizar  |
-| `http_sapl.py`            | Cliente HTTP único: limite por site, 429, retentativas, log   |
-| `casas_legislativas.py`   | Lista de casas, teste dos sites, UF, filtros                  |
-| `palavras_chave.py`       | Lê e formata as palavras-chave para a busca                   |
-| `buscador.py`             | Busca página a página em cada casa                            |
-| `raspador.py`             | Extrai os links de matérias das páginas de busca              |
-| `materias.py`             | Chaves, duplicatas, dados pela API ou pelo HTML               |
-| `tratamento_resultado.py` | Monta a planilha final                                        |
-| `download_pdf.py`         | Baixa os textos originais                                     |
-| `estado.py`               | Progresso em disco, para retomar                              |
-| `gerenciador_projetos.py` | Pasta e arquivos do projeto                                   |
-| `entrada.py`              | Perguntas com validação                                       |
-| `registro.py`             | Log e resumo final                                            |
+O código fica no pacote `sapyl/`. `programa.py`, na raiz, é só um atalho.
+
+| Arquivo                 | Função                                                        |
+|-------------------------|---------------------------------------------------------------|
+| `sapyl/principal.py`    | Perguntas e etapas: novo/retomar/atualizar                    |
+| `sapyl/cliente_http.py` | Cliente HTTP único: limite por site, 429, retentativas, log   |
+| `sapyl/casas.py`        | Lista de casas, teste dos sites, UF, filtros                  |
+| `sapyl/palavras.py`     | Lê e formata as palavras-chave para a busca                   |
+| `sapyl/busca.py`        | Busca página a página em cada casa                            |
+| `sapyl/links.py`        | Extrai os links de matérias das páginas de busca              |
+| `sapyl/materias.py`     | Chaves, duplicatas, dados pela API ou pelo HTML               |
+| `sapyl/tabela.py`       | Monta a planilha final                                        |
+| `sapyl/downloads.py`    | Baixa os textos originais                                     |
+| `sapyl/estado.py`       | Progresso em disco, para retomar                              |
+| `sapyl/projeto.py`      | Pasta e arquivos do projeto                                   |
+| `sapyl/entrada.py`      | Perguntas com validação                                       |
+| `sapyl/registro.py`     | Log e resumo final                                            |
+| `sapyl/autoria.py`      | Autoria e tramitação                                          |
 
 O desenvolvimento segue specs em [`specs/`](specs/) (constituição, stack e uma
 pasta por mudança).

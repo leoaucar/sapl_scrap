@@ -11,12 +11,12 @@ import logging
 
 import pytest
 
-import materias
-import programa
-from estado import Estado
-from http_sapl import ClienteSAPL
+from sapyl import materias
+from sapyl import principal as programa
+from sapyl.estado import Estado
+from sapyl.cliente_http import ClienteSAPL
 from tests.apoio import RelogioFalso, SaplFalso, SessaoFalsa, ler_fixture, roteiro
-from tratamento_resultado import ler_final
+from sapyl.tabela import ler_final
 
 RB = 'https://sapl.riobranco.ac.leg.br/'
 CV = 'https://sapl.cascavel.pr.leg.br/'

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sapyl"
-version = "0.2.0"
+dynamic = ["version"]
 description = "SAPyL: Raspador do Sistema de Apoio Legislativo"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -36,13 +36,16 @@ sapyl = "sapyl.interface.principal:executar"
 [project.urls]
 Repositorio = "https://github.com/leoaucar/sapl_scrap"
 
+[tool.setuptools.dynamic]
+version = { attr = "sapyl.__version__" }
+
 [tool.setuptools.packages.find]
 include = ["sapyl*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-addopts = "--cov=. --cov-report=term-missing"
+addopts = "--cov=sapyl --cov-report=term-missing"
 
 [tool.coverage.run]
 omit = ["tests/*", ".venv/*"]

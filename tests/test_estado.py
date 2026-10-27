@@ -1,7 +1,7 @@
 """Arquivo de estado: só acrescenta linhas, última linha vale, queda no meio."""
 import pytest
 
-from estado import ArquivoCSV, Estado, ler_csv, CAMPOS_ESTADO
+from sapyl.estado import ArquivoCSV, Estado, ler_csv, CAMPOS_ESTADO
 
 
 def test_registrar_e_ler(tmp_path):

@@ -2,10 +2,10 @@
 import pandas as pd
 import pytest
 
-import buscador
-from estado import Estado, ler_csv
-from http_sapl import ClienteSAPL
-from raspador import raspar_resultados
+from sapyl import busca as buscador
+from sapyl.estado import Estado, ler_csv
+from sapyl.cliente_http import ClienteSAPL
+from sapyl.links import raspar_resultados
 from tests.apoio import RespostaFalsa
 
 CV = 'https://sapl.cascavel.pr.leg.br/'

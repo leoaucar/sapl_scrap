@@ -10,7 +10,7 @@ e os downloads vão para `downloads<dd_mm_aaaa>/`.
 import json
 from pathlib import Path
 
-from entrada import perguntar_opcao, perguntar_texto
+from sapyl.entrada import perguntar_opcao, perguntar_texto
 
 
 class Projeto:

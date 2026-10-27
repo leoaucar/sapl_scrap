@@ -8,12 +8,12 @@ import shutil
 
 import pytest
 
-import programa
-from http_sapl import ClienteSAPL
-from raspador import raspar_resultados
+from sapyl import principal as programa
+from sapyl.cliente_http import ClienteSAPL
+from sapyl.links import raspar_resultados
 from tests.apoio import (FALHA_FASE1, PASTA_FIXTURES, RelogioFalso, SessaoFalsa, roteiro,
                          sapl_fase1)
-from tratamento_resultado import ler_final
+from sapyl.tabela import ler_final
 
 ORIGEM = PASTA_FIXTURES / 'projeto_fase1' / 'fase1_proj'
 ARQUIVOS = ['config.json', 'casas_resultado.csv', 'fase1_estado.csv',

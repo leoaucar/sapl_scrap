@@ -18,6 +18,7 @@ escolher "retomar" continua de onde parou e tenta de novo o que falhou.
 No modo "atualizar", as matérias de um `_resultado_final.csv` existente são
 raspadas de novo, com saída em arquivos `_ATUALIZADO_<data>`.
 """
+
 from datetime import datetime
 from pathlib import Path
 import sys
@@ -27,8 +28,12 @@ from sapyl.busca import buscar, buscas_pendentes, chave_busca
 from sapyl import casas as cl
 from sapyl.colunas import COLUNAS_ORIGEM, ETAPA_BUSCA
 from sapyl.downloads import baixar_todos
-from sapyl.interface.entrada import (abrir_ou_criar, escolher_projeto_existente, perguntar_opcao,
-                                     perguntar_sim_nao)
+from sapyl.interface.entrada import (
+    abrir_ou_criar,
+    escolher_projeto_existente,
+    perguntar_opcao,
+    perguntar_sim_nao,
+)
 from sapyl.estado import Estado
 from sapyl import projeto as gp
 from sapyl.cliente_http import ClienteSAPL
@@ -45,8 +50,10 @@ PERGUNTA_DOWNLOAD = 'Deseja baixar os textos originais (PDFs)? 1- sim, 2- não\n
 # Horários das requisições recentes de cada site, compartilhados entre
 # execuções e projetos (veja cliente_http). Fica na pasta de trabalho.
 ARQUIVO_HISTORICO = '.sapl_historico.json'
-MENSAGEM_INTERROMPIDO = ('\nExecução interrompida. Para continuar de onde parou, rode o programa '
-                         'de novo, digite o mesmo nome de projeto e escolha "retomar".')
+MENSAGEM_INTERROMPIDO = (
+    '\nExecução interrompida. Para continuar de onde parou, rode o programa '
+    'de novo, digite o mesmo nome de projeto e escolha "retomar".'
+)
 
 log = registro.logger()
 
@@ -63,8 +70,13 @@ def perguntar_configuracao(raiz, entrada=input):
     limite = perguntar_opcao(cl.PERGUNTA_LIMITE, list(cl.OPCOES_LIMITE), entrada)
     downloads = perguntar_sim_nao(PERGUNTA_DOWNLOAD, entrada)
     palavras = preparar_termos(importar_palavras(_pasta_csv(raiz)))
-    return {'palavras': palavras, 'reusar_tabela': reusar, 'sul_sudeste': sul_sudeste,
-            'limite': limite, 'downloads': downloads}
+    return {
+        'palavras': palavras,
+        'reusar_tabela': reusar,
+        'sul_sudeste': sul_sudeste,
+        'limite': limite,
+        'downloads': downloads,
+    }
 
 
 def preparar_casas(projeto, config, cliente, raiz):
@@ -112,11 +124,19 @@ def executar_projeto(projeto, config, cliente, raiz):
             final = baixar_todos(final, str(projeto.downloads), cliente, estado)
         salvar_final(final, projeto.final)
         ativas = casas[casas['ativa']]['url']
-        buscas = [(casa, estado.status(ETAPA_BUSCA, chave_busca(casa, p)) or 'não feita')
-                  for casa in ativas for p in palavras]
-        return registro.resumo(estado, links, projeto.final, buscas=buscas,
-                               casas_inativas=int((~casas['ativa']).sum()),
-                               downloads=config['downloads'])
+        buscas = [
+            (casa, estado.status(ETAPA_BUSCA, chave_busca(casa, p)) or 'não feita')
+            for casa in ativas
+            for p in palavras
+        ]
+        return registro.resumo(
+            estado,
+            links,
+            projeto.final,
+            buscas=buscas,
+            casas_inativas=int((~casas['ativa']).sum()),
+            downloads=config['downloads'],
+        )
     finally:
         estado.fechar()
 
@@ -168,7 +188,6 @@ def main(entrada=input, cliente=None, raiz='.'):
         return 1
     log.info(texto)
     return 0
-
 
 
 USO = 'Uso: sapyl [--version]\nSem argumentos, o programa faz as perguntas no terminal.'

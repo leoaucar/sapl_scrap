@@ -1,4 +1,5 @@
 """Tabela final: ordem das colunas, tentativa mais recente, compatibilidade."""
+
 import pandas as pd
 
 from sapyl import materias as m
@@ -11,19 +12,52 @@ CV = 'https://sapl.cascavel.pr.leg.br/'
 
 
 def _link(i, palavras):
-    return {'chave': lk.chave(CV, i), 'Link Materia': f'{CV}materia/{i}', 'Link Casa': CV,
-            'Palavras': palavras, 'sapl_id': i}
+    return {
+        'chave': lk.chave(CV, i),
+        'Link Materia': f'{CV}materia/{i}',
+        'Link Casa': CV,
+        'Palavras': palavras,
+        'sapl_id': i,
+    }
 
 
 def test_colunas_finais_na_ordem_esperada():
-    antigas = ['Link Materia', 'Link Casa', 'Palavras', 'Titulo', 'Ementa', 'Ano', 'Data', 'Numero',
-               'Observacao', 'Tipo de Materia Legislativa', 'texto_original']
-    assert colunas.COLUNAS_FINAIS[:len(antigas)] == antigas
-    assert 'Assuntos' not in colunas.COLUNAS_FINAIS and 'texto_integral' not in colunas.COLUNAS_FINAIS
-    assert colunas.COLUNAS_FINAIS[-7:] == ['sapl_id', 'fonte', 'status', 'erro', 'raspada_em',
-                                     'arquivo_pdf', 'download_status']
-    for nova in ('Indexacao', 'Em Tramitacao', 'Regime Tramitacao', 'Materia Anexada',
-                 'Resultado', 'Data Publicacao', 'Numero Protocolo', 'Ultima Atualizacao'):
+    antigas = [
+        'Link Materia',
+        'Link Casa',
+        'Palavras',
+        'Titulo',
+        'Ementa',
+        'Ano',
+        'Data',
+        'Numero',
+        'Observacao',
+        'Tipo de Materia Legislativa',
+        'texto_original',
+    ]
+    assert colunas.COLUNAS_FINAIS[: len(antigas)] == antigas
+    assert (
+        'Assuntos' not in colunas.COLUNAS_FINAIS and 'texto_integral' not in colunas.COLUNAS_FINAIS
+    )
+    assert colunas.COLUNAS_FINAIS[-7:] == [
+        'sapl_id',
+        'fonte',
+        'status',
+        'erro',
+        'raspada_em',
+        'arquivo_pdf',
+        'download_status',
+    ]
+    for nova in (
+        'Indexacao',
+        'Em Tramitacao',
+        'Regime Tramitacao',
+        'Materia Anexada',
+        'Resultado',
+        'Data Publicacao',
+        'Numero Protocolo',
+        'Ultima Atualizacao',
+    ):
         assert nova in colunas.COLUNAS_FINAIS
 
 

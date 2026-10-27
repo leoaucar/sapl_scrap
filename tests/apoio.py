@@ -3,6 +3,7 @@
 Nenhum teste acessa a rede (veja `bloquear_rede` em conftest.py). As respostas
 HTTP são roteiros definidos em cada teste com `SessaoFalsa.responder`.
 """
+
 import json
 import pathlib
 
@@ -34,8 +35,9 @@ class RelogioFalso:
 class RespostaFalsa:
     """Imita o pedaço de `requests.Response` que o código usa."""
 
-    def __init__(self, status=200, texto='', conteudo=None, headers=None,
-                 url='', falhar_no_meio=False):
+    def __init__(
+        self, status=200, texto='', conteudo=None, headers=None, url='', falhar_no_meio=False
+    ):
         self.status_code = status
         self.headers = dict(headers or {})
         self.url = url
@@ -53,7 +55,7 @@ class RespostaFalsa:
 
     def iter_content(self, chunk_size=1):
         for i in range(0, len(self.content), chunk_size):
-            yield self.content[i:i + chunk_size]
+            yield self.content[i : i + chunk_size]
             if self.falhar_no_meio:
                 raise requests.ConnectionError('conexão caiu no meio do download')
 
@@ -73,17 +75,30 @@ class SessaoFalsa:
     def __init__(self):
         self._filas = {}
         self._rotas = []
-        self.pedidos = []      # URLs, na ordem
-        self.chamadas = []     # (url, kwargs)
+        self.pedidos = []  # URLs, na ordem
+        self.chamadas = []  # (url, kwargs)
 
-    def responder(self, url, status=200, texto='', fixture=None, json_dados=None,
-                  conteudo=None, headers=None, erro=None, falhar_no_meio=False):
+    def responder(
+        self,
+        url,
+        status=200,
+        texto='',
+        fixture=None,
+        json_dados=None,
+        conteudo=None,
+        headers=None,
+        erro=None,
+        falhar_no_meio=False,
+    ):
         if fixture is not None:
             texto = ler_fixture(fixture)
         if json_dados is not None:
             texto = json.dumps(json_dados)
-        item = erro if erro is not None else RespostaFalsa(
-            status, texto, conteudo, headers, url, falhar_no_meio)
+        item = (
+            erro
+            if erro is not None
+            else RespostaFalsa(status, texto, conteudo, headers, url, falhar_no_meio)
+        )
         self._filas.setdefault(url, []).append(item)
         return self
 
@@ -124,6 +139,7 @@ def roteiro(*respostas):
     def ler(texto=''):
         perguntas.append(texto)
         return fila.pop(0)
+
     ler.perguntas = perguntas
     return ler
 
@@ -144,9 +160,16 @@ class SaplFalso:
 
     def casa(self, url, buscas=None, api=None, html=None, pdfs=None, ativa=True, nomes=None):
         from urllib.parse import urlparse
+
         self._casas[urlparse(url).hostname] = {
-            'url': url, 'buscas': buscas or {}, 'api': api, 'html': html or {},
-            'pdfs': pdfs or {}, 'ativa': ativa, 'nomes': nomes or {}}
+            'url': url,
+            'buscas': buscas or {},
+            'api': api,
+            'html': html or {},
+            'pdfs': pdfs or {},
+            'ativa': ativa,
+            'nomes': nomes or {},
+        }
         return self
 
     def falhar(self, url, *status):
@@ -157,13 +180,19 @@ class SaplFalso:
     def _conteudo(item):
         if isinstance(item, (dict, list)):
             return json.dumps(item)
-        if isinstance(item, str) and item.endswith(('.html', '.json')) and '/' in item and '<' not in item:
+        if (
+            isinstance(item, str)
+            and item.endswith(('.html', '.json'))
+            and '/' in item
+            and '<' not in item
+        ):
             return ler_fixture(item)
         return item
 
     def __call__(self, url):
         import re
         from urllib.parse import urlparse
+
         partes = urlparse(url)
         casa = self._casas.get(partes.hostname)
         if casa is None:
@@ -192,7 +221,9 @@ class SaplFalso:
                     return RespostaFalsa(404, 'não existe')
                 return RespostaFalsa(200, self._conteudo(dados))
             nome = casa['nomes'].get((recurso, id_), f'{recurso} {id_}')
-            return RespostaFalsa(200, json.dumps({'id': int(id_), '__str__': nome, 'descricao': nome}))
+            return RespostaFalsa(
+                200, json.dumps({'id': int(id_), '__str__': nome, 'descricao': nome})
+            )
         achado = re.match(r'^/materia/(\d+)$', caminho)
         if achado:
             pagina = casa['html'].get(achado.group(1))
@@ -220,6 +251,7 @@ def sapl_fase1(falhar=True):
     tentativas e fica com status `erro` (como ficou na pasta gravada).
     """
     import copy
+
     rb, cv = 'sapl/sapl.riobranco.ac.leg.br/', 'sapl/sapl.cascavel.pr.leg.br/'
     p, o = '"plano+diretor"', '"orçamento"+"emenda+impositiva"'
 
@@ -229,20 +261,34 @@ def sapl_fase1(falhar=True):
         return dados
 
     falso = SaplFalso()
-    falso.casa(RB_FASE1, buscas={p: [rb + 'busca_p1.html'], o: [rb + 'busca_vazia.html']},
-               api={'34049': rb + 'api_materia_34049.json', '46496': rb + 'api_materia_46496.json',
-                    '37559': api_minima('37559', 'Projeto de Lei Complementar nº 26 de 2025'),
-                    '44086': api_minima('44086', 'Indicação nº 1 de 2026')},
-               nomes={('tipomaterialegislativa', '1'): 'Projeto de Lei Ordinária',
-                      ('tipomaterialegislativa', '15'): 'Veto',
-                      ('regimetramitacao', '1'): 'Ordinária'},
-               pdfs={'34049': b'%PDF-34049', '46496': b'%PDF-46496'})
-    falso.casa(CV_FASE1, api=None,
-               buscas={p: [cv + 'busca_p1.html'], o: [cv + 'busca_vazia.html']},
-               html={'38415': cv + 'materia_38415.html', '43301': cv + 'materia_43301.html',
-                     '43300': 'sinteticas/materia_sem_pdf.html',
-                     '42263': 'sinteticas/materia_sem_data.html'},
-               pdfs={'38415': b'%PDF-38415'})
+    falso.casa(
+        RB_FASE1,
+        buscas={p: [rb + 'busca_p1.html'], o: [rb + 'busca_vazia.html']},
+        api={
+            '34049': rb + 'api_materia_34049.json',
+            '46496': rb + 'api_materia_46496.json',
+            '37559': api_minima('37559', 'Projeto de Lei Complementar nº 26 de 2025'),
+            '44086': api_minima('44086', 'Indicação nº 1 de 2026'),
+        },
+        nomes={
+            ('tipomaterialegislativa', '1'): 'Projeto de Lei Ordinária',
+            ('tipomaterialegislativa', '15'): 'Veto',
+            ('regimetramitacao', '1'): 'Ordinária',
+        },
+        pdfs={'34049': b'%PDF-34049', '46496': b'%PDF-46496'},
+    )
+    falso.casa(
+        CV_FASE1,
+        api=None,
+        buscas={p: [cv + 'busca_p1.html'], o: [cv + 'busca_vazia.html']},
+        html={
+            '38415': cv + 'materia_38415.html',
+            '43301': cv + 'materia_43301.html',
+            '43300': 'sinteticas/materia_sem_pdf.html',
+            '42263': 'sinteticas/materia_sem_data.html',
+        },
+        pdfs={'38415': b'%PDF-38415'},
+    )
     if falhar:
         falso.falhar(FALHA_FASE1, 503, 503, 503, 503)
     return falso

@@ -1,4 +1,5 @@
 """Extração dos dados de uma matéria pela página HTML (versões antigas do SAPL)."""
+
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup

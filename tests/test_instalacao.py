@@ -1,4 +1,5 @@
 """Comando `sapyl`, `python -m sapyl` e o atalho `programa.py` (FR-2, TR-5)."""
+
 import subprocess
 import sys
 from pathlib import Path
@@ -22,8 +23,13 @@ def test_executar_argumento_desconhecido_mostra_o_uso(capsys):
 def _rodar(*comando):
     # processo separado: não herda o bloqueio de rede do conftest, mas
     # `--version` sai antes de qualquer pergunta ou requisição
-    return subprocess.run([sys.executable, *comando, '--version'], cwd=RAIZ,
-                          capture_output=True, text=True, timeout=60)
+    return subprocess.run(
+        [sys.executable, *comando, '--version'],
+        cwd=RAIZ,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
 
 
 def test_python_m_sapyl_version():

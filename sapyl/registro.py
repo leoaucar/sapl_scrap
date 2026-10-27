@@ -5,6 +5,7 @@ Todas as mensagens passam pelo logger `sapl_scrap`:
 - no arquivo `<pasta>/<nome>.log`, nível DEBUG (inclui uma linha por
   requisição HTTP, usada para conferir o limite de requisições).
 """
+
 import logging
 import os
 
@@ -61,24 +62,32 @@ def resumo(estado, links, caminho_final, buscas=None, casas_inativas=0, download
         casas = {casa for casa, _ in buscas}
         incompletas = [(casa, st) for casa, st in buscas if st != 'completa']
         casas_falha = {casa for casa, _ in incompletas}
-        linhas.append(f'Casas pesquisadas: {len(casas)} '
-                      f'({len(casas_falha)} com alguma busca incompleta; '
-                      f'{casas_inativas} fora do ar, não pesquisadas)')
+        linhas.append(
+            f'Casas pesquisadas: {len(casas)} '
+            f'({len(casas_falha)} com alguma busca incompleta; '
+            f'{casas_inativas} fora do ar, não pesquisadas)'
+        )
         linhas.append(f'Buscas: {len(buscas)} ({len(incompletas)} incompletas)')
         falhas = falhas or bool(incompletas)
     encontradas = sum(len([p for p in link['Palavras'].split(SEPARADOR) if p]) for link in links)
     materias = estado.contagens(ETAPA_MATERIA, chaves)
-    linhas.append(f'Matérias: {encontradas} encontradas, {len(chaves)} únicas, '
-                  f'{materias.get("ok", 0)} raspadas, {materias.get("erro", 0)} com erro')
+    linhas.append(
+        f'Matérias: {encontradas} encontradas, {len(chaves)} únicas, '
+        f'{materias.get("ok", 0)} raspadas, {materias.get("erro", 0)} com erro'
+    )
     falhas = falhas or materias.get('erro', 0) > 0
     if downloads:
         pdfs = estado.contagens(ETAPA_PDF, chaves)
-        linhas.append(f'Downloads: {pdfs.get("ok", 0)} baixados, {pdfs.get("erro", 0)} com erro, '
-                      f'{pdfs.get("sem_pdf", 0)} sem texto original')
+        linhas.append(
+            f'Downloads: {pdfs.get("ok", 0)} baixados, {pdfs.get("erro", 0)} com erro, '
+            f'{pdfs.get("sem_pdf", 0)} sem texto original'
+        )
         falhas = falhas or pdfs.get('erro', 0) > 0
     linhas.append(f'Resultado: {caminho_final}')
     if falhas:
-        linhas.append('Houve falhas (veja as colunas status/erro e o arquivo .log). '
-                      'Para tentar de novo só o que falhou, rode o programa outra vez '
-                      'e escolha retomar este projeto.')
+        linhas.append(
+            'Houve falhas (veja as colunas status/erro e o arquivo .log). '
+            'Para tentar de novo só o que falhou, rode o programa outra vez '
+            'e escolha retomar este projeto.'
+        )
     return '\n'.join(linhas)

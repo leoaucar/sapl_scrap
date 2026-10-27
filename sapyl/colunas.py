@@ -13,16 +13,30 @@ COLUNAS_ORIGEM = ['Link Materia', 'Link Casa', 'Palavras']
 # Dados da matéria, na ordem do resultado final. As 11 primeiras são as da
 # versão anterior (sem `Assuntos` e `texto_integral`, que não existem mais no SAPL).
 COLUNAS_DADOS = [
-    'Titulo', 'Ementa', 'Ano', 'Data', 'Numero', 'Observacao',
-    'Tipo de Materia Legislativa', 'texto_original',
-    'Indexacao', 'Em Tramitacao', 'Regime Tramitacao', 'Materia Anexada', 'Resultado',
-    'Data Publicacao', 'Numero Protocolo', 'Ultima Atualizacao',
+    'Titulo',
+    'Ementa',
+    'Ano',
+    'Data',
+    'Numero',
+    'Observacao',
+    'Tipo de Materia Legislativa',
+    'texto_original',
+    'Indexacao',
+    'Em Tramitacao',
+    'Regime Tramitacao',
+    'Materia Anexada',
+    'Resultado',
+    'Data Publicacao',
+    'Numero Protocolo',
+    'Ultima Atualizacao',
 ]
 
 # Resultado final (`<nome>_resultado_final.csv`), na ordem
-COLUNAS_FINAIS = (COLUNAS_ORIGEM + COLUNAS_DADOS
-                  + ['sapl_id', 'fonte', 'status', 'erro', 'raspada_em',
-                     'arquivo_pdf', 'download_status'])
+COLUNAS_FINAIS = (
+    COLUNAS_ORIGEM
+    + COLUNAS_DADOS
+    + ['sapl_id', 'fonte', 'status', 'erro', 'raspada_em', 'arquivo_pdf', 'download_status']
+)
 
 # Matérias raspadas (`<nome>_materias_legislativas.csv`): também a chave
 COLUNAS_MATERIAS = ['chave'] + COLUNAS_FINAIS

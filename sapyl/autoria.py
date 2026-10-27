@@ -12,6 +12,7 @@ não é alterado: o resultado vai para `<nome>_autoria_tramitacao.csv`.
 As requisições passam pelo mesmo cliente do raspador (limite de 35 por
 minuto por site, retentativas em 429/5xx).
 """
+
 from pathlib import Path
 import re
 import sys
@@ -79,8 +80,9 @@ def escolher_csv(pasta, entrada=input):
     if not arquivos:
         return None
     menu = ''.join(f'{i}- {p.name}\n' for i, p in enumerate(arquivos, start=1))
-    escolha = perguntar_opcao('Qual arquivo usar?\n' + menu,
-                              [str(i) for i in range(1, len(arquivos) + 1)], entrada)
+    escolha = perguntar_opcao(
+        'Qual arquivo usar?\n' + menu, [str(i) for i in range(1, len(arquivos) + 1)], entrada
+    )
     return arquivos[int(escolha) - 1]
 
 
@@ -97,8 +99,13 @@ def processar(caminho, cliente):
         tramites.append(tramite)
         st_aut.append('erro' if erro_a else 'ok')
         st_tram.append('erro' if erro_t else 'ok')
-        erros.append('; '.join(e for e in (erro_a and f'autoria: {erro_a}',
-                                           erro_t and f'tramitação: {erro_t}') if e))
+        erros.append(
+            '; '.join(
+                e
+                for e in (erro_a and f'autoria: {erro_a}', erro_t and f'tramitação: {erro_t}')
+                if e
+            )
+        )
     dados['Autoria'], dados['Tramite'] = autorias, tramites
     dados['status_autoria'], dados['status_tramitacao'] = st_aut, st_tram
     dados['erro_autoria_tramitacao'] = erros

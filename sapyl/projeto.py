@@ -8,6 +8,7 @@ retomada não precisar perguntar nada.
 No modo atualização, os arquivos ganham o sufixo `_ATUALIZADO_<dd_mm_aaaa>`
 e os downloads vão para `downloads<dd_mm_aaaa>/`.
 """
+
 import json
 from pathlib import Path
 

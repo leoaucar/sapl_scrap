@@ -1,4 +1,5 @@
 """Downloads: nome estável, gravação aos pedaços, falhas e retomada."""
+
 import os
 
 import pandas as pd
@@ -23,13 +24,18 @@ def _final(*linhas):
     registros = []
     for sapl_id, status, link in linhas:
         linha = {c: '' for c in colunas.COLUNAS_FINAIS}
-        linha.update({'Link Casa': RB, 'sapl_id': sapl_id, 'status': status, 'texto_original': link})
+        linha.update(
+            {'Link Casa': RB, 'sapl_id': sapl_id, 'status': status, 'texto_original': link}
+        )
         registros.append(linha)
     return pd.DataFrame(registros, columns=colunas.COLUNAS_FINAIS)
 
 
 def test_nome_estavel():
-    assert d.nome_arquivo('sapl.riobranco.ac.leg.br/34049', PDF1) == 'sapl.riobranco.ac.leg.br_34049.pdf'
+    assert (
+        d.nome_arquivo('sapl.riobranco.ac.leg.br/34049', PDF1)
+        == 'sapl.riobranco.ac.leg.br_34049.pdf'
+    )
     assert d.nome_arquivo('h/1', PDF2) == 'h_1.pdf'
     assert d.nome_arquivo('h/1', RB + 'media/x.docx') == 'h_1.docx'
     assert d.nome_arquivo('h/1', RB + 'media/download?id=3') == 'h_1.pdf'
@@ -67,8 +73,9 @@ def test_erro_http_no_download(tmp_path, cliente, sessao):
 
 def test_sem_link_e_materia_com_erro(tmp_path, cliente, sessao):
     estado = Estado(tmp_path / 'e.csv')
-    final = d.baixar_todos(_final(('1', 'ok', ''), ('2', 'erro', PDF2)),
-                           str(tmp_path / 'dl'), cliente, estado)
+    final = d.baixar_todos(
+        _final(('1', 'ok', ''), ('2', 'erro', PDF2)), str(tmp_path / 'dl'), cliente, estado
+    )
     assert final['download_status'].tolist() == ['sem_pdf', '']
     assert sessao.pedidos == []
     assert estado.status('pdf', 'sapl.riobranco.ac.leg.br/1') == 'sem_pdf'

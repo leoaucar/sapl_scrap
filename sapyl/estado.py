@@ -14,13 +14,13 @@ meio por uma queda do programa é ignorada.
 `ArquivoCSV` é o mesmo mecanismo (só acrescentar linhas, com cabeçalho) para
 os arquivos de dados do projeto.
 """
+
 from collections import Counter
 import csv
 from datetime import datetime
 
 from sapyl.colunas import CAMPOS_ESTADO
 import os
-
 
 
 def _agora():
@@ -37,8 +37,9 @@ class ArquivoCSV:
         if not novo:
             self._consertar_final()
         self._arquivo = open(caminho, 'a', newline='', encoding='utf-8')
-        self._escritor = csv.DictWriter(self._arquivo, fieldnames=self.campos,
-                                        extrasaction='ignore')
+        self._escritor = csv.DictWriter(
+            self._arquivo, fieldnames=self.campos, extrasaction='ignore'
+        )
         if novo:
             self._escritor.writeheader()
             self._arquivo.flush()
@@ -86,8 +87,9 @@ class Estado:
         self._arquivo = ArquivoCSV(caminho, CAMPOS_ESTADO)
 
     def registrar(self, etapa, chave, status, erro=''):
-        self._arquivo.anexar({'etapa': etapa, 'chave': chave, 'status': status,
-                              'erro': erro, 'quando': _agora()})
+        self._arquivo.anexar(
+            {'etapa': etapa, 'chave': chave, 'status': status, 'erro': erro, 'quando': _agora()}
+        )
         self._ultimo[(etapa, chave)] = (status, erro)
 
     def status(self, etapa, chave):
@@ -98,8 +100,11 @@ class Estado:
         return self._ultimo.get((etapa, chave), (None, ''))[1]
 
     def chaves(self, etapa, status=None):
-        return [k for (e, k), (s, _) in self._ultimo.items()
-                if e == etapa and (status is None or s == status)]
+        return [
+            k
+            for (e, k), (s, _) in self._ultimo.items()
+            if e == etapa and (status is None or s == status)
+        ]
 
     def contagens(self, etapa, chaves=None):
         """Quantas chaves da etapa estão em cada status (só `chaves`, se dado)."""

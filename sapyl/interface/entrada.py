@@ -3,6 +3,7 @@
 `entrada` é a função que lê a resposta (por padrão, `input`); os testes passam
 uma função que devolve respostas roteirizadas.
 """
+
 from sapyl.projeto import Projeto, nome_limpo, projetos_existentes
 
 
@@ -50,7 +51,9 @@ def abrir_ou_criar(raiz, entrada=input):
             return projeto, True
         escolha = perguntar_opcao(
             f'O projeto "{nome}" já existe.\n1- retomar este projeto\n2- escolher outro nome\n',
-            ['1', '2'], entrada)
+            ['1', '2'],
+            entrada,
+        )
         if escolha == '1':
             return projeto, False
 

@@ -100,10 +100,11 @@ the repository root. `P=val_a_proj/val_a` etc.
 
 ```python
 import pandas as pd
+
 df = pd.read_csv('val_a_proj/val_a_resultado_final.csv', dtype=str).fillna('')
 ok = df[df.status == 'ok']
 print(len(df), 'rows |', (df.status == 'ok').sum(), 'ok |', (df.status == 'erro').sum(), 'erro')
-print('ok rows with empty Titulo:', (ok.Titulo == '').sum())          # expect 0
+print('ok rows with empty Titulo:', (ok.Titulo == '').sum())  # expect 0
 print('erro rows without reason:', ((df.status == 'erro') & (df.erro == '')).sum())  # expect 0
 print(df[df.status == 'erro'].erro.value_counts())
 ```
@@ -125,27 +126,35 @@ response arrived)
 
 ```python
 import re, collections, datetime as dt
+
 linhas = open('val_a_proj/val_a.log', encoding='utf-8').read().splitlines()
-pat = re.compile(r'^(\S+ \S+) DEBUG sapl_scrap\.http (\S+) \| \S+ \| (\S+) \| tentativa'
-                 r'.*?(?:\| enviada (\S+))?$')
+pat = re.compile(
+    r'^(\S+ \S+) DEBUG sapl_scrap\.http (\S+) \| \S+ \| (\S+) \| tentativa'
+    r'.*?(?:\| enviada (\S+))?$'
+)
 por_host = collections.defaultdict(list)
 status = collections.Counter()
 for l in linhas:
     m = pat.match(l)
     if m:
-        t = dt.datetime.strptime(m.group(1), '%Y-%m-%d %H:%M:%S,%f')   # hora da resposta
-        if m.group(4):   # hora de envio, que é a que conta para o limite
-            env = dt.datetime.combine(t.date(), dt.datetime.strptime(m.group(4), '%H:%M:%S.%f').time())
+        t = dt.datetime.strptime(m.group(1), '%Y-%m-%d %H:%M:%S,%f')  # hora da resposta
+        if m.group(4):  # hora de envio, que é a que conta para o limite
+            env = dt.datetime.combine(
+                t.date(), dt.datetime.strptime(m.group(4), '%H:%M:%S.%f').time()
+            )
             t = env - dt.timedelta(days=1) if env > t else env
         por_host[m.group(2)].append(t)
         status[m.group(3)] += 1
-print(status)                                     # 429 count, timeouts...
+print(status)  # 429 count, timeouts...
 for host, ts in por_host.items():
-    ts.sort(); i = 0; pico = 0
+    ts.sort()
+    i = 0
+    pico = 0
     for j, t in enumerate(ts):
-        while (t - ts[i]).total_seconds() >= 60: i += 1
+        while (t - ts[i]).total_seconds() >= 60:
+            i += 1
         pico = max(pico, j - i + 1)
-    print(f'{host:40s} {len(ts):6d} requests  max/60s = {pico}')   # expect ≤ 35
+    print(f'{host:40s} {len(ts):6d} requests  max/60s = {pico}')  # expect ≤ 35
 ```
 
 | Check | Expected | Result |
@@ -158,8 +167,15 @@ for host, ts in por_host.items():
 ### 2.3 Fields filled — AC 3 and FR-10a (runs A and C)
 
 ```python
-for c in ['Data', 'Ementa', 'Tipo de Materia Legislativa', 'texto_original',
-          'Regime Tramitacao', 'Em Tramitacao', 'Ultima Atualizacao']:
+for c in [
+    'Data',
+    'Ementa',
+    'Tipo de Materia Legislativa',
+    'texto_original',
+    'Regime Tramitacao',
+    'Em Tramitacao',
+    'Ultima Atualizacao',
+]:
     print(f'{c:30s} filled in {(ok[c] != "").mean():.0%} of ok rows')
 print(df.fonte.value_counts())
 ```
@@ -177,7 +193,7 @@ print(df.fonte.value_counts())
 ### 2.4 No duplicates — AC 4 (run A)
 
 ```python
-print('duplicate keys:', df.duplicated(['Link Casa', 'sapl_id']).sum())   # expect 0
+print('duplicate keys:', df.duplicated(['Link Casa', 'sapl_id']).sum())  # expect 0
 print('rows with >1 keyword:', df.Palavras.str.contains('; ').sum())
 ```
 
@@ -196,7 +212,7 @@ print('same keys:', set(map(tuple, a[k].values)) == set(map(tuple, b[k].values))
 cols = [c for c in a.columns if c not in ('raspada_em', 'Ultima Atualizacao', 'status', 'erro')]
 m = a.merge(b, on=k, suffixes=('_a', '_b'))
 dif = {c: (m[c + '_a'] != m[c + '_b']).sum() for c in cols if c not in k}
-print({c: n for c, n in dif.items() if n})   # expect {} or differences explained by site edits
+print({c: n for c, n in dif.items() if n})  # expect {} or differences explained by site edits
 ```
 
 Then in `val_b_proj/val_b.log`, check that no matter recorded `ok` before
@@ -215,14 +231,17 @@ the interruption was requested again after the resume.
 
 ```python
 import os
+
 c = pd.read_csv('val_c_proj/val_c_resultado_final.csv', dtype=str).fillna('')
 print(c.download_status.value_counts())
 pasta = 'val_c_proj/downloads'
 arqs = os.listdir(pasta)
 print(len(arqs), 'files |', [a for a in arqs if a.endswith('.part')], '<- .part (expect none)')
 faltando = [a for a in c[c.download_status == 'ok'].arquivo_pdf if a not in arqs]
-print('ok without file:', faltando)                                   # expect []
-print('empty files:', [a for a in arqs if os.path.getsize(os.path.join(pasta, a)) == 0])  # expect []
+print('ok without file:', faltando)  # expect []
+print(
+    'empty files:', [a for a in arqs if os.path.getsize(os.path.join(pasta, a)) == 0]
+)  # expect []
 ```
 
 | Check | Expected | Result |

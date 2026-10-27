@@ -1,11 +1,14 @@
 """Configuração do log (terminal + arquivo) e resumo final."""
+
 import logging
 
 from sapyl import registro
 
 
 def _handlers():
-    return [h for h in logging.getLogger(registro.LOGGER).handlers if getattr(h, '_sapl_scrap', False)]
+    return [
+        h for h in logging.getLogger(registro.LOGGER).handlers if getattr(h, '_sapl_scrap', False)
+    ]
 
 
 def test_configurar_cria_terminal_info_e_arquivo_debug(tmp_path):
@@ -36,8 +39,11 @@ from sapyl.estado import Estado  # noqa: E402
 
 
 def _links():
-    return [{'chave': 'h/1', 'Palavras': 'a; b'}, {'chave': 'h/2', 'Palavras': 'a'},
-            {'chave': 'h/3', 'Palavras': 'b'}]
+    return [
+        {'chave': 'h/1', 'Palavras': 'a; b'},
+        {'chave': 'h/2', 'Palavras': 'a'},
+        {'chave': 'h/3', 'Palavras': 'b'},
+    ]
 
 
 def test_resumo_conta_tudo_e_avisa_falhas(tmp_path):
@@ -46,13 +52,17 @@ def test_resumo_conta_tudo_e_avisa_falhas(tmp_path):
     estado.registrar('materia', 'h/1', 'ok')
     estado.registrar('materia', 'h/2', 'ok')
     estado.registrar('materia', 'h/3', 'erro', 'timeout')
-    estado.registrar('materia', 'outra/9', 'ok')            # não está na lista de links
+    estado.registrar('materia', 'outra/9', 'ok')  # não está na lista de links
     estado.registrar('pdf', 'h/1', 'ok')
     estado.registrar('pdf', 'h/2', 'sem_pdf')
     buscas = [('https://h/', 'completa'), ('https://h/', 'incompleta'), ('https://g/', 'completa')]
-    texto = registro.resumo(estado, _links(), 'p/final.csv', buscas=buscas,
-                            casas_inativas=4, downloads=True)
-    assert 'Casas pesquisadas: 2 (1 com alguma busca incompleta; 4 fora do ar, não pesquisadas)' in texto
+    texto = registro.resumo(
+        estado, _links(), 'p/final.csv', buscas=buscas, casas_inativas=4, downloads=True
+    )
+    assert (
+        'Casas pesquisadas: 2 (1 com alguma busca incompleta; 4 fora do ar, não pesquisadas)'
+        in texto
+    )
     assert 'Buscas: 3 (1 incompletas)' in texto
     assert 'Matérias: 4 encontradas, 3 únicas, 2 raspadas, 1 com erro' in texto
     assert 'Downloads: 1 baixados, 0 com erro, 1 sem texto original' in texto

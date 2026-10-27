@@ -4,6 +4,7 @@ A tabela de casas (`casas_resultado.csv`) tem as colunas
 `url, ativa, motivo, uf`. Tabelas antigas, com as colunas `0` (url) e `1`
 (ativa), continuam sendo lidas; a UF vem da planilha de casas.
 """
+
 import os
 
 import pandas as pd
@@ -21,8 +22,9 @@ OPCOES_LIMITE = {
     '3': '50 últimas casas',
     '4': 'apenas 10 casas',
 }
-PERGUNTA_LIMITE = ('Deseja limitar sua busca para teste?\n'
-                   + ''.join(f'{k}- {v}\n' for k, v in OPCOES_LIMITE.items()))
+PERGUNTA_LIMITE = 'Deseja limitar sua busca para teste?\n' + ''.join(
+    f'{k}- {v}\n' for k, v in OPCOES_LIMITE.items()
+)
 
 log = registro.logger('casas')
 
@@ -36,10 +38,12 @@ def importar_casas(planilha):
     """Lê a planilha de casas e devolve um DataFrame com `url` e `uf`."""
     df = pd.read_excel(planilha)
     df = df[df['URL do serviço'].notna()]
-    return pd.DataFrame({
-        'url': [_com_barra(u) for u in df['URL do serviço']],
-        'uf': [str(u).strip().upper() for u in df['UF']],
-    }).reset_index(drop=True)
+    return pd.DataFrame(
+        {
+            'url': [_com_barra(u) for u in df['URL do serviço']],
+            'uf': [str(u).strip().upper() for u in df['UF']],
+        }
+    ).reset_index(drop=True)
 
 
 def testar_casas(casas, cliente):
@@ -53,8 +57,9 @@ def testar_casas(casas, cliente):
         log.info('Testando casa %d de %d: %s', i, len(casas), casa.url)
         resposta = cliente.get(casa.url, timeout=(5, 5), max_tentativas=2)
         resposta.fechar()
-        linhas.append({'url': casa.url, 'ativa': resposta.ok,
-                       'motivo': resposta.erro, 'uf': casa.uf})
+        linhas.append(
+            {'url': casa.url, 'ativa': resposta.ok, 'motivo': resposta.erro, 'uf': casa.uf}
+        )
     return pd.DataFrame(linhas, columns=COLUNAS_CASAS)
 
 

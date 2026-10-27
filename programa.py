@@ -2,6 +2,7 @@
 
 O código fica no pacote `sapyl` (veja sapyl/interface/principal.py).
 """
+
 import sys
 
 from sapyl.interface.principal import executar

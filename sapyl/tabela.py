@@ -1,4 +1,5 @@
 """Montagem da tabela final do projeto a partir das matérias raspadas."""
+
 import pandas as pd
 
 from sapyl.estado import ler_csv
@@ -18,8 +19,10 @@ def montar_final(arquivo_materias, links):
         ultimas[linha['chave']] = linha
     linhas = []
     for link in links:
-        linha = dict(ultimas.get(link['chave']) or {**linha_vazia(link), 'status': 'erro',
-                                                     'erro': 'não raspada'})
+        linha = dict(
+            ultimas.get(link['chave'])
+            or {**linha_vazia(link), 'status': 'erro', 'erro': 'não raspada'}
+        )
         linha['Palavras'] = link['Palavras']
         linhas.append({c: linha.get(c, '') for c in COLUNAS_FINAIS})
     return pd.DataFrame(linhas, columns=COLUNAS_FINAIS)

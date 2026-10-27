@@ -1,4 +1,5 @@
 """Listas de colunas e etapas definidas num lugar só, sapyl/colunas.py (FR-4)."""
+
 import ast
 from pathlib import Path
 

@@ -1,4 +1,5 @@
 """Fluxo principal: projeto novo, retomada, modo atualização, interrupção."""
+
 import importlib
 import json
 
@@ -19,12 +20,17 @@ O = '"orçamento"+"emenda+impositiva"'
 @pytest.fixture
 def sapl(sessao):
     falso = SaplFalso()
-    falso.casa(A, api=None,
-               buscas={P: [CV + 'busca_p1.html'], O: ['<a href="/materia/43301">x</a>']},
-               html={'38415': CV + 'materia_38415.html', '43301': CV + 'materia_43301.html'},
-               pdfs={'38415': b'%PDF-um', '43301': b'%PDF-dois'})
-    falso.casa('https://sapl.b.pr.leg.br/', buscas={P: [CV + 'busca_vazia.html'],
-                                                     O: [CV + 'busca_vazia.html']})
+    falso.casa(
+        A,
+        api=None,
+        buscas={P: [CV + 'busca_p1.html'], O: ['<a href="/materia/43301">x</a>']},
+        html={'38415': CV + 'materia_38415.html', '43301': CV + 'materia_43301.html'},
+        pdfs={'38415': b'%PDF-um', '43301': b'%PDF-dois'},
+    )
+    falso.casa(
+        'https://sapl.b.pr.leg.br/',
+        buscas={P: [CV + 'busca_vazia.html'], O: [CV + 'busca_vazia.html']},
+    )
     falso.casa('https://sapl.c.sp.leg.br/', ativa=False)
     sessao.rota(falso)
     return falso
@@ -35,11 +41,11 @@ def cliente(sessao, relogio):
     return ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir)
 
 
-NOVO = ('2', 'teste', '2', '1', '1')   # não atualizar, nome, sem Sul/Sudeste, todas, downloads
+NOVO = ('2', 'teste', '2', '1', '1')  # não atualizar, nome, sem Sul/Sudeste, todas, downloads
 
 
 def test_importar_nao_executa_nada():
-    importlib.reload(programa)       # pytest bloqueia o stdin: se perguntasse algo, falharia
+    importlib.reload(programa)  # pytest bloqueia o stdin: se perguntasse algo, falharia
 
 
 def test_projeto_novo_do_comeco_ao_fim(projeto_tmp, cliente, sessao, sapl):
@@ -53,7 +59,9 @@ def test_projeto_novo_do_comeco_ao_fim(projeto_tmp, cliente, sessao, sapl):
     assert final['fonte'].tolist()[:2] == ['html', 'html']
     assert final['download_status'].tolist() == ['ok', 'ok', '', '']
     assert sorted(p.name for p in (pasta / 'downloads').iterdir()) == [
-        'sapl.a.ac.leg.br_38415.pdf', 'sapl.a.ac.leg.br_43301.pdf']
+        'sapl.a.ac.leg.br_38415.pdf',
+        'sapl.a.ac.leg.br_43301.pdf',
+    ]
     config = json.loads((pasta / 'config.json').read_text(encoding='utf-8'))
     assert config['palavras'] == [P, O] and config['downloads'] is True
     assert (pasta / 'teste.log').exists()
@@ -81,11 +89,13 @@ def test_retomada_nao_pergunta_nada_e_so_refaz_o_que_falhou(projeto_tmp, cliente
 def test_tabela_de_casas_reaproveitada_e_filtrada(projeto_tmp, cliente, sessao, sapl):
     (projeto_tmp / 'arquivos_csv' / 'casas_resultado.csv').write_text(
         '0,1\nhttps://sapl.a.ac.leg.br/,True\nhttps://sapl.b.pr.leg.br/,True\n'
-        'https://sapl.c.sp.leg.br/,False\n', encoding='utf-8')
+        'https://sapl.c.sp.leg.br/,False\n',
+        encoding='utf-8',
+    )
     # não atualizar, nome, reusar tabela, Sul/Sudeste, todas, sem downloads
     programa.main(roteiro('2', 'sul', '1', '1', '1', '2'), cliente, projeto_tmp)
-    assert not any(u.rstrip('/').endswith('.leg.br') for u in sessao.pedidos)   # nenhum teste de URL
-    assert not any('sapl.a.ac.leg.br' in u for u in sessao.pedidos)             # AC filtrado
+    assert not any(u.rstrip('/').endswith('.leg.br') for u in sessao.pedidos)  # nenhum teste de URL
+    assert not any('sapl.a.ac.leg.br' in u for u in sessao.pedidos)  # AC filtrado
     assert any('sapl.b.pr.leg.br/sistema/search' in u for u in sessao.pedidos)
 
 
@@ -96,7 +106,10 @@ def test_modo_atualizacao(projeto_tmp, cliente, sessao, sapl):
     pasta = projeto_tmp / 'teste_proj'
     atualizados = sorted(p.name for p in pasta.glob('*_ATUALIZADO_*'))
     assert [n.split('_ATUALIZADO_')[0] for n in atualizados] == [
-        'teste_estado', 'teste_materias_legislativas', 'teste_resultado_final']
+        'teste_estado',
+        'teste_materias_legislativas',
+        'teste_resultado_final',
+    ]
     final = ler_final(next(pasta.glob('teste_resultado_final_ATUALIZADO_*')))
     assert final['sapl_id'].tolist() == ['38415', '43301', '43300', '42263']
     assert not any('/sistema/search/' in u for u in sessao.pedidos)
@@ -106,18 +119,24 @@ def test_modo_atualizacao_com_downloads_duas_vezes(projeto_tmp, cliente, sessao,
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
     programa.executar_atualizacao(projeto_tmp, cliente, roteiro('teste', '1'), hoje='01_01_2027')
     programa.executar_atualizacao(projeto_tmp, cliente, roteiro('teste', '1'), hoje='01_01_2027')
-    assert (projeto_tmp / 'teste_proj' / 'downloads01_01_2027' / 'sapl.a.ac.leg.br_38415.pdf').exists()
+    assert (
+        projeto_tmp / 'teste_proj' / 'downloads01_01_2027' / 'sapl.a.ac.leg.br_38415.pdf'
+    ).exists()
 
 
 def test_ctrl_c_sai_com_mensagem(projeto_tmp, cliente, capsys):
     def interromper(texto=''):
         raise KeyboardInterrupt
+
     assert programa.main(interromper, cliente, projeto_tmp) == 1
     assert 'retomar' in capsys.readouterr().out
 
 
-def test_ctrl_c_no_meio_da_raspagem_permite_retomar(projeto_tmp, cliente, sessao, sapl, monkeypatch):
+def test_ctrl_c_no_meio_da_raspagem_permite_retomar(
+    projeto_tmp, cliente, sessao, sapl, monkeypatch
+):
     from sapyl import materias
+
     original = materias.raspar_materia
     chamadas = []
 
@@ -126,6 +145,7 @@ def test_ctrl_c_no_meio_da_raspagem_permite_retomar(projeto_tmp, cliente, sessao
         if len(chamadas) == 2:
             raise KeyboardInterrupt
         return original(link, *args)
+
     monkeypatch.setattr(materias, 'raspar_materia', raspar_e_cair)
     assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 1
     estado = Estado(projeto_tmp / 'teste_proj' / 'teste_estado.csv')
@@ -135,6 +155,7 @@ def test_ctrl_c_no_meio_da_raspagem_permite_retomar(projeto_tmp, cliente, sessao
 
 def test_resumo_aparece_no_fim(projeto_tmp, cliente, sessao, sapl, caplog):
     import logging
+
     with caplog.at_level(logging.INFO, logger='sapl_scrap'):
         programa.main(roteiro(*NOVO), cliente, projeto_tmp)
     resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()]
@@ -144,15 +165,19 @@ def test_resumo_aparece_no_fim(projeto_tmp, cliente, sessao, sapl, caplog):
 
 def test_palavras_csv_tem_prioridade(projeto_tmp):
     from sapyl.palavras import importar_palavras, preparar_termos
+
     (projeto_tmp / 'arquivos_csv' / 'palavras_chave.csv').write_text(
-        'Palavras\n"professor,  conviccoes morais"\n\n', encoding='utf-8')
+        'Palavras\n"professor,  conviccoes morais"\n\n', encoding='utf-8'
+    )
     termos = preparar_termos(importar_palavras(projeto_tmp / 'arquivos_csv'))
     assert termos == ['"professor"+"conviccoes+morais"']
 
 
 def test_fim_da_entrada_numa_pergunta_sai_com_mensagem(projeto_tmp, cliente, capsys):
     """Achado V5: Ctrl+D (ou respostas acabando) numa pergunta não gera traceback."""
+
     def sem_mais_respostas(texto=''):
         raise EOFError
+
     assert programa.main(sem_mais_respostas, cliente, projeto_tmp) == 1
     assert 'retomar' in capsys.readouterr().out

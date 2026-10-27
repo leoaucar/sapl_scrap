@@ -1,4 +1,5 @@
 """Cliente HTTP: limite por site, retentativas e motivos de falha."""
+
 import logging
 import re
 
@@ -19,6 +20,7 @@ def cliente(sessao, relogio):
 
 # --- Limite por site (FR-2) -------------------------------------------------
 
+
 def test_35_requisicoes_passam_sem_esperar(cliente, sessao, relogio):
     sessao.responder(A, texto='ok')
     for _ in range(35):
@@ -31,7 +33,7 @@ def test_36a_requisicao_espera_a_janela_liberar(cliente, sessao, relogio):
     inicio = relogio.agora()
     for _ in range(35):
         cliente.get(A)
-        relogio.t += 1          # uma requisição por segundo
+        relogio.t += 1  # uma requisição por segundo
     cliente.get(A)
     # a mais antiga foi em `inicio`; a 36ª só sai 60 s depois dela
     assert relogio.agora() == pytest.approx(inicio + 60, abs=0.05)
@@ -60,8 +62,9 @@ def test_sites_diferentes_nao_se_afetam(cliente, sessao, relogio):
 
 
 def test_limite_configuravel(sessao, relogio):
-    cliente = ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir,
-                          limite_por_minuto=2)
+    cliente = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir, limite_por_minuto=2
+    )
     sessao.responder(A, texto='ok')
     cliente.get(A)
     cliente.get(A)
@@ -79,6 +82,7 @@ def test_timeout_padrao_e_stream_repassados(cliente, sessao):
 
 
 # --- 429 e Retry-After (FR-3) -----------------------------------------------
+
 
 def test_429_espera_retry_after_e_tenta_de_novo(cliente, sessao, relogio):
     sessao.responder(A, status=429, headers={'Retry-After': '30'}).responder(A, texto='ok')
@@ -99,8 +103,9 @@ def test_retry_after_limitado_e_em_data():
     assert ler_retry_after('9999') == http_sapl.RETRY_AFTER_MAXIMO
     assert ler_retry_after('0') == 1
     assert ler_retry_after('lixo') == http_sapl.RETRY_AFTER_PADRAO
-    assert ler_retry_after('Sat, 24 Oct 2026 12:00:45 GMT',
-                           agora_epoch=1792843200.0) == pytest.approx(45)
+    assert ler_retry_after(
+        'Sat, 24 Oct 2026 12:00:45 GMT', agora_epoch=1792843200.0
+    ) == pytest.approx(45)
 
 
 def test_429_bloqueia_o_site_inteiro(cliente, sessao, relogio):
@@ -113,23 +118,28 @@ def test_429_bloqueia_o_site_inteiro(cliente, sessao, relogio):
     assert relogio.esperas == []
 
     sessao.responder(url1, status=429, headers={'Retry-After': '40'})
-    cliente2 = ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir,
-                           max_tentativas=2)
+    cliente2 = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir, max_tentativas=2
+    )
     inicio = relogio.agora()
-    cliente2.get(url1)                     # 429, bloqueia, tenta de novo após 40 s
+    cliente2.get(url1)  # 429, bloqueia, tenta de novo após 40 s
     assert relogio.agora() - inicio == pytest.approx(40, abs=0.05)
     cliente2._bloqueado_ate['sapl.a.leg.br'] = relogio.agora() + 10
-    cliente2.get(url2)                     # outra URL do mesmo site também espera
+    cliente2.get(url2)  # outra URL do mesmo site também espera
     assert relogio.agora() - inicio == pytest.approx(50, abs=0.05)
 
 
 # --- Erros de rede e 5xx (FR-4, FR-5) ---------------------------------------
 
-@pytest.mark.parametrize('erro, motivo', [
-    (requests.Timeout(), 'timeout'),
-    (requests.ConnectTimeout(), 'timeout'),
-    (requests.ConnectionError(), 'conexao'),
-])
+
+@pytest.mark.parametrize(
+    'erro, motivo',
+    [
+        (requests.Timeout(), 'timeout'),
+        (requests.ConnectTimeout(), 'timeout'),
+        (requests.ConnectionError(), 'conexao'),
+    ],
+)
 def test_erro_de_rede_tenta_com_esperas_crescentes(cliente, sessao, relogio, erro, motivo):
     sessao.responder(A, erro=erro)
     r = cliente.get(A)
@@ -168,10 +178,11 @@ def test_4xx_nao_tenta_de_novo(cliente, sessao, relogio, status):
 
 
 def test_retentativas_contam_no_limite(sessao, relogio):
-    cliente = ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir,
-                          limite_por_minuto=3)
+    cliente = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir, limite_por_minuto=3
+    )
     sessao.responder(A, status=500).responder(A, status=500).responder(A, texto='ok')
-    cliente.get(A)                          # 3 requisições (2 retentativas)
+    cliente.get(A)  # 3 requisições (2 retentativas)
     assert len(cliente._janelas['sapl.a.leg.br']) == 3
 
 
@@ -188,6 +199,7 @@ def test_falha_fecha_respostas_intermediarias(cliente, sessao):
 
 
 # --- Log de cada tentativa (FR-25a) -----------------------------------------
+
 
 def test_uma_linha_de_log_por_tentativa(cliente, sessao, caplog):
     sessao.responder(A, status=503).responder(A, texto='ok')
@@ -207,8 +219,10 @@ def test_log_de_erro_de_rede_e_aviso_final(cliente, sessao, caplog):
     with caplog.at_level(logging.DEBUG, logger='sapl_scrap.http'):
         cliente.get(A, max_tentativas=1)
     mensagens = [r.getMessage() for r in caplog.records]
-    assert any(m.startswith(f'sapl.a.leg.br | {A} | timeout | tentativa 1 | espera 0 | enviada ')
-               for m in mensagens)
+    assert any(
+        m.startswith(f'sapl.a.leg.br | {A} | timeout | tentativa 1 | espera 0 | enviada ')
+        for m in mensagens
+    )
     assert any('Falha em' in m and 'timeout' in m for m in mensagens)
 
 
@@ -227,9 +241,16 @@ def test_sessao_padrao_tem_user_agent():
 
 # --- Limite entre execuções (achado V2 da validação) ------------------------
 
+
 def _cliente_com_historico(sessao, relogio, caminho, **kw):
-    return ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir,
-                       historico=str(caminho), relogio_parede=relogio.agora, **kw)
+    return ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=relogio.dormir,
+        historico=str(caminho),
+        relogio_parede=relogio.agora,
+        **kw,
+    )
 
 
 def test_nova_execucao_respeita_requisicoes_da_anterior(sessao, relogio, tmp_path):
@@ -263,10 +284,16 @@ def test_bloqueio_de_429_passa_para_a_proxima_execucao(sessao, relogio, tmp_path
 
     def interromper(segundos):
         raise KeyboardInterrupt
-    primeira = ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=interromper,
-                           historico=str(tmp_path / 'h.json'), relogio_parede=relogio.agora)
+
+    primeira = ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=interromper,
+        historico=str(tmp_path / 'h.json'),
+        relogio_parede=relogio.agora,
+    )
     with pytest.raises(KeyboardInterrupt):
-        primeira.get(A)                     # Ctrl+C durante a espera do Retry-After
+        primeira.get(A)  # Ctrl+C durante a espera do Retry-After
     sessao.limpar(A).responder(A, texto='ok')
     inicio = relogio.agora()
     _cliente_com_historico(sessao, relogio, tmp_path / 'h.json').get(A)
@@ -284,6 +311,7 @@ def test_historico_ilegivel_nao_impede_execucao(sessao, relogio, tmp_path, caplo
 
 def test_historico_guarda_no_maximo_o_limite_por_site(sessao, relogio, tmp_path):
     import json
+
     sessao.responder(A, texto='ok')
     cliente = _cliente_com_historico(sessao, relogio, tmp_path / 'h.json')
     for _ in range(80):

@@ -1,4 +1,5 @@
 """Cada camada só importa das camadas abaixo dela (FR-3, plano §3)."""
+
 import ast
 from pathlib import Path
 
@@ -22,7 +23,7 @@ def _grupo(modulo):
     """'sapyl.materias.api' -> 'materias'; módulos de fora do pacote -> None."""
     partes = modulo.split('.')
     if partes[0] != 'sapyl' or len(partes) < 2 or partes[1].startswith('__'):
-        return None   # inclui `from sapyl import __version__`
+        return None  # inclui `from sapyl import __version__`
     return partes[1]
 
 
@@ -42,7 +43,9 @@ def _importados(arquivo):
 
 
 def test_todo_modulo_esta_numa_camada():
-    grupos = {p.stem for p in PACOTE.glob('*.py')} | {p.name for p in PACOTE.iterdir() if p.is_dir()}
+    grupos = {p.stem for p in PACOTE.glob('*.py')} | {
+        p.name for p in PACOTE.iterdir() if p.is_dir()
+    }
     grupos -= {'__init__', '__main__', '__pycache__'}
     sem_camada = [g for g in grupos if not any(g in c for c in CAMADAS)]
     assert sem_camada == []

@@ -1,4 +1,5 @@
 """Nenhum módulo acessa a rede por fora do cliente HTTP (FR-1)."""
+
 from pathlib import Path
 import re
 

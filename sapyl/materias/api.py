@@ -1,4 +1,5 @@
 """Extração dos dados de uma matéria pela API JSON do SAPL."""
+
 from sapyl import registro
 from sapyl.colunas import SEPARADOR
 from sapyl.materias.valores import data_br, data_hora_br, esquema_da_casa, limpar, sim_nao
@@ -30,8 +31,11 @@ class Consultas:
                 except (ValueError, AttributeError):
                     pass
             if not nome:
-                log.warning('Não foi possível obter o nome em %s (%s)', url,
-                            resposta.erro or 'resposta inesperada')
+                log.warning(
+                    'Não foi possível obter o nome em %s (%s)',
+                    url,
+                    resposta.erro or 'resposta inesperada',
+                )
             self._cache[url] = nome
         return self._cache[url]
 
@@ -46,7 +50,7 @@ class Consultas:
 
 
 def url_api(casa_url, sapl_id):
-    return f"{casa_url.rstrip('/')}/api/materia/materialegislativa/{sapl_id}/"
+    return f'{casa_url.rstrip("/")}/api/materia/materialegislativa/{sapl_id}/'
 
 
 def extrair_api(dados, casa_url, consultas):

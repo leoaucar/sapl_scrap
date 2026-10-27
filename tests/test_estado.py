@@ -1,4 +1,5 @@
 """Arquivo de estado: só acrescenta linhas, última linha vale, queda no meio."""
+
 import pytest
 
 from sapyl.estado import ArquivoCSV, Estado, ler_csv, CAMPOS_ESTADO
@@ -15,7 +16,9 @@ def test_registrar_e_ler(tmp_path):
     estado.fechar()
     linhas = ler_csv(caminho, CAMPOS_ESTADO)
     assert [(l['etapa'], l['chave'], l['status']) for l in linhas] == [
-        ('materia', 'h/1', 'erro'), ('materia', 'h/2', 'ok')]
+        ('materia', 'h/1', 'erro'),
+        ('materia', 'h/2', 'ok'),
+    ]
     assert all(l['quando'] for l in linhas)
 
 
@@ -42,11 +45,11 @@ def test_linha_cortada_no_meio_e_ignorada(tmp_path):
     estado.registrar('materia', 'h/1', 'ok')
     estado.fechar()
     with open(caminho, 'a', encoding='utf-8') as f:
-        f.write('materia,h/2,o')                 # queda no meio da gravação
+        f.write('materia,h/2,o')  # queda no meio da gravação
     reaberto = Estado(caminho)
     assert reaberto.status('materia', 'h/1') == 'ok'
     assert reaberto.status('materia', 'h/2') is None
-    reaberto.registrar('materia', 'h/3', 'ok')   # começa numa linha nova
+    reaberto.registrar('materia', 'h/3', 'ok')  # começa numa linha nova
     reaberto.fechar()
     final = Estado(caminho)
     assert final.status('materia', 'h/3') == 'ok'
@@ -70,7 +73,7 @@ def test_arquivo_csv_com_cabecalho_e_texto_com_virgulas(tmp_path):
     arquivo = ArquivoCSV(caminho, ['a', 'b'])
     arquivo.anexar({'a': 'x, "y"\nz', 'b': 1, 'extra': 'ignorado'})
     arquivo.fechar()
-    ArquivoCSV(caminho, ['a', 'b']).fechar()     # reabrir não repete o cabeçalho
+    ArquivoCSV(caminho, ['a', 'b']).fechar()  # reabrir não repete o cabeçalho
     assert ler_csv(caminho, ['a', 'b']) == [{'a': 'x, "y"\nz', 'b': '1'}]
 
 

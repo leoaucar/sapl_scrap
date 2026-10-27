@@ -4,6 +4,7 @@ A pasta tests/fixtures/projeto_fase1/fase1_proj/ foi gravada pelo código da
 Fase 1 (veja tests/fixtures/gerar_projeto_fase1.py). Cada teste trabalha numa
 cópia, para a fixture nunca mudar.
 """
+
 import shutil
 
 import pytest
@@ -11,14 +12,20 @@ import pytest
 from sapyl.interface import principal as programa
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.links import raspar_resultados
-from tests.apoio import (FALHA_FASE1, PASTA_FIXTURES, RelogioFalso, SessaoFalsa, roteiro,
-                         sapl_fase1)
+from tests.apoio import FALHA_FASE1, PASTA_FIXTURES, RelogioFalso, SessaoFalsa, roteiro, sapl_fase1
 from sapyl.tabela import ler_final
 
 ORIGEM = PASTA_FIXTURES / 'projeto_fase1' / 'fase1_proj'
-ARQUIVOS = ['config.json', 'casas_resultado.csv', 'fase1_estado.csv',
-            'fase1_resultados_crus_casas.csv', 'fase1_links_totais.csv',
-            'fase1_materias_legislativas.csv', 'fase1_resultado_final.csv', 'fase1.log']
+ARQUIVOS = [
+    'config.json',
+    'casas_resultado.csv',
+    'fase1_estado.csv',
+    'fase1_resultados_crus_casas.csv',
+    'fase1_links_totais.csv',
+    'fase1_materias_legislativas.csv',
+    'fase1_resultado_final.csv',
+    'fase1.log',
+]
 
 
 @pytest.fixture
@@ -47,11 +54,16 @@ def test_retomada_so_pede_o_que_falhou(copia):
     cliente, sessao = _cliente()
     assert programa.main(roteiro('2', 'fase1', '1'), cliente, copia) == 0
     assert not any('/sistema/search/' in u for u in sessao.pedidos)
-    materias = [u for u in sessao.pedidos if '/media/' not in u and
-                ('/api/materia/materialegislativa/' in u or '/api/' not in u and '/materia/' in u)]
+    materias = [
+        u
+        for u in sessao.pedidos
+        if '/media/' not in u
+        and ('/api/materia/materialegislativa/' in u or '/api/' not in u and '/materia/' in u)
+    ]
     assert materias == [FALHA_FASE1]
     # os PDFs já baixados não são pedidos de novo
-    assert not any('/media/' in u and ('34049' in u or '46496' in u or '38415' in u)
-                   for u in sessao.pedidos)
+    assert not any(
+        '/media/' in u and ('34049' in u or '46496' in u or '38415' in u) for u in sessao.pedidos
+    )
     final = ler_final(copia / 'fase1_proj' / 'fase1_resultado_final.csv')
     assert set(final['status']) == {'ok'} and len(final) == 8

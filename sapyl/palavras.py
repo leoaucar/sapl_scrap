@@ -1,4 +1,5 @@
 """Leitura e formatação das palavras-chave de busca."""
+
 import os
 
 import pandas as pd

@@ -1,4 +1,5 @@
 """Extração dos links de matérias das páginas de busca reais."""
+
 import csv
 
 import pytest
@@ -25,7 +26,7 @@ def test_busca_vazia_nao_tem_links(casa):
 
 
 def test_exclui_paginacao_pdf_acessorio_e_outros_sites():
-    html = '''
+    html = """
       <a href="/materia/10">ok</a>
       <a href="/materia/documentoacessorio/11">acessório</a>
       <a href="/materia/pesquisar-materia">pesquisa</a>
@@ -35,9 +36,11 @@ def test_exclui_paginacao_pdf_acessorio_e_outros_sites():
       <a href="/materia/10/ta">texto articulado (mesma matéria)</a>
       <a href="https://sapl.a.leg.br/materia/14/">absoluto</a>
       <a href="/materia/15/autoria">aba de autoria</a>
-    '''
+    """
     assert links_da_pagina(html, 'https://sapl.a.leg.br/') == [
-        'https://sapl.a.leg.br/materia/10', 'https://sapl.a.leg.br/materia/14']
+        'https://sapl.a.leg.br/materia/10',
+        'https://sapl.a.leg.br/materia/14',
+    ]
 
 
 def test_raspar_resultados_le_o_arquivo_bruto(tmp_path):
@@ -45,13 +48,31 @@ def test_raspar_resultados_le_o_arquivo_bruto(tmp_path):
     with open(arquivo, 'w', newline='', encoding='utf-8') as f:
         escritor = csv.writer(f)
         escritor.writerow(['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link'])
-        escritor.writerow(['', 'https://sapl.cascavel.pr.leg.br/', '"plano+diretor"', 1,
-                           ler_fixture('sapl/sapl.cascavel.pr.leg.br/busca_p1.html'), 'u'])
-        escritor.writerow(['', 'https://sapl.cascavel.pr.leg.br/', '"lei+orgânica"', 1,
-                           '<a href="/materia/38415">x</a>', 'u'])
+        escritor.writerow(
+            [
+                '',
+                'https://sapl.cascavel.pr.leg.br/',
+                '"plano+diretor"',
+                1,
+                ler_fixture('sapl/sapl.cascavel.pr.leg.br/busca_p1.html'),
+                'u',
+            ]
+        )
+        escritor.writerow(
+            [
+                '',
+                'https://sapl.cascavel.pr.leg.br/',
+                '"lei+orgânica"',
+                1,
+                '<a href="/materia/38415">x</a>',
+                'u',
+            ]
+        )
     links = raspar_resultados(arquivo)
     assert len(links) == 5
-    assert links[0] == {'Link Materia': 'https://sapl.cascavel.pr.leg.br/materia/38415',
-                        'Link Casa': 'https://sapl.cascavel.pr.leg.br/',
-                        'Palavras': '"plano+diretor"'}
+    assert links[0] == {
+        'Link Materia': 'https://sapl.cascavel.pr.leg.br/materia/38415',
+        'Link Casa': 'https://sapl.cascavel.pr.leg.br/',
+        'Palavras': '"plano+diretor"',
+    }
     assert links[-1]['Palavras'] == '"lei+orgânica"'

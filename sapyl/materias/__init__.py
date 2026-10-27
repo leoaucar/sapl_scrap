@@ -5,6 +5,7 @@ em `api.py`) quando a casa tem a API, ou da página HTML da matéria (versões
 antigas do SAPL, em `html.py`). As duas fontes produzem as mesmas colunas
 (`COLUNAS_DADOS`).
 """
+
 from datetime import datetime
 
 from sapyl import registro
@@ -14,8 +15,16 @@ from sapyl.links import host
 from sapyl.materias.api import Consultas, extrair_api, url_api
 from sapyl.materias.html import extrair_html
 
-__all__ = ['Consultas', 'Fontes', 'extrair_api', 'extrair_html', 'linha_vazia',
-           'raspar_materia', 'raspar_todas', 'url_api']
+__all__ = [
+    'Consultas',
+    'Fontes',
+    'extrair_api',
+    'extrair_html',
+    'linha_vazia',
+    'raspar_materia',
+    'raspar_todas',
+    'url_api',
+]
 
 log = registro.logger('materias')
 
@@ -44,12 +53,16 @@ class Fontes:
 
     def usar_html(self, casa_url, motivo):
         if self.api_confirmada(casa_url):
-            log.warning('API de %s falhou para uma matéria (%s): só essa vai pelo HTML',
-                        host(casa_url), motivo)
+            log.warning(
+                'API de %s falhou para uma matéria (%s): só essa vai pelo HTML',
+                host(casa_url),
+                motivo,
+            )
             return
         if self.de(casa_url) != 'html':
-            log.info('Casa %s sem API de matérias (%s): usando as páginas HTML',
-                     host(casa_url), motivo)
+            log.info(
+                'Casa %s sem API de matérias (%s): usando as páginas HTML', host(casa_url), motivo
+            )
         self._por_host[host(casa_url)] = 'html'
 
     def consultas(self, cliente, casa_url):
@@ -131,7 +144,7 @@ def raspar_todas(links, cliente, estado, arquivo_materias, fontes=None):
             linha = raspar_materia(link, cliente, fontes)
             arquivo.anexar(linha)
             estado.registrar(ETAPA_MATERIA, link['chave'], linha['status'], linha['erro'])
-            detalhe = linha['Titulo'] if linha['status'] == 'ok' else f"ERRO: {linha['erro']}"
+            detalhe = linha['Titulo'] if linha['status'] == 'ok' else f'ERRO: {linha["erro"]}'
             log.info('Matéria %d de %d (%s): %s', i, len(pendentes), link['chave'], detalhe)
     finally:
         arquivo.fechar()

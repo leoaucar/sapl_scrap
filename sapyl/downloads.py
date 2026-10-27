@@ -9,6 +9,7 @@
 - O resultado de cada download vai para o estado (`pdf`) e para as colunas
   `arquivo_pdf` e `download_status` (`ok`, `erro` ou `sem_pdf`).
 """
+
 import os
 from urllib.parse import urlparse
 
@@ -61,7 +62,7 @@ def baixar_todos(final, pasta, cliente, estado):
     a_baixar = final.index[final['status'] == 'ok']
     log.info('Downloads: %d matérias', len(a_baixar))
     for n, i in enumerate(a_baixar, start=1):
-        chave = f"{urlparse(final.at[i, 'Link Casa']).hostname}/{final.at[i, 'sapl_id']}"
+        chave = f'{urlparse(final.at[i, "Link Casa"]).hostname}/{final.at[i, "sapl_id"]}'
         link = final.at[i, 'texto_original']
         if not link:
             final.at[i, 'arquivo_pdf'], final.at[i, 'download_status'] = '', 'sem_pdf'

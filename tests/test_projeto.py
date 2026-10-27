@@ -1,4 +1,5 @@
 """Projetos: criar, retomar, nunca sobrescrever, configuração salva."""
+
 from sapyl import projeto as gp
 from sapyl.interface import entrada
 from tests.apoio import roteiro
@@ -32,8 +33,13 @@ def test_config_ida_e_volta(tmp_path):
     projeto = gp.Projeto(tmp_path, 'p')
     projeto.pasta.mkdir()
     assert gp.carregar_config(projeto) is None
-    config = {'palavras': ['"plano+diretor"', '"orçamento"+"emenda+impositiva"'], 'sul_sudeste': False,
-              'limite': '4', 'downloads': True, 'reusar_tabela': True}
+    config = {
+        'palavras': ['"plano+diretor"', '"orçamento"+"emenda+impositiva"'],
+        'sul_sudeste': False,
+        'limite': '4',
+        'downloads': True,
+        'reusar_tabela': True,
+    }
     gp.salvar_config(projeto, config)
     assert gp.carregar_config(projeto) == config
 

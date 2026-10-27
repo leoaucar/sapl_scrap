@@ -22,6 +22,7 @@ Cada tentativa gera uma linha DEBUG no log:
 A hora de envio (com milissegundos) é a que conta para o limite; a hora da
 linha do log é a da resposta, que pode chegar segundos depois.
 """
+
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime
@@ -39,12 +40,12 @@ from sapyl import registro
 LIMITE_POR_MINUTO = 35
 JANELA_SEGUNDOS = 60.0
 MAX_TENTATIVAS = 4
-ESPERAS_ERRO = (5, 15, 45)        # segundos, para erro de rede/timeout/5xx
+ESPERAS_ERRO = (5, 15, 45)  # segundos, para erro de rede/timeout/5xx
 RETRY_AFTER_PADRAO = 60
 RETRY_AFTER_MAXIMO = 300
-TIMEOUT_PADRAO = (10, 30)         # (conexão, leitura), em segundos
-ESPERA_MINIMA = 0.01              # segundos
-USER_AGENT ='sapl_scrap (pesquisa; +https://github.com/leoaucar/sapl_scrap)'
+TIMEOUT_PADRAO = (10, 30)  # (conexão, leitura), em segundos
+ESPERA_MINIMA = 0.01  # segundos
+USER_AGENT = 'sapl_scrap (pesquisa; +https://github.com/leoaucar/sapl_scrap)'
 
 log = registro.logger('http')
 
@@ -52,12 +53,13 @@ log = registro.logger('http')
 @dataclass
 class Resposta:
     """Resultado de `ClienteSAPL.get`. Se `ok` é False, `erro` diz o motivo."""
+
     url: str
     ok: bool
-    status: object = None          # int ou None (erro de rede)
+    status: object = None  # int ou None (erro de rede)
     erro: str = ''
     tentativas: int = 0
-    bruta: object = None           # requests.Response (ou equivalente)
+    bruta: object = None  # requests.Response (ou equivalente)
 
     @property
     def texto(self):
@@ -101,9 +103,17 @@ def ler_retry_after(valor, agora_epoch=None):
 class ClienteSAPL:
     """Faz GETs respeitando o limite por site. Uma instância por execução."""
 
-    def __init__(self, sessao=None, relogio=time.monotonic, dormir=time.sleep,
-                 limite_por_minuto=LIMITE_POR_MINUTO, max_tentativas=MAX_TENTATIVAS,
-                 timeout=TIMEOUT_PADRAO, historico=None, relogio_parede=time.time):
+    def __init__(
+        self,
+        sessao=None,
+        relogio=time.monotonic,
+        dormir=time.sleep,
+        limite_por_minuto=LIMITE_POR_MINUTO,
+        max_tentativas=MAX_TENTATIVAS,
+        timeout=TIMEOUT_PADRAO,
+        historico=None,
+        relogio_parede=time.time,
+    ):
         self.sessao = sessao if sessao is not None else criar_sessao()
         self.relogio = relogio
         self.relogio_parede = relogio_parede
@@ -112,9 +122,9 @@ class ClienteSAPL:
         self.max_tentativas = max_tentativas
         self.timeout = timeout
         self.historico = historico
-        self._janelas = defaultdict(deque)   # host -> horários das últimas requisições
-        self._parede = defaultdict(deque)    # os mesmos horários, no relógio de parede
-        self._bloqueado_ate = {}             # host -> horário (após um 429)
+        self._janelas = defaultdict(deque)  # host -> horários das últimas requisições
+        self._parede = defaultdict(deque)  # os mesmos horários, no relógio de parede
+        self._bloqueado_ate = {}  # host -> horário (após um 429)
         self._bloqueado_parede = {}
         self.total_requisicoes = 0
         if historico:
@@ -133,7 +143,7 @@ class ClienteSAPL:
             return
         agora, parede = self.relogio(), self.relogio_parede()
         for host, horarios in (dados.get('requisicoes') or {}).items():
-            for t in sorted(horarios)[-self.limite:]:
+            for t in sorted(horarios)[-self.limite :]:
                 if parede - t < JANELA_SEGUNDOS:
                     self._janelas[host].append(agora - (parede - t))
                     self._parede[host].append(t)
@@ -145,8 +155,9 @@ class ClienteSAPL:
     def _salvar_historico(self):
         parede = self.relogio_parede()
         dados = {
-            'requisicoes': {h: [t for t in ts if parede - t < JANELA_SEGUNDOS]
-                            for h, ts in self._parede.items()},
+            'requisicoes': {
+                h: [t for t in ts if parede - t < JANELA_SEGUNDOS] for h, ts in self._parede.items()
+            },
             'bloqueios': {h: t for h, t in self._bloqueado_parede.items() if t > parede},
         }
         dados['requisicoes'] = {h: ts for h, ts in dados['requisicoes'].items() if ts}
@@ -211,8 +222,14 @@ class ClienteSAPL:
                 espera = ler_retry_after(bruta.headers.get('Retry-After'))
             else:
                 espera = ESPERAS_ERRO[min(tentativa - 1, len(ESPERAS_ERRO) - 1)]
-            self._registrar(host, url, status if status is not None else erro,
-                            tentativa, 0 if ultima else espera, enviada)
+            self._registrar(
+                host,
+                url,
+                status if status is not None else erro,
+                tentativa,
+                0 if ultima else espera,
+                enviada,
+            )
             if bruta is not None:
                 bruta.close()
             if ultima:
@@ -230,5 +247,12 @@ class ClienteSAPL:
 
     @staticmethod
     def _registrar(host, url, resultado, tentativa, espera, enviada):
-        log.debug('%s | %s | %s | tentativa %d | espera %g | enviada %s',
-                  host, url, resultado, tentativa, espera, enviada)
+        log.debug(
+            '%s | %s | %s | tentativa %d | espera %g | enviada %s',
+            host,
+            url,
+            resultado,
+            tentativa,
+            espera,
+            enviada,
+        )

@@ -1,4 +1,5 @@
 """Normalização dos valores das matérias (texto, datas, sim/não, links)."""
+
 from datetime import datetime
 from urllib.parse import urlparse
 

@@ -7,6 +7,7 @@ Os links vêm das páginas de busca, guardadas no arquivo bruto do projeto
 (`<projeto>_resultados_crus_casas.csv`, colunas
 `Indice, Casa, Palavra, Pagina, html, link`).
 """
+
 import csv
 import re
 import sys
@@ -65,14 +66,20 @@ def deduplicar_links(links):
         k = chave(item['Link Casa'], sapl_id)
         palavras = [p for p in str(item.get('Palavras', '')).split(SEPARADOR) if p]
         if k not in unicos:
-            unicos[k] = {'chave': k, 'Link Materia': link, 'Link Casa': item['Link Casa'],
-                         'Palavras': [], 'sapl_id': sapl_id}
+            unicos[k] = {
+                'chave': k,
+                'Link Materia': link,
+                'Link Casa': item['Link Casa'],
+                'Palavras': [],
+                'sapl_id': sapl_id,
+            }
         for p in palavras:
             if p not in unicos[k]['Palavras']:
                 unicos[k]['Palavras'].append(p)
     for item in unicos.values():
         item['Palavras'] = SEPARADOR.join(item['Palavras'])
     return list(unicos.values())
+
 
 def links_da_pagina(html, casa_url):
     """Links de matérias de uma página de busca, em ordem, sem repetição.
@@ -102,8 +109,9 @@ def raspar_resultados(arquivo_cru):
             if not linha.get('html') or not linha.get('Casa'):
                 continue
             for link in links_da_pagina(linha['html'], linha['Casa']):
-                links.append({'Link Materia': link, 'Link Casa': linha['Casa'],
-                              'Palavras': linha['Palavra']})
+                links.append(
+                    {'Link Materia': link, 'Link Casa': linha['Casa'], 'Palavras': linha['Palavra']}
+                )
     return links
 
 

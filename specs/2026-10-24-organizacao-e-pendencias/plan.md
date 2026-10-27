@@ -1,6 +1,6 @@
 # Plan: Code organization, SAPyL identity and leftover issues
 
-- **Spec:** [spec.md](spec.md) · **Status:** Draft, reviewed (waiting for approval) · **Date:** 2026-10-24
+- **Spec:** [spec.md](spec.md) · **Status:** Approved 2026-10-27 · **Date:** 2026-10-24
 - **Branch for implementation:** `spec/2026-10-24-organizacao-e-pendencias`,
   from `main` **after** the runtime-improvements branch is merged
 

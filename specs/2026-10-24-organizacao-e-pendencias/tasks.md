@@ -1,6 +1,6 @@
 # Tasks: Code organization, SAPyL identity and leftover issues
 
-- **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Status:** Draft, reviewed (waiting for approval)
+- **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Status:** Approved 2026-10-27
 - **Branch:** `spec/2026-10-24-organizacao-e-pendencias` (from `main`, after the
   runtime-improvements merge)
 

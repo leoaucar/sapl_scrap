@@ -8,7 +8,7 @@ import shutil
 
 import pytest
 
-from sapyl import principal as programa
+from sapyl.interface import principal as programa
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.links import raspar_resultados
 from tests.apoio import (FALHA_FASE1, PASTA_FIXTURES, RelogioFalso, SessaoFalsa, roteiro,

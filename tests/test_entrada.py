@@ -1,5 +1,5 @@
 """Perguntas no terminal: respostas inválidas são pedidas de novo."""
-from sapyl import entrada
+from sapyl.interface import entrada
 from tests.apoio import roteiro
 
 

@@ -209,18 +209,19 @@ O código fica no pacote `sapyl/`. `programa.py`, na raiz, é só um atalho.
 
 | Arquivo                 | Função                                                        |
 |-------------------------|---------------------------------------------------------------|
-| `sapyl/principal.py`    | Perguntas e etapas: novo/retomar/atualizar                    |
+| `sapyl/interface/principal.py` | Comando `sapyl`; etapas: novo/retomar/atualizar        |
+| `sapyl/interface/entrada.py`   | Perguntas com validação, escolha do projeto            |
+| `sapyl/colunas.py`      | Nomes das colunas e das etapas (lista única)                  |
 | `sapyl/cliente_http.py` | Cliente HTTP único: limite por site, 429, retentativas, log   |
 | `sapyl/casas.py`        | Lista de casas, teste dos sites, UF, filtros                  |
 | `sapyl/palavras.py`     | Lê e formata as palavras-chave para a busca                   |
 | `sapyl/busca.py`        | Busca página a página em cada casa                            |
-| `sapyl/links.py`        | Extrai os links de matérias das páginas de busca              |
-| `sapyl/materias.py`     | Chaves, duplicatas, dados pela API ou pelo HTML               |
+| `sapyl/links.py`        | Links de matérias: chave, duplicatas, páginas de busca        |
+| `sapyl/materias/`       | Dados de cada matéria: API (`api.py`) ou HTML (`html.py`)     |
 | `sapyl/tabela.py`       | Monta a planilha final                                        |
 | `sapyl/downloads.py`    | Baixa os textos originais                                     |
 | `sapyl/estado.py`       | Progresso em disco, para retomar                              |
 | `sapyl/projeto.py`      | Pasta e arquivos do projeto                                   |
-| `sapyl/entrada.py`      | Perguntas com validação                                       |
 | `sapyl/registro.py`     | Log e resumo final                                            |
 | `sapyl/autoria.py`      | Autoria e tramitação                                          |
 

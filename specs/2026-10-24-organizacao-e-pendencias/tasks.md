@@ -60,7 +60,7 @@ Rules for every task (same as Phase 1):
   - `sapyl/colunas.py`. Every module imports from it.
   - Test: no other module defines a list containing `'Link Materia'` or
     `'etapa'` (AST scan).
-- [ ] **T06 Split matters, links and the interface** (FR-3, FR-2)
+- [x] **T06 Split matters, links and the interface** (FR-3, FR-2)
   - `materias/` subpackage, `links.py`, `interface/` (`entrada`,
     `principal`), `__main__.py`, the `executar()` entry point with
     `--version`, and the `programa.py` shortcut.
@@ -68,6 +68,13 @@ Rules for every task (same as Phase 1):
     --version` and `python programa.py --version` via `subprocess`, without
     network access.
   - `test_camadas.py`: layer order from plan §3.
+  - *As built:* `abrir_ou_criar` and `escolher_projeto_existente` moved from
+    `projeto.py` to `interface/entrada.py` (they ask questions, and `projeto`
+    sits below `interface`). `autoria.py` → `interface.entrada` is a listed
+    exception in `test_camadas.py` until T18. The `'; '` separator lives in
+    `colunas.py` (`SEPARADOR`) so `links` doesn't import `materias`. The
+    `instalacao` CI job now runs `sapyl --version` and `python -m sapyl
+    --version` outside the repository.
 - [ ] **T07 Types, docstrings, ruff** (FR-5, FR-6)
   - Type hints and docstrings on public functions. `ruff format` goes in
     its own commit (T07a). Then `ruff check` is clean (T07b), and CI drops

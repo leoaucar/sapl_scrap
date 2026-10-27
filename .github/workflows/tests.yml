@@ -41,5 +41,9 @@ jobs:
         run: |
           python -m venv /tmp/limpo
           /tmp/limpo/bin/pip install .
-      - name: Conferir a instalação
-        run: /tmp/limpo/bin/python -c "import importlib.metadata as m; print('sapyl', m.version('sapyl'))"
+      # Fora da pasta do repositório, para usar só o que foi instalado
+      - name: Conferir o comando sapyl
+        working-directory: /tmp
+        run: |
+          /tmp/limpo/bin/sapyl --version
+          /tmp/limpo/bin/python -m sapyl --version

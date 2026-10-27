@@ -4,6 +4,9 @@
 nenhuma delas (conferido por tests/test_colunas.py).
 """
 
+# Separador de valores múltiplos numa célula (palavras, autores, anexadas)
+SEPARADOR = '; '
+
 # Colunas que dizem de onde veio cada matéria
 COLUNAS_ORIGEM = ['Link Materia', 'Link Casa', 'Palavras']
 

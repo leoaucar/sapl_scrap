@@ -1,6 +1,7 @@
 """Pasta do projeto: criar, reabrir para retomar, e os caminhos dos seus arquivos.
 
-Um projeto `<nome>` vive em `<nome>_proj/`. As respostas dadas ao criá-lo
+Um projeto `<nome>` vive em `<nome>_proj/`. As perguntas para escolher o
+projeto ficam em `sapyl.interface.entrada`. As respostas dadas ao criá-lo
 (palavras, filtro, limite, downloads) ficam em `config.json`, para a
 retomada não precisar perguntar nada.
 
@@ -9,8 +10,6 @@ e os downloads vão para `downloads<dd_mm_aaaa>/`.
 """
 import json
 from pathlib import Path
-
-from sapyl.entrada import perguntar_opcao, perguntar_texto
 
 
 class Projeto:
@@ -67,37 +66,6 @@ def nome_limpo(nome):
 
 def projetos_existentes(raiz):
     return sorted(p.name[:-5] for p in Path(raiz).glob('*_proj') if p.is_dir())
-
-
-def abrir_ou_criar(raiz, entrada=input):
-    """Pergunta o nome; cria o projeto ou, se já existe, oferece retomá-lo.
-
-    Devolve (Projeto, novo). Nunca sobrescreve um projeto existente.
-    """
-    while True:
-        nome = nome_limpo(perguntar_texto('Defina o nome do projeto\n', entrada))
-        projeto = Projeto(raiz, nome)
-        if not projeto.pasta.exists():
-            projeto.pasta.mkdir(parents=True)
-            return projeto, True
-        escolha = perguntar_opcao(
-            f'O projeto "{nome}" já existe.\n1- retomar este projeto\n2- escolher outro nome\n',
-            ['1', '2'], entrada)
-        if escolha == '1':
-            return projeto, False
-
-
-def escolher_projeto_existente(raiz, entrada=input):
-    """Para o modo atualização: pergunta até achar um projeto com resultado final."""
-    existentes = projetos_existentes(raiz)
-    if existentes:
-        print('Projetos encontrados: ' + ', '.join(existentes))
-    while True:
-        nome = nome_limpo(perguntar_texto('Digite o nome do projeto para atualizar\n', entrada))
-        projeto = Projeto(raiz, nome)
-        if projeto.final.exists():
-            return projeto
-        print(f'Não encontrei {projeto.final}. Confira o nome do projeto.')
 
 
 def salvar_config(projeto, config):

@@ -5,9 +5,9 @@ import pandas as pd
 import pytest
 
 from sapyl import downloads as d
-from sapyl import materias as m
 from sapyl.estado import Estado
 from sapyl.cliente_http import ClienteSAPL
+from sapyl import colunas
 
 RB = 'https://sapl.riobranco.ac.leg.br/'
 PDF1 = RB + 'media/sapl/public/materialegislativa/2025/1/a.pdf'
@@ -22,10 +22,10 @@ def cliente(sessao, relogio):
 def _final(*linhas):
     registros = []
     for sapl_id, status, link in linhas:
-        linha = {c: '' for c in m.COLUNAS_FINAIS}
+        linha = {c: '' for c in colunas.COLUNAS_FINAIS}
         linha.update({'Link Casa': RB, 'sapl_id': sapl_id, 'status': status, 'texto_original': link})
         registros.append(linha)
-    return pd.DataFrame(registros, columns=m.COLUNAS_FINAIS)
+    return pd.DataFrame(registros, columns=colunas.COLUNAS_FINAIS)
 
 
 def test_nome_estavel():

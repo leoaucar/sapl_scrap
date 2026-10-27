@@ -19,7 +19,7 @@ import sys
 from bs4 import BeautifulSoup
 import pandas as pd
 
-from sapyl.entrada import perguntar_opcao
+from sapyl.interface.entrada import perguntar_opcao
 from sapyl.cliente_http import ClienteSAPL
 from sapyl import registro
 

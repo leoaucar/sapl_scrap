@@ -1,6 +1,6 @@
-"""Ponto de entrada do raspador SAPL.
+"""Ponto de entrada do programa.
 
-Uso: python programa.py
+Uso: sapyl (depois de `pip install .`), python -m sapyl ou python programa.py
 
 Fluxo de um projeto novo (ou retomado):
   1. pasta `<nome>_proj/` e configuração (perguntas, salvas em config.json)
@@ -22,17 +22,19 @@ from datetime import datetime
 from pathlib import Path
 import sys
 
+from sapyl import __version__
 from sapyl.busca import buscar, buscas_pendentes, chave_busca
 from sapyl import casas as cl
 from sapyl.colunas import COLUNAS_ORIGEM, ETAPA_BUSCA
 from sapyl.downloads import baixar_todos
-from sapyl.entrada import perguntar_opcao, perguntar_sim_nao
+from sapyl.interface.entrada import (abrir_ou_criar, escolher_projeto_existente, perguntar_opcao,
+                                     perguntar_sim_nao)
 from sapyl.estado import Estado
 from sapyl import projeto as gp
 from sapyl.cliente_http import ClienteSAPL
-from sapyl.materias import deduplicar_links, ler_links, raspar_todas, salvar_links
+from sapyl.links import deduplicar_links, ler_links, raspar_resultados, salvar_links
+from sapyl.materias import raspar_todas
 from sapyl.palavras import importar_palavras, preparar_termos
-from sapyl.links import raspar_resultados
 from sapyl import registro
 from sapyl.tabela import ler_final, montar_final, salvar_final
 
@@ -121,7 +123,7 @@ def executar_projeto(projeto, config, cliente, raiz):
 
 def executar_atualizacao(raiz, cliente, entrada=input, hoje=None):
     """Modo atualização: raspa de novo as matérias de um resultado final existente."""
-    base = gp.escolher_projeto_existente(raiz, entrada)
+    base = escolher_projeto_existente(raiz, entrada)
     downloads = perguntar_sim_nao(PERGUNTA_DOWNLOAD, entrada)
     hoje = hoje or datetime.now().strftime('%d_%m_%Y')
     projeto = gp.Projeto(raiz, base.nome, data=hoje)
@@ -150,7 +152,7 @@ def main(entrada=input, cliente=None, raiz='.'):
         if perguntar_sim_nao(PERGUNTA_ATUALIZAR, entrada):
             texto = executar_atualizacao(raiz, cliente, entrada)
         else:
-            projeto, novo = gp.abrir_ou_criar(raiz, entrada)
+            projeto, novo = abrir_ou_criar(raiz, entrada)
             registro.configurar(projeto.pasta, projeto.nome)
             config = None if novo else gp.carregar_config(projeto)
             if config is None:
@@ -168,5 +170,21 @@ def main(entrada=input, cliente=None, raiz='.'):
     return 0
 
 
+
+USO = 'Uso: sapyl [--version]\nSem argumentos, o programa faz as perguntas no terminal.'
+
+
+def executar(argumentos=None):
+    """Comando `sapyl`. Só aceita `--version`; as opções de linha de comando vêm depois."""
+    argumentos = sys.argv[1:] if argumentos is None else list(argumentos)
+    if argumentos == ['--version']:
+        print(f'sapyl {__version__}')
+        return 0
+    if argumentos:
+        print(USO)
+        return 2
+    return main()
+
+
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(executar())

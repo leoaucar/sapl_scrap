@@ -12,7 +12,7 @@ import logging
 import pytest
 
 from sapyl import materias
-from sapyl import principal as programa
+from sapyl.interface import principal as programa
 from sapyl.estado import Estado
 from sapyl.cliente_http import ClienteSAPL
 from tests.apoio import RelogioFalso, SaplFalso, SessaoFalsa, ler_fixture, roteiro

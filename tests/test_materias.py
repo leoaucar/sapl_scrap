@@ -5,7 +5,10 @@ import logging
 import pytest
 import requests
 
+from sapyl import colunas
+from sapyl import links as lk
 from sapyl import materias as m
+from sapyl.materias import valores
 from sapyl.cliente_http import ClienteSAPL
 from tests.apoio import ler_fixture
 
@@ -27,7 +30,7 @@ def cliente(sessao, relogio):
     '/materia/34049?x=1#topo',
 ])
 def test_normalizar_link(href):
-    assert m.normalizar_link(RB, href) == (RB + 'materia/34049', '34049')
+    assert lk.normalizar_link(RB, href) == (RB + 'materia/34049', '34049')
 
 
 @pytest.mark.parametrize('href', [
@@ -35,11 +38,11 @@ def test_normalizar_link(href):
     '/media/x.pdf', 'https://outro.leg.br/materia/1', '/sessao/1',
 ])
 def test_normalizar_link_recusa_o_que_nao_e_materia(href):
-    assert m.normalizar_link(RB, href) is None
+    assert lk.normalizar_link(RB, href) is None
 
 
 def test_chave():
-    assert m.chave(RB, '34049') == 'sapl.riobranco.ac.leg.br/34049'
+    assert lk.chave(RB, '34049') == 'sapl.riobranco.ac.leg.br/34049'
 
 
 # --- Duplicatas (FR-13) -----------------------------------------------------
@@ -53,7 +56,7 @@ def test_deduplicar_junta_palavras_na_ordem():
         {'Link Materia': CV + 'materia/1', 'Link Casa': CV, 'Palavras': 'c; a'},
         {'Link Materia': RB + 'pagina-qualquer', 'Link Casa': RB, 'Palavras': 'a'},
     ]
-    unicos = m.deduplicar_links(links)
+    unicos = lk.deduplicar_links(links)
     assert [u['chave'] for u in unicos] == [
         'sapl.riobranco.ac.leg.br/1', 'sapl.riobranco.ac.leg.br/2', 'sapl.cascavel.pr.leg.br/1']
     assert unicos[0] == {'chave': 'sapl.riobranco.ac.leg.br/1', 'Link Materia': RB + 'materia/1',
@@ -65,16 +68,16 @@ def test_deduplicar_junta_palavras_na_ordem():
 # --- Valores ----------------------------------------------------------------
 
 def test_normalizacao_de_valores():
-    assert m.limpar(' a \n\r b  ') == 'a b'
-    assert m.limpar(None) == '' and m.limpar(2025) == '2025'
-    assert m.data_br('2025-07-02') == '02/07/2025'
-    assert m.data_br('02/07/2025') == '02/07/2025' and m.data_br(None) == ''
-    assert m.data_hora_br('2026-09-21T13:25:49.124190-03:00') == '21/09/2026 13:25'
-    assert m.data_hora_br('') == ''
-    assert (m.sim_nao(True), m.sim_nao(False), m.sim_nao(None)) == ('Sim', 'Não', '')
-    assert m.esquema_da_casa('http://sapl.a.leg.br/media/x.pdf', 'https://sapl.a.leg.br/') == \
+    assert valores.limpar(' a \n\r b  ') == 'a b'
+    assert valores.limpar(None) == '' and valores.limpar(2025) == '2025'
+    assert valores.data_br('2025-07-02') == '02/07/2025'
+    assert valores.data_br('02/07/2025') == '02/07/2025' and valores.data_br(None) == ''
+    assert valores.data_hora_br('2026-09-21T13:25:49.124190-03:00') == '21/09/2026 13:25'
+    assert valores.data_hora_br('') == ''
+    assert (valores.sim_nao(True), valores.sim_nao(False), valores.sim_nao(None)) == ('Sim', 'Não', '')
+    assert valores.esquema_da_casa('http://sapl.a.leg.br/media/x.pdf', 'https://sapl.a.leg.br/') == \
         'https://sapl.a.leg.br/media/x.pdf'
-    assert m.esquema_da_casa('http://outro/x.pdf', 'https://sapl.a.leg.br/') == 'http://outro/x.pdf'
+    assert valores.esquema_da_casa('http://outro/x.pdf', 'https://sapl.a.leg.br/') == 'http://outro/x.pdf'
 
 
 # --- Extração HTML (FR-10, FR-10a, FR-11) -----------------------------------
@@ -110,7 +113,7 @@ ESPERADO_HTML = {
 @pytest.mark.parametrize('casa, sapl_id', sorted(ESPERADO_HTML))
 def test_extrair_html_paginas_reais(casa, sapl_id):
     campos = m.extrair_html(ler_fixture(f'sapl/{casa}/materia_{sapl_id}.html'), f'https://{casa}/')
-    assert list(campos) == m.COLUNAS_DADOS
+    assert list(campos) == colunas.COLUNAS_DADOS
     for coluna, valor in ESPERADO_HTML[(casa, sapl_id)].items():
         assert campos[coluna] == valor, coluna
     assert campos['Ementa'] and '\n' not in campos['Ementa']
@@ -165,8 +168,8 @@ def test_api_e_html_dao_os_mesmos_campos(cliente, sessao, sapl_id):
     consultas = m.Consultas(cliente, RB)
     pela_api = m.extrair_api(_api('sapl.riobranco.ac.leg.br', sapl_id), RB, consultas)
     pelo_html = m.extrair_html(ler_fixture(f'sapl/sapl.riobranco.ac.leg.br/materia_{sapl_id}.html'), RB)
-    assert list(pela_api) == m.COLUNAS_DADOS
-    diferencas = {c for c in m.COLUNAS_DADOS if pela_api[c] != pelo_html[c]}
+    assert list(pela_api) == colunas.COLUNAS_DADOS
+    diferencas = {c for c in colunas.COLUNAS_DADOS if pela_api[c] != pelo_html[c]}
     assert diferencas == {'Ultima Atualizacao'}
 
 
@@ -210,7 +213,7 @@ def test_api_nao_guarda_ip_nem_usuario(cliente, sessao):
 # --- Raspagem de uma matéria e escolha da fonte (FR-8, FR-9, FR-10) ---------
 
 def _link(casa, sapl_id, palavras='"plano+diretor"'):
-    return {'chave': m.chave(casa, sapl_id), 'Link Materia': f'{casa}materia/{sapl_id}',
+    return {'chave': lk.chave(casa, sapl_id), 'Link Materia': f'{casa}materia/{sapl_id}',
             'Link Casa': casa, 'Palavras': palavras, 'sapl_id': sapl_id}
 
 
@@ -218,7 +221,7 @@ def test_raspar_pela_api(cliente, sessao):
     _responder_consultas(sessao)
     sessao.responder(m.url_api(RB, '34049'), fixture='sapl/sapl.riobranco.ac.leg.br/api_materia_34049.json')
     linha = m.raspar_materia(_link(RB, '34049'), cliente, m.Fontes())
-    assert list(linha) == m.COLUNAS_MATERIAS
+    assert list(linha) == colunas.COLUNAS_MATERIAS
     assert (linha['status'], linha['erro'], linha['fonte']) == ('ok', '', 'api')
     assert linha['Titulo'] == 'Projeto de Lei Ordinária nº 89 de 2025'
     assert linha['chave'] == 'sapl.riobranco.ac.leg.br/34049' and linha['raspada_em']
@@ -308,7 +311,7 @@ def test_raspar_todas_grava_cada_materia_e_o_estado(tmp_path, cliente, sessao):
     _responder_cascavel(sessao)
     estado = Estado(tmp_path / 'e.csv')
     m.raspar_todas(_links_cascavel(), cliente, estado, tmp_path / 'mat.csv')
-    linhas = ler_csv(tmp_path / 'mat.csv', m.COLUNAS_MATERIAS)
+    linhas = ler_csv(tmp_path / 'mat.csv', colunas.COLUNAS_MATERIAS)
     assert [(l['chave'], l['status']) for l in linhas] == [
         ('sapl.cascavel.pr.leg.br/38415', 'ok'), ('sapl.cascavel.pr.leg.br/43301', 'ok'),
         ('sapl.cascavel.pr.leg.br/99', 'erro')]
@@ -337,7 +340,7 @@ def test_materia_gravada_sem_estado_e_refeita(tmp_path, cliente, sessao):
     links = _links_cascavel()
     # simula queda depois de gravar a matéria e antes de gravar o estado
     from sapyl.estado import ArquivoCSV
-    arquivo = ArquivoCSV(tmp_path / 'mat.csv', m.COLUNAS_MATERIAS)
+    arquivo = ArquivoCSV(tmp_path / 'mat.csv', colunas.COLUNAS_MATERIAS)
     arquivo.anexar({**m.linha_vazia(links[0]), 'status': 'ok', 'Titulo': 'antigo'})
     arquivo.fechar()
     estado = Estado(tmp_path / 'e.csv')
@@ -347,9 +350,9 @@ def test_materia_gravada_sem_estado_e_refeita(tmp_path, cliente, sessao):
 
 
 def test_salvar_e_ler_links(tmp_path):
-    links = m.deduplicar_links([{'Link Materia': RB + 'materia/1', 'Link Casa': RB, 'Palavras': 'a'}])
-    m.salvar_links(links, tmp_path / 'links.csv')
-    assert m.ler_links(tmp_path / 'links.csv') == links
+    links = lk.deduplicar_links([{'Link Materia': RB + 'materia/1', 'Link Casa': RB, 'Palavras': 'a'}])
+    lk.salvar_links(links, tmp_path / 'links.csv')
+    assert lk.ler_links(tmp_path / 'links.csv') == links
 
 
 def test_404_isolado_depois_da_api_funcionar_nao_troca_a_casa(cliente, sessao, caplog):

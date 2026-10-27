@@ -1,19 +1,78 @@
-"""Extração dos links de matérias das páginas de busca do SAPL.
+"""Links de matérias: chave, forma canônica, duplicatas e arquivos de links.
 
-As páginas de busca ficam no arquivo bruto do projeto
+Cada matéria é identificada pela chave `<host>/<sapl_id>` (ex.:
+`sapl.riobranco.ac.leg.br/34049`), nunca pela posição na tabela.
+
+Os links vêm das páginas de busca, guardadas no arquivo bruto do projeto
 (`<projeto>_resultados_crus_casas.csv`, colunas
 `Indice, Casa, Palavra, Pagina, html, link`).
 """
 import csv
+import re
 import sys
+from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
-from sapyl.materias import normalizar_link
+from sapyl.colunas import COLUNAS_LINKS, SEPARADOR
+from sapyl.estado import ler_csv
 
 # O HTML de cada página fica numa célula do CSV; aumenta o limite de tamanho
 csv.field_size_limit(min(sys.maxsize, 2**31 - 1))
 
+_RE_MATERIA = re.compile(r'^/materia/(\d+)(?:/ta)?/?$')
+
+
+def host(url):
+    return urlparse(url).hostname or ''
+
+
+def chave(casa_url, sapl_id):
+    return f'{host(casa_url)}/{sapl_id}'
+
+
+def normalizar_link(casa_url, href):
+    """Link canônico de uma matéria e seu id, ou None se não for página de matéria.
+
+    Aceita links relativos e absolutos; remove `/ta` (texto articulado), barra
+    final, parâmetros e âncoras; usa o esquema (https) da casa.
+    """
+    absoluto = urljoin(casa_url, str(href).strip())
+    partes, casa = urlparse(absoluto), urlparse(casa_url)
+    if partes.hostname != casa.hostname:
+        return None
+    encontrado = _RE_MATERIA.match(partes.path)
+    if not encontrado:
+        return None
+    sapl_id = encontrado.group(1)
+    return f'{casa.scheme}://{casa.netloc}/materia/{sapl_id}', sapl_id
+
+
+def deduplicar_links(links):
+    """Junta links repetidos (mesma chave) numa linha só.
+
+    `links`: lista de dicts com `Link Materia`, `Link Casa`, `Palavras` (uma
+    ou mais palavras separadas por '; '). Devolve lista de dicts com
+    COLUNAS_LINKS, na ordem da primeira aparição; `Palavras` lista todas as
+    palavras que encontraram a matéria.
+    """
+    unicos = {}
+    for item in links:
+        normal = normalizar_link(item['Link Casa'], item['Link Materia'])
+        if normal is None:
+            continue
+        link, sapl_id = normal
+        k = chave(item['Link Casa'], sapl_id)
+        palavras = [p for p in str(item.get('Palavras', '')).split(SEPARADOR) if p]
+        if k not in unicos:
+            unicos[k] = {'chave': k, 'Link Materia': link, 'Link Casa': item['Link Casa'],
+                         'Palavras': [], 'sapl_id': sapl_id}
+        for p in palavras:
+            if p not in unicos[k]['Palavras']:
+                unicos[k]['Palavras'].append(p)
+    for item in unicos.values():
+        item['Palavras'] = SEPARADOR.join(item['Palavras'])
+    return list(unicos.values())
 
 def links_da_pagina(html, casa_url):
     """Links de matérias de uma página de busca, em ordem, sem repetição.
@@ -35,7 +94,7 @@ def raspar_resultados(arquivo_cru):
     """Lê o arquivo bruto da busca e devolve dicts `Link Materia, Link Casa, Palavras`.
 
     Pode haver repetições (a mesma matéria em várias buscas); use
-    `materias.deduplicar_links` em seguida.
+    `deduplicar_links` em seguida.
     """
     links = []
     with open(arquivo_cru, newline='', encoding='utf-8') as arquivo:
@@ -46,3 +105,15 @@ def raspar_resultados(arquivo_cru):
                 links.append({'Link Materia': link, 'Link Casa': linha['Casa'],
                               'Palavras': linha['Palavra']})
     return links
+
+
+def salvar_links(links, caminho):
+    """Grava a lista de links únicos (COLUNAS_LINKS), substituindo o arquivo."""
+    with open(caminho, 'w', newline='', encoding='utf-8') as arquivo:
+        escritor = csv.DictWriter(arquivo, fieldnames=COLUNAS_LINKS, extrasaction='ignore')
+        escritor.writeheader()
+        escritor.writerows(links)
+
+
+def ler_links(caminho):
+    return ler_csv(caminho, COLUNAS_LINKS)

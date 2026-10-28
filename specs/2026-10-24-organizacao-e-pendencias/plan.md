@@ -179,12 +179,21 @@ tests becomes `sapyl.materias`.
 - `User-Agent`: `SAPyL/<versão> (pesquisa; +https://github.com/leoaucar/sapyl)`.
 - `AUTHORS.md` citation title: *SAPyL: Raspador do Sistema de Apoio Legislativo*.
 - Project site (FR-13a), written in T21a, after the features it describes:
-  - `docs/index.html` and `docs/estilo.css`, Portuguese, sections: what it is
-    · for whom · what it produces · requirements · installation · use (menu,
-    input files, outputs, resume, update, authors/procedure) · rate limit
-    and run time · citation and license. Text-only, like the README header.
-    Colours as CSS variables with a `prefers-color-scheme: dark` variant;
-    one column, max width ~45 rem, works at phone width.
+  - `docs/index.html`, `docs/estilo.css`, `docs/sapyl.js`, Portuguese,
+    sections: what it is · for whom · how it works · what it produces ·
+    installation · use (menu, input files, outputs, resume, update,
+    authors/procedure) · rate limit and run time · citation and license.
+  - Look: a public-record "paper and ink" palette with the green of the
+    legislative houses; serif headings (system fonts only); a plenary
+    hemicycle drawn in SVG as the main motif; a sample of the output table.
+    Colours as CSS variables, light and dark. Mobile-first CSS: one column by
+    default, grids from ~48 rem up.
+  - JavaScript (progressive enhancement, no libraries): copy buttons,
+    light/dark switch (saved in `localStorage` when allowed), Linux/macOS vs
+    Windows install tabs, a live "keyword line → SAPL query" preview using
+    the same rule as `preparar_termos`, and a run-time estimate from the
+    35 requests/min limit. The query function is also exported for Node so
+    `test_site.py` can compare it with `preparar_termos`.
   - Commands shown in `<pre><code>` blocks copied from the README, so both
     say the same. Links to the repository, README, AUTHORS and LICENSE use
     the post-rename URL `https://github.com/leoaucar/sapyl`.

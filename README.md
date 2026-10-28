@@ -7,6 +7,9 @@ assembleias brasileiras que usam o SAPL. Software livre (AGPL-3.0).
 
 [![testes](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml/badge.svg)](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml)
 
+Página do projeto, com instalação e uso passo a passo:
+<https://leoaucar.github.io/sapyl/>
+
 ## Para que serve
 
 Muitas Câmaras Municipais e Assembleias Legislativas publicam seus projetos

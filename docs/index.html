@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SAPyL: Raspador do Sistema de Apoio Legislativo</title>
+  <meta name="description" content="Software livre que busca, num só lugar, as matérias de dezenas de câmaras e assembleias brasileiras que usam o SAPL, e entrega tudo numa planilha.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="estilo.css">
+  <script src="sapyl.js" defer></script>
+</head>
+<body>
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="topo">
+    <div class="topo__barra">
+      <a class="marca" href="#inicio" aria-label="SAPyL, início">SAP<span>y</span>L</a>
+      <nav class="menu" aria-label="Seções">
+        <a href="#o-que-e">O que é</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#instalar">Instalar</a>
+        <a href="#usar">Usar</a>
+        <a href="#citar">Citar</a>
+      </nav>
+      <button class="tema" type="button" hidden aria-label="Alternar tema claro ou escuro">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="abertura" id="inicio">
+      <div class="abertura__texto">
+        <p class="selo">Dados públicos · Software livre</p>
+        <h1>SAPyL</h1>
+        <p class="subtitulo">Raspador do Sistema de Apoio Legislativo</p>
+        <p class="chamada">Acompanhe, num só lugar, o que está tramitando em dezenas de câmaras
+          e assembleias brasileiras que usam o SAPL.</p>
+        <div class="acoes">
+          <a class="botao botao--principal" href="https://github.com/leoaucar/sapyl">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5Z"/></svg>
+            Ver no GitHub
+          </a>
+          <a class="botao" href="#instalar">Como instalar</a>
+        </div>
+      </div>
+      <figure class="plenario" aria-hidden="true">
+        <svg viewBox="0 0 360 190" role="presentation">
+          <circle class="cadeira" cx="110.5" cy="169.6" r="6.2"/>
+          <circle class="cadeira" cx="114.5" cy="153.2" r="6.2"/>
+          <circle class="cadeira" cx="122.4" cy="138.2" r="6.2"/>
+          <circle class="cadeira" cx="133.6" cy="125.6" r="6.2"/>
+          <circle class="cadeira" cx="147.5" cy="116.0" r="6.2"/>
+          <circle class="cadeira" cx="163.2" cy="110.0" r="6.2"/>
+          <circle class="cadeira" cx="180.0" cy="108.0" r="6.2"/>
+          <circle class="cadeira" cx="196.8" cy="110.0" r="6.2"/>
+          <circle class="cadeira" cx="212.5" cy="116.0" r="6.2"/>
+          <circle class="cadeira" cx="226.4" cy="125.6" r="6.2"/>
+          <circle class="cadeira" cx="237.6" cy="138.2" r="6.2"/>
+          <circle class="cadeira" cx="245.5" cy="153.2" r="6.2"/>
+          <circle class="cadeira" cx="249.5" cy="169.6" r="6.2"/>
+          <circle class="cadeira" cx="88.4" cy="169.5" r="6.2"/>
+          <circle class="cadeira" cx="91.5" cy="152.8" r="6.2"/>
+          <circle class="cadeira" cx="97.6" cy="137.0" r="6.2"/>
+          <circle class="cadeira" cx="106.6" cy="122.6" r="6.2"/>
+          <circle class="cadeira" cx="118.0" cy="110.0" r="6.2"/>
+          <circle class="cadeira" cx="131.6" cy="99.8" r="6.2"/>
+          <circle class="cadeira" cx="146.8" cy="92.2" r="6.2"/>
+          <circle class="cadeira" cx="163.1" cy="87.6" r="6.2"/>
+          <circle class="cadeira" cx="180.0" cy="86.0" r="6.2"/>
+          <circle class="cadeira" cx="196.9" cy="87.6" r="6.2"/>
+          <circle class="cadeira" cx="213.2" cy="92.2" r="6.2"/>
+          <circle class="cadeira" cx="228.4" cy="99.8" r="6.2"/>
+          <circle class="cadeira" cx="242.0" cy="110.0" r="6.2"/>
+          <circle class="cadeira" cx="253.4" cy="122.6" r="6.2"/>
+          <circle class="cadeira" cx="262.4" cy="137.0" r="6.2"/>
+          <circle class="cadeira" cx="268.5" cy="152.8" r="6.2"/>
+          <circle class="cadeira" cx="271.6" cy="169.5" r="6.2"/>
+          <circle class="cadeira" cx="66.3" cy="169.5" r="6.2"/>
+          <circle class="cadeira" cx="68.9" cy="152.6" r="6.2"/>
+          <circle class="cadeira" cx="73.9" cy="136.4" r="6.2"/>
+          <circle class="cadeira" cx="81.3" cy="121.0" r="6.2"/>
+          <circle class="cadeira" cx="90.9" cy="106.9" r="6.2"/>
+          <circle class="cadeira" cx="102.5" cy="94.4" r="6.2"/>
+          <circle class="cadeira" cx="115.8" cy="83.8" r="6.2"/>
+          <circle class="cadeira" cx="130.5" cy="75.3" r="6.2"/>
+          <circle class="cadeira" cx="146.4" cy="69.1" r="6.2"/>
+          <circle class="cadeira" cx="163.0" cy="65.3" r="6.2"/>
+          <circle class="cadeira" cx="180.0" cy="64.0" r="6.2"/>
+          <circle class="cadeira" cx="197.0" cy="65.3" r="6.2"/>
+          <circle class="cadeira" cx="213.6" cy="69.1" r="6.2"/>
+          <circle class="cadeira" cx="229.5" cy="75.3" r="6.2"/>
+          <circle class="cadeira" cx="244.2" cy="83.8" r="6.2"/>
+          <circle class="cadeira" cx="257.5" cy="94.4" r="6.2"/>
+          <circle class="cadeira" cx="269.1" cy="106.9" r="6.2"/>
+          <circle class="cadeira" cx="278.7" cy="121.0" r="6.2"/>
+          <circle class="cadeira" cx="286.1" cy="136.4" r="6.2"/>
+          <circle class="cadeira" cx="291.1" cy="152.6" r="6.2"/>
+          <circle class="cadeira" cx="293.7" cy="169.5" r="6.2"/>
+          <circle class="cadeira" cx="44.3" cy="169.5" r="6.2"/>
+          <circle class="cadeira" cx="46.4" cy="152.5" r="6.2"/>
+          <circle class="cadeira" cx="50.7" cy="136.0" r="6.2"/>
+          <circle class="cadeira" cx="56.9" cy="120.1" r="6.2"/>
+          <circle class="cadeira" cx="65.2" cy="105.1" r="6.2"/>
+          <circle class="cadeira" cx="75.2" cy="91.3" r="6.2"/>
+          <circle class="cadeira" cx="86.9" cy="78.9" r="6.2"/>
+          <circle class="cadeira" cx="100.1" cy="68.0" r="6.2"/>
+          <circle class="cadeira" cx="114.5" cy="58.8" r="6.2"/>
+          <circle class="cadeira" cx="129.9" cy="51.6" r="6.2"/>
+          <circle class="cadeira" cx="146.2" cy="46.3" r="6.2"/>
+          <circle class="cadeira" cx="163.0" cy="43.1" r="6.2"/>
+          <circle class="cadeira" cx="180.0" cy="42.0" r="6.2"/>
+          <circle class="cadeira" cx="197.0" cy="43.1" r="6.2"/>
+          <circle class="cadeira" cx="213.8" cy="46.3" r="6.2"/>
+          <circle class="cadeira" cx="230.1" cy="51.6" r="6.2"/>
+          <circle class="cadeira" cx="245.5" cy="58.8" r="6.2"/>
+          <circle class="cadeira" cx="259.9" cy="68.0" r="6.2"/>
+          <circle class="cadeira" cx="273.1" cy="78.9" r="6.2"/>
+          <circle class="cadeira" cx="284.8" cy="91.3" r="6.2"/>
+          <circle class="cadeira" cx="294.8" cy="105.1" r="6.2"/>
+          <circle class="cadeira" cx="303.1" cy="120.1" r="6.2"/>
+          <circle class="cadeira" cx="309.3" cy="136.0" r="6.2"/>
+          <circle class="cadeira" cx="313.6" cy="152.5" r="6.2"/>
+          <circle class="cadeira" cx="315.7" cy="169.5" r="6.2"/>
+          <circle class="cadeira" cx="22.2" cy="169.4" r="6.2"/>
+          <circle class="cadeira" cx="24.1" cy="152.4" r="6.2"/>
+          <circle class="cadeira" cx="27.8" cy="135.7" r="6.2"/>
+          <circle class="cadeira" cx="33.2" cy="119.5" r="6.2"/>
+          <circle class="cadeira" cx="40.4" cy="104.0" r="6.2"/>
+          <circle class="cadeira" cx="49.2" cy="89.3" r="6.2"/>
+          <circle class="cadeira" cx="59.6" cy="75.7" r="6.2"/>
+          <circle class="cadeira" cx="71.3" cy="63.3" r="6.2"/>
+          <circle class="cadeira" cx="84.4" cy="52.2" r="6.2"/>
+          <circle class="cadeira" cx="98.5" cy="42.6" r="6.2"/>
+          <circle class="cadeira" cx="113.7" cy="34.6" r="6.2"/>
+          <circle class="cadeira" cx="129.6" cy="28.3" r="6.2"/>
+          <circle class="cadeira" cx="146.0" cy="23.7" r="6.2"/>
+          <circle class="cadeira" cx="162.9" cy="20.9" r="6.2"/>
+          <circle class="cadeira" cx="180.0" cy="20.0" r="6.2"/>
+          <circle class="cadeira" cx="197.1" cy="20.9" r="6.2"/>
+          <circle class="cadeira" cx="214.0" cy="23.7" r="6.2"/>
+          <circle class="cadeira" cx="230.4" cy="28.3" r="6.2"/>
+          <circle class="cadeira" cx="246.3" cy="34.6" r="6.2"/>
+          <circle class="cadeira" cx="261.5" cy="42.6" r="6.2"/>
+          <circle class="cadeira" cx="275.6" cy="52.2" r="6.2"/>
+          <circle class="cadeira" cx="288.7" cy="63.3" r="6.2"/>
+          <circle class="cadeira" cx="300.4" cy="75.7" r="6.2"/>
+          <circle class="cadeira" cx="310.8" cy="89.3" r="6.2"/>
+          <circle class="cadeira" cx="319.6" cy="104.0" r="6.2"/>
+          <circle class="cadeira" cx="326.8" cy="119.5" r="6.2"/>
+          <circle class="cadeira" cx="332.2" cy="135.7" r="6.2"/>
+          <circle class="cadeira" cx="335.9" cy="152.4" r="6.2"/>
+          <circle class="cadeira" cx="337.8" cy="169.4" r="6.2"/>
+          <rect class="mesa" x="150" y="166" width="60" height="14" rx="3"/>
+        </svg>
+        <figcaption>Cada cadeira é uma casa legislativa: o SAPyL visita uma por uma.</figcaption>
+      </figure>
+    </section>
+
+    <section class="secao" id="o-que-e" aria-labelledby="titulo-o-que-e">
+      <h2 id="titulo-o-que-e">O que é</h2>
+      <p class="lead">Muitas Câmaras Municipais e Assembleias Legislativas publicam seus projetos
+        de lei, requerimentos e outras matérias no <strong>SAPL</strong> (Sistema de Apoio ao
+        Processo Legislativo, do Interlegis). Cada casa tem o seu site, e não há uma busca que
+        junte todas. O SAPyL faz essa busca por você e entrega o resultado numa planilha.</p>
+
+      <div class="cartoes">
+        <article class="cartao cartao--dados">
+          <svg class="cartao__icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z"/></svg>
+          <h3>Dados públicos</h3>
+          <p>O que as casas já publicam, organizado: título, ementa, data, tipo, situação e o
+            link do texto original de cada matéria.</p>
+        </article>
+        <article class="cartao cartao--livre">
+          <svg class="cartao__icone" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>
+          <h3>Software livre</h3>
+          <p>Código aberto sob a licença AGPL-3.0. Você pode usar, estudar, modificar e
+            redistribuir, desde que as versões continuem livres.</p>
+        </article>
+        <article class="cartao cartao--casas">
+          <svg class="cartao__icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10m4 11V10m6 11V10m4 11V10M2 10l10-6 10 6z"/></svg>
+          <h3>Casas legislativas</h3>
+          <p>Uma tabela com centenas de câmaras e assembleias que usam o SAPL. Você escolhe
+            todas, as de Sul e Sudeste ou só algumas para testar.</p>
+        </article>
+      </div>
+
+      <h3 class="subsecao">Para quem</h3>
+      <ul class="publico">
+        <li>Pesquisadoras e pesquisadores</li>
+        <li>Jornalistas</li>
+        <li>Organizações da sociedade civil</li>
+        <li>Quem quer saber o que está sendo proposto sobre um tema em muitas casas ao mesmo tempo</li>
+      </ul>
+    </section>
+
+    <section class="secao" id="como-funciona" aria-labelledby="titulo-como-funciona">
+      <h2 id="titulo-como-funciona">Como funciona</h2>
+      <ol class="etapas">
+        <li><strong>Busca.</strong> Pesquisa cada palavra-chave no sistema de busca de cada casa.</li>
+        <li><strong>Links.</strong> Junta os links das matérias encontradas, sem repetir: uma
+          matéria achada por várias palavras aparece uma vez, com todas as palavras.</li>
+        <li><strong>Matérias.</strong> Lê os dados de cada matéria pela API do SAPL (ou pela
+          página, nas casas sem API).</li>
+        <li><strong>Planilha.</strong> Grava tudo num CSV que abre em qualquer planilha.</li>
+        <li><strong>Textos.</strong> Se você quiser, baixa os textos originais (PDFs).</li>
+      </ol>
+
+      <div class="garantias">
+        <p><strong>Nenhuma matéria vazia em silêncio.</strong> Toda linha tem <code>status</code>
+          (<code>ok</code> ou <code>erro</code>) e, quando falha, o motivo.</p>
+        <p><strong>Respeito aos servidores.</strong> No máximo 35 requisições por minuto em cada site.</p>
+        <p><strong>Retomada.</strong> Se parar no meio, rode de novo e escolha “retomar”: nada do que
+          já foi feito é refeito.</p>
+      </div>
+
+      <h3 class="subsecao" id="resultado">O que você recebe</h3>
+      <p>Uma planilha com uma linha por matéria. Um trecho, com matérias reais de Rio Branco/AC e
+        Cascavel/PR:</p>
+      <div class="tabela" role="region" aria-label="Exemplo da planilha final" tabindex="0">
+        <table>
+          <thead>
+            <tr><th scope="col">Titulo</th><th scope="col">Ementa</th><th scope="col">Data</th><th scope="col">Casa</th><th scope="col">status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Projeto de Lei Ordinária nº 89 de 2025</td><td>PL: Minha Casa, Minha Vida – Cidades. Institui a Política Municipal de Habitação de Interesse Social…</td><td>02/07/2025</td><td>sapl.riobranco.ac.leg.br</td><td><span class="etiqueta">ok</span></td></tr>
+            <tr><td>Veto nº 23 de 2026</td><td>Veto parcial ao Autógrafo nº 129/2026, oriundo do Projeto de Lei Complementar nº 26/2025…</td><td>16/09/2026</td><td>sapl.riobranco.ac.leg.br</td><td><span class="etiqueta">ok</span></td></tr>
+            <tr><td>Projeto de Lei Ordinária nº 178 de 2026</td><td>Dispõe sobre o Programa “Calçada Segura”, em atendimento à Estratégia do Plano Diretor…</td><td>20/10/2026</td><td>sapl.cascavel.pr.leg.br</td><td><span class="etiqueta">ok</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="nota">A planilha completa tem também número, ano, tipo, situação, regime, matérias
+        anexadas, link do texto original, as palavras que acharam a matéria e o resultado do
+        download. A lista de colunas está no <a href="https://github.com/leoaucar/sapyl#colunas-da-planilha-final">README</a>.</p>
+    </section>
+
+    <section class="secao" id="instalar" aria-labelledby="titulo-instalar">
+      <h2 id="titulo-instalar">Instalar</h2>
+      <p>Você precisa do <strong>Python 3.10 ou mais novo</strong> e do <strong>git</strong>.</p>
+
+      <div class="abas" data-abas>
+        <div class="abas__lista" role="tablist" aria-label="Sistema operacional" hidden>
+          <button type="button" role="tab" id="aba-unix" aria-controls="painel-unix" aria-selected="true">Linux e macOS</button>
+          <button type="button" role="tab" id="aba-windows" aria-controls="painel-windows" aria-selected="false" tabindex="-1">Windows</button>
+        </div>
+        <div class="abas__painel" role="tabpanel" id="painel-unix" aria-labelledby="aba-unix">
+          <h3 class="abas__titulo">Linux e macOS</h3>
+          <pre><code>git clone https://github.com/leoaucar/sapyl.git
+cd sapyl
+python3 -m venv .venv
+source .venv/bin/activate
+pip install .</code></pre>
+        </div>
+        <div class="abas__painel" role="tabpanel" id="painel-windows" aria-labelledby="aba-windows">
+          <h3 class="abas__titulo">Windows (PowerShell)</h3>
+          <pre><code>git clone https://github.com/leoaucar/sapyl.git
+cd sapyl
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install .</code></pre>
+        </div>
+      </div>
+      <p>Pronto: o comando <code>sapyl</code> fica disponível sempre que o ambiente
+        (<code>.venv</code>) estiver ativado. Confira com <code>sapyl --version</code>.</p>
+    </section>
+
+    <section class="secao" id="usar" aria-labelledby="titulo-usar">
+      <h2 id="titulo-usar">Usar</h2>
+
+      <ol class="passos">
+        <li>
+          <h3>Escolha as palavras-chave</h3>
+          <p>Crie <code>arquivos_csv/palavras_chave.csv</code> com uma coluna <code>Palavras</code>.
+            Cada linha é uma busca. Há um exemplo pronto em
+            <code>arquivos_csv/exemplo_palavras_chave.csv</code>.</p>
+          <pre><code>Palavras
+plano diretor
+"orçamento, emenda impositiva"
+saneamento básico
+saneamento basico</code></pre>
+          <ul class="dicas">
+            <li>Termos com espaço viram uma expressão exata.</li>
+            <li>Termos separados por vírgula na mesma linha são buscados juntos.</li>
+            <li>Com e sem acento? Coloque as duas grafias, em linhas separadas.</li>
+          </ul>
+
+          <div class="ferramenta" data-consulta hidden>
+            <label for="linha-palavras">Teste uma linha</label>
+            <input id="linha-palavras" type="text" value="orçamento, emenda impositiva" autocomplete="off" spellcheck="false">
+            <p class="ferramenta__saida">Busca no SAPL: <output for="linha-palavras" id="consulta-saida"></output></p>
+          </div>
+        </li>
+        <li>
+          <h3>Rode o programa</h3>
+          <pre><code>sapyl</code></pre>
+          <p>Ele faz algumas perguntas no terminal, a primeira é o que fazer:</p>
+          <ul class="menu-programa">
+            <li><kbd>1</kbd> Novo projeto ou retomar um projeto</li>
+            <li><kbd>2</kbd> Atualizar um projeto (raspa de novo as matérias do resultado)</li>
+            <li><kbd>3</kbd> Autoria e tramitação (acrescenta autores e o último trâmite)</li>
+          </ul>
+          <p>Num projeto novo, você dá um nome e escolhe se quer restringir a Sul e Sudeste,
+            limitar o número de casas para testar e baixar os PDFs.</p>
+        </li>
+        <li>
+          <h3>Abra o resultado</h3>
+          <p>Tudo fica na pasta <code>&lt;nome&gt;_proj/</code>. A planilha é
+            <code>&lt;nome&gt;_resultado_final.csv</code>; os PDFs ficam em
+            <code>downloads/</code> e o registro de cada execução em <code>logs/</code>.</p>
+        </li>
+      </ol>
+
+      <div class="aviso" id="tempo">
+        <h3>Quanto tempo leva?</h3>
+        <p>Cada site do SAPL aceita no máximo <strong>35 requisições por minuto</strong>, e o
+          SAPyL respeita esse limite. Uma casa com 1 000 matérias leva cerca de 30 minutos. Se a
+          execução parar, rode de novo, digite o mesmo nome e escolha <em>retomar</em>.</p>
+        <div class="ferramenta" data-tempo hidden>
+          <label for="qtd-materias">Matérias numa casa</label>
+          <input id="qtd-materias" type="number" min="0" step="50" value="1000" inputmode="numeric">
+          <p class="ferramenta__saida">Tempo aproximado: <output for="qtd-materias" id="tempo-saida"></output></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao" id="citar" aria-labelledby="titulo-citar">
+      <h2 id="titulo-citar">Citar e licença</h2>
+      <p>Se você usar o SAPyL ou dados produzidos com ele em trabalhos ou publicações, cite assim:</p>
+      <blockquote class="citacao">
+        <p>AUCAR, Leonardo Nogueira; AQUINO, Renata; MOURA, Fernanda. <em>SAPyL: Raspador do
+          Sistema de Apoio Legislativo</em>. 2023–2026. Software livre (AGPL-3.0).</p>
+      </blockquote>
+      <p>O SAPyL é software livre sob a <a href="https://github.com/leoaucar/sapyl/blob/main/LICENSE">GNU
+        Affero General Public License, versão 3</a>. Versões modificadas, inclusive as oferecidas
+        como serviço pela rede, devem continuar livres.</p>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p class="rodape__marca">SAP<span>y</span>L</p>
+    <nav aria-label="Links do projeto">
+      <a href="https://github.com/leoaucar/sapyl">Código no GitHub</a>
+      <a href="https://github.com/leoaucar/sapyl#readme">README</a>
+      <a href="https://github.com/leoaucar/sapyl/issues">Relatar um problema</a>
+      <a href="https://github.com/leoaucar/sapyl/blob/main/AUTHORS.md">Autoria</a>
+    </nav>
+    <p class="rodape__nota">Os dados vêm dos sites públicos das casas legislativas que usam o SAPL,
+      sistema desenvolvido pelo Interlegis. O SAPyL não é um produto do Interlegis.</p>
+  </footer>
+</body>
+</html>

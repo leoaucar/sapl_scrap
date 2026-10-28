@@ -176,9 +176,18 @@ Rules for every task (same as Phase 1):
   - README (install, `sapyl`, menu, logs, update with `Relevante`, authors
     and procedure), tech-stack (package, ruff), CLAUDE.md (local),
     ROADMAP ticks.
-- [ ] **T21a Project site** (FR-13a, TR-8)
-  - `docs/index.html`, `docs/estilo.css` (plan §6), `.github/workflows/pages.yml`.
+- [x] **T21a Project site** (FR-13a, TR-8)
+  - `docs/index.html`, `docs/estilo.css`, `docs/sapyl.js` (plan §6),
+    `.github/workflows/pages.yml`.
   - `tests/test_site.py` (TR-8). README gets a link to the site.
+  - Built early, on 2026-10-27, at the user's request. It describes the
+    program as this spec leaves it (3-option menu from T18, per-run logs
+    from T11); T21 re-checks the text against the finished program.
+  - *As built:* hemicycle of 105 seats drawn once into inline SVG (it shows
+    without JavaScript; the script only animates it). `test_site.py` runs
+    the page's `prepararTermo` under Node (skipped without Node) and compares
+    it with `preparar_termos`. Checked in headless Firefox at 390 px and
+    1280 px wide. Publishing (switching Pages on) stays in T24.
 
 ## Phase F: Validation, merge, rename
 

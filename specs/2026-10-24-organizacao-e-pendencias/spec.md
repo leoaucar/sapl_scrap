@@ -139,8 +139,13 @@ kept a flat layout of 13 top-level modules. Some problems remain:
 - **FR-13** User-facing messages that name the program (welcome line,
   summary, log header) say SAPyL.
 - **FR-13a** A project site on GitHub Pages, in Portuguese, for people who
-  won't read the README: one static page (`docs/index.html`, HTML + CSS, no
-  scripts, no images, no external fonts or files). It explains what SAPyL is
+  won't read the README: one static page (`docs/index.html`, `estilo.css`,
+  `sapyl.js`), mobile first, with a visual theme drawn from public data, open
+  source and legislative houses (inline SVG drawings are fine; no logo, no
+  image files, nothing loaded from outside `docs/`). JavaScript only adds
+  extras (copy buttons, light/dark switch, install tabs, a keyword-to-query
+  preview and a run-time estimate); without it the page still reads in
+  full. It explains what SAPyL is
   and who it is for, what it produces, the requirements, installation
   (clone + `pip install .`) and use (the `sapyl` command and its menu: new
   or resumed project, update, authors and procedure; input files; outputs;
@@ -242,7 +247,8 @@ helpers (`SessaoFalsa`, `RelogioFalso`, `SaplFalso`, `roteiro`).
   and the required sections (FR-13a), shows `pip install .` and `sapyl`,
   loads nothing from outside `docs/`, and names no removed file or command
   (`autoria_e_tramit.py`, `palavras_chave_res.csv`, `sapl_scrap` outside
-  the citation of old versions).
+  the citation of old versions). When `node` is available, the page's
+  keyword-to-query function gives the same result as `preparar_termos`.
 - **TR-7** The end-to-end test from Phase 1 is extended. It runs the
   authors/procedure option with interruption and resume, an update with
   `Relevante` and a filter, and a house with a DNS failure. It also checks
@@ -316,7 +322,9 @@ run on 2026-10-24/25:
   the main flow (FR-7). *Decided 2026-10-24.*
 - **Q3.** The project site goes into this spec (it uses this spec's name and
   install steps) as one hand-written static page in `docs/`, published by a
-  GitHub Actions workflow (FR-13a). *Decided 2026-10-27.*
+  GitHub Actions workflow (FR-13a). *Decided 2026-10-27.* Refined the same
+  day: HTML + CSS + JavaScript, mobile first, themed on public data, open
+  source and legislative houses.
 
 ## 11. Open questions
 

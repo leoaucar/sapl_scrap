@@ -90,6 +90,29 @@ def logger(nome: str | None = None) -> logging.Logger:
     return logging.getLogger(LOGGER if not nome else f'{LOGGER}.{nome}')
 
 
+def resumo_autoria(
+    contagens: Counter[str], saida: str | Path, caminho_log: str | None = None
+) -> str:
+    """Texto do resumo da autoria e tramitação."""
+    total = sum(contagens.values())
+    linhas = [
+        '',
+        f'===== Resumo (SAPyL {__version__}) =====',
+        f'Autoria e tramitação: {total} matérias, {contagens.get("ok", 0)} ok, '
+        f'{contagens.get("erro", 0)} com erro',
+        f'Resultado: {saida}',
+    ]
+    if contagens.get('erro', 0):
+        linhas.append(
+            'Houve falhas (veja as colunas status_autoria/status_tramitacao). Para tentar de '
+            'novo só o que falhou, rode o programa outra vez, escolha 3 e a mesma entrada.'
+        )
+    caminho_log = caminho_log or _log_atual
+    if caminho_log:
+        linhas.append(f'Log desta execução: {caminho_log}')
+    return '\n'.join(linhas)
+
+
 def resumo(
     estado: _Contagens,
     links: list[Linha],

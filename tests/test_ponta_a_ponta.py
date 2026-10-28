@@ -92,7 +92,7 @@ def montar(projeto_tmp):
     return cliente, sessao, horarios
 
 
-NOVO = ('2', 'p', '2', '1', '1')  # projeto novo "p", sem filtro, todas as casas, com downloads
+NOVO = ('1', 'p', '2', '1', '1')  # projeto novo "p", sem filtro, todas as casas, com downloads
 
 
 @pytest.fixture
@@ -164,7 +164,7 @@ def test_429_na_busca_foi_esperado_e_refeito(execucao):
 def test_retomada_so_pede_a_materia_que_falhou(execucao, projeto_tmp):
     pasta, sessao, _, _ = execucao
     sessao.pedidos.clear()
-    assert programa.main(roteiro('2', 'p', '1'), sessao_cliente(sessao), projeto_tmp) == 0
+    assert programa.main(roteiro('1', 'p', '1'), sessao_cliente(sessao), projeto_tmp) == 0
     # das matérias, só pede a que falhou; os nomes já consultados vêm do
     # cache do projeto (FR-25), e a casa sem API não tem a API sondada de novo
     assert not any('tipomateria' in u or 'regimetramitacao' in u for u in sessao.pedidos)
@@ -191,7 +191,7 @@ def sessao_cliente(sessao):
 def test_interrompida_e_retomada_da_o_mesmo_resultado(projeto_tmp, monkeypatch):
     # execução sem interrupção, projeto "a"
     cliente, _, _ = montar(projeto_tmp)
-    programa.main(roteiro('2', 'a', '2', '1', '1'), cliente, projeto_tmp)
+    programa.main(roteiro('1', 'a', '2', '1', '1'), cliente, projeto_tmp)
 
     # execução interrompida na 4ª matéria e retomada, projeto "b"
     cliente, _, _ = montar(projeto_tmp)
@@ -205,9 +205,9 @@ def test_interrompida_e_retomada_da_o_mesmo_resultado(projeto_tmp, monkeypatch):
 
     monkeypatch.setattr(materias, 'raspar_materia', cair_na_quarta)
     # a execução "a" criou a tabela geral de casas: aparece a pergunta de reaproveitá-la
-    assert programa.main(roteiro('2', 'b', '2', '2', '1', '1'), cliente, projeto_tmp) == 1
+    assert programa.main(roteiro('1', 'b', '2', '2', '1', '1'), cliente, projeto_tmp) == 1
     monkeypatch.setattr(materias, 'raspar_materia', original)
-    assert programa.main(roteiro('2', 'b', '1'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro('1', 'b', '1'), cliente, projeto_tmp) == 0
 
     a = ler_final(projeto_tmp / 'a_proj' / 'a_resultado_final.csv').drop(columns=['raspada_em'])
     b = ler_final(projeto_tmp / 'b_proj' / 'b_resultado_final.csv').drop(columns=['raspada_em'])
@@ -248,7 +248,7 @@ def test_retomada_com_cliente_novo_respeita_o_limite(projeto_tmp, monkeypatch):
         historico=historico,
         relogio_parede=relogio.agora,
     )
-    assert programa.main(roteiro('2', 'p', '1'), segundo, projeto_tmp) == 0
+    assert programa.main(roteiro('1', 'p', '1'), segundo, projeto_tmp) == 0
     for site in {s for s, _ in horarios}:
         tempos = sorted(t for s, t in horarios if s == site)
         for i, t in enumerate(tempos):

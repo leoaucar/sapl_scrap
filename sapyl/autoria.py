@@ -1,9 +1,10 @@
 """Acrescenta as colunas Autoria e Tramite a uma planilha de resultados.
 
-Uso (de dentro da pasta com o CSV):
-    python -m sapyl.autoria
-O programa lista os CSVs da pasta e pergunta qual usar. O arquivo escolhido
-não é alterado: o resultado vai para `<nome>_autoria_tramitacao.csv`.
+É a opção 3 do menu do programa (`sapyl`): a entrada é o resultado final de
+um projeto ou qualquer CSV com a coluna `Link Materia`. A planilha de entrada
+não é alterada: o resultado vai para `<entrada>_autoria_tramitacao.csv`, ao
+lado dela. O progresso fica em `<entrada>_autoria_tramitacao_estado.csv`, e
+uma execução interrompida continua de onde parou.
 
 - `Autoria`: autores da matéria, separados por '; ' (ex.: "PEDRO LONGO (Parlamentar)").
 - `Tramite`: última tramitação, "<data> | <unidade local> | <unidade destino> | <status>".
@@ -20,7 +21,7 @@ minuto por site, retentativas em 429/5xx).
 """
 
 import re
-import sys
+from collections import Counter
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -29,29 +30,19 @@ from bs4 import BeautifulSoup
 
 from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
-from sapyl.colunas import SEPARADOR, Linha
-from sapyl.interface.entrada import Leitor, perguntar_opcao
-from sapyl.links import no_endereco, normalizar_link
+from sapyl.colunas import COLUNAS_AUTORIA, COLUNAS_AUTORIA_PARCIAL, ETAPA_AUTORIA, SEPARADOR, Linha
+from sapyl.estado import ArquivoCSV, Estado, ler_csv
+from sapyl.links import chave, no_endereco, normalizar_link
 from sapyl.materias import Fontes
 from sapyl.materias.api import Consultas
 from sapyl.materias.valores import data_br, esquema_da_casa
 
-BOAS_VINDAS = f'{registro.NOME}: autoria e tramitação\n'
 SUFIXO_SAIDA = '_autoria_tramitacao'
 log = registro.logger('autoria')
 
 
 # Páginas de uma lista da API que seguimos, no máximo (cada uma tem até 100 itens)
 MAX_PAGINAS_API = 20
-# Colunas que esta etapa acrescenta
-COLUNAS_AUTORIA = [
-    'Autoria',
-    'Tramite',
-    'status_autoria',
-    'status_tramitacao',
-    'erro_autoria_tramitacao',
-    'fonte_autoria',
-]
 
 
 def link_base(link: object) -> str:
@@ -220,63 +211,78 @@ def raspar_autoria(link_materia: str, cliente: ClienteSAPL, fontes: Fontes) -> L
     }
 
 
-def escolher_csv(pasta: str | Path, entrada: Leitor = input) -> Path | None:
-    """Lista os CSVs da pasta (menos as saídas deste script) e pergunta qual usar."""
-    arquivos = sorted(p for p in Path(pasta).glob('*.csv') if not p.stem.endswith(SUFIXO_SAIDA))
-    if not arquivos:
-        return None
-    menu = ''.join(f'{i}- {p.name}\n' for i, p in enumerate(arquivos, start=1))
-    escolha = perguntar_opcao(
-        'Qual arquivo usar?\n' + menu, [str(i) for i in range(1, len(arquivos) + 1)], entrada
+def arquivos_de_saida(entrada: str | Path) -> tuple[Path, Path, Path]:
+    """(saída, parcial, estado) ao lado da planilha de entrada."""
+    entrada = Path(entrada)
+    base = entrada.with_name(entrada.stem + SUFIXO_SAIDA)
+    return (
+        base.with_suffix('.csv'),
+        base.with_name(base.name + '_parcial.csv'),
+        base.with_name(base.name + '_estado.csv'),
     )
-    return arquivos[int(escolha) - 1]
 
 
-def processar(caminho: str | Path, cliente: ClienteSAPL) -> Path:
-    """Lê o CSV, busca autoria e tramitação de cada matéria e grava o novo arquivo."""
-    dados = pd.read_csv(caminho, dtype=str, keep_default_na=False)
-    dados = dados.drop(columns=[c for c in dados.columns if c.startswith('Unnamed')])
-    fontes = Fontes()
-    linhas = []
-    for i, link in enumerate(dados['Link Materia'], start=1):
-        log.info('Autoria e tramitação %d de %d: %s', i, len(dados), link)
-        linhas.append(raspar_autoria(link, cliente, fontes))
-    for coluna in COLUNAS_AUTORIA:
-        dados[coluna] = [linha[coluna] for linha in linhas]
-    erros = dados['erro_autoria_tramitacao']
-    saida = Path(caminho).with_name(Path(caminho).stem + SUFIXO_SAIDA + '.csv')
-    dados.to_csv(saida, index=False)
-    falhas = sum(1 for e in erros if e)
-    log.info('Pronto: %s (%d matérias, %d com falha)', saida, len(dados), falhas)
-    return saida
+def chave_do_link(link: object) -> str | None:
+    """Chave `<host>/<sapl_id>` de um link de matéria, ou None se não for um."""
+    casa = casa_do_link(str(link))
+    normal = normalizar_link(casa, link)
+    return chave(casa, normal[1]) if normal else None
 
 
-def main(
-    pasta: str | Path = '.', entrada: Leitor = input, cliente: ClienteSAPL | None = None
-) -> int:
-    """Escolhe um CSV da pasta e grava a cópia com autoria e tramitação.
+def processar(
+    entrada: str | Path, cliente: ClienteSAPL, fontes: Fontes | None = None
+) -> tuple[Path, Counter[str]]:
+    """Busca autoria e tramitação das matérias de uma planilha e grava uma cópia com elas.
 
-    Devolve o código de saída (0 ou 1).
+    A planilha precisa da coluna `Link Materia` e nunca é alterada. Cada
+    matéria é gravada no arquivo parcial **antes** do estado; uma execução
+    interrompida, rodada de novo, só busca o que falta ou falhou. No fim, a
+    linha mais recente de cada matéria é juntada à planilha, pela chave, em
+    `<entrada>_autoria_tramitacao.csv`. Devolve (saída, contagens por status).
     """
-    registro.configurar(pasta, 'autoria_tramitacao', 'autoria')
-    print(BOAS_VINDAS)
-    try:
-        caminho = escolher_csv(pasta, entrada)
-    except (KeyboardInterrupt, EOFError):
-        print('\nInterrompido.')
-        return 1
-    if caminho is None:
-        print('Nenhum arquivo .csv nesta pasta. Copie para cá o resultado final de um projeto.')
-        return 1
-    try:
-        # mesmo arquivo do programa principal quando roda na mesma pasta
-        historico = Path(pasta) / '.sapl_historico.json'
-        processar(caminho, cliente or ClienteSAPL(historico=str(historico)))
-    except KeyboardInterrupt:
-        print('\nInterrompido. O arquivo de entrada não foi alterado.')
-        return 1
-    return 0
+    dados = pd.read_csv(entrada, dtype=str, keep_default_na=False)
+    dados = dados.drop(columns=[c for c in dados.columns if c.startswith('Unnamed')])
+    if 'Link Materia' not in dados.columns:
+        raise ValueError(f'{entrada} não tem a coluna "Link Materia"')
+    saida, parcial, arquivo_estado = arquivos_de_saida(entrada)
+    chaves = [chave_do_link(link) for link in dados['Link Materia']]
+    unicas = {}
+    for k, link in zip(chaves, dados['Link Materia'], strict=True):
+        if k is not None and k not in unicas:
+            unicas[k] = link
 
+    fontes = fontes or Fontes()
+    estado = Estado(arquivo_estado)
+    arquivo = ArquivoCSV(parcial, COLUNAS_AUTORIA_PARCIAL)
+    try:
+        pendentes = [
+            (k, link) for k, link in unicas.items() if estado.status(ETAPA_AUTORIA, k) != 'ok'
+        ]
+        log.info(
+            'Autoria e tramitação: %d matérias a buscar, %d já feitas',
+            len(pendentes),
+            len(unicas) - len(pendentes),
+        )
+        for i, (k, link) in enumerate(pendentes, start=1):
+            linha = raspar_autoria(link, cliente, fontes)
+            arquivo.anexar({'chave': k, **linha})
+            erro = linha['erro_autoria_tramitacao']
+            estado.registrar(ETAPA_AUTORIA, k, 'erro' if erro else 'ok', erro)
+            log.info('Autoria e tramitação %d de %d (%s): %s', i, len(pendentes), k, erro or 'ok')
+        contagens = estado.contagens(ETAPA_AUTORIA, set(unicas))
+    finally:
+        arquivo.fechar()
+        estado.fechar()
 
-if __name__ == '__main__':
-    sys.exit(main())
+    ultimas = {linha['chave']: linha for linha in ler_csv(parcial, COLUNAS_AUTORIA_PARCIAL)}
+    invalido = {
+        'status_autoria': 'erro',
+        'status_tramitacao': 'erro',
+        'erro_autoria_tramitacao': 'link de matéria inválido',
+    }
+    for coluna in COLUNAS_AUTORIA:
+        dados[coluna] = [
+            ultimas.get(k, {}).get(coluna, '') if k else invalido.get(coluna, '') for k in chaves
+        ]
+    dados.to_csv(saida, index=False)
+    return saida, contagens

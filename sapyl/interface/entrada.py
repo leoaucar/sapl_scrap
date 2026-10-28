@@ -32,13 +32,13 @@ def perguntar_sim_nao(texto: str, entrada: Leitor = input) -> bool:
     return perguntar_opcao(texto, ['1', '2'], entrada) == '1'
 
 
-def perguntar_texto(texto: str, entrada: Leitor = input) -> str:
-    """Texto não vazio, sem barras (usado para nomes de projeto e de arquivo)."""
+def perguntar_texto(texto: str, entrada: Leitor = input, aceitar_barras: bool = False) -> str:
+    """Texto não vazio. Sem barras, a menos que `aceitar_barras` (caminhos de arquivo)."""
     while True:
         resposta = str(entrada(texto)).strip()
         if not resposta:
             print('A resposta não pode ficar vazia.')
-        elif '/' in resposta or '\\' in resposta:
+        elif not aceitar_barras and ('/' in resposta or '\\' in resposta):
             print('Não use barras ( / ou \\ ) no nome.')
         else:
             return resposta
@@ -75,3 +75,43 @@ def escolher_projeto_existente(raiz: str | Path, entrada: Leitor = input) -> Pro
         if projeto.final.exists():
             return projeto
         print(f'Não encontrei {projeto.final}. Confira o nome do projeto.')
+
+
+PERGUNTA_ENTRADA_AUTORIA = (
+    'Digite o nome de um projeto ou o caminho de um arquivo CSV (com a coluna Link Materia)\n'
+)
+
+
+def resultado_mais_recente(projeto: Projeto) -> Path | None:
+    """O resultado final do projeto, ou o `_ATUALIZADO_` mais novo, se houver um."""
+    candidatos = [
+        projeto.final,
+        *projeto.pasta.glob(f'{projeto.nome}_resultado_final_ATUALIZADO_*.csv'),
+    ]
+    existentes = [c for c in candidatos if c.is_file()]
+    return max(existentes, key=lambda c: c.stat().st_mtime) if existentes else None
+
+
+def escolher_entrada_autoria(
+    raiz: str | Path, entrada: Leitor = input
+) -> tuple[Path, Projeto | None]:
+    """Pergunta até receber um projeto com resultado ou um CSV que existe.
+
+    Devolve (planilha de entrada, projeto ou None se a entrada é um CSV avulso).
+    """
+    existentes = projetos_existentes(raiz)
+    if existentes:
+        print('Projetos encontrados: ' + ', '.join(existentes))
+    while True:
+        resposta = perguntar_texto(PERGUNTA_ENTRADA_AUTORIA, entrada, aceitar_barras=True)
+        projeto = Projeto(raiz, nome_limpo(resposta))
+        if projeto.pasta.is_dir():
+            final = resultado_mais_recente(projeto)
+            if final is not None:
+                return final, projeto
+        caminho = Path(resposta).expanduser()
+        if not caminho.is_absolute():
+            caminho = Path(raiz) / caminho
+        if caminho.is_file() and caminho.suffix.lower() == '.csv':
+            return caminho, None
+        print(f'Não encontrei o projeto nem o arquivo "{resposta}". Confira o nome.')

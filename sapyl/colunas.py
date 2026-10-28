@@ -59,9 +59,22 @@ COLUNAS_CRU = ['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link']
 # o site da casa redireciona (vazio se não redireciona)
 COLUNAS_CASAS = ['url', 'ativa', 'motivo', 'uf', 'url_final']
 
+# Colunas que a autoria e tramitação acrescentam à planilha de entrada
+COLUNAS_AUTORIA = [
+    'Autoria',
+    'Tramite',
+    'status_autoria',
+    'status_tramitacao',
+    'erro_autoria_tramitacao',
+    'fonte_autoria',
+]
+# Arquivo parcial da autoria (`<entrada>_autoria_tramitacao_parcial.csv`)
+COLUNAS_AUTORIA_PARCIAL = ['chave'] + COLUNAS_AUTORIA
+
 # Arquivo de estado (`<nome>_estado.csv`) e suas etapas
 CAMPOS_ESTADO = ['etapa', 'chave', 'status', 'erro', 'quando']
 ETAPA_BUSCA = 'busca'
 ETAPA_MATERIA = 'materia'
 ETAPA_PDF = 'pdf'
-ETAPAS = (ETAPA_BUSCA, ETAPA_MATERIA, ETAPA_PDF)
+ETAPA_AUTORIA = 'autoria'
+ETAPAS = (ETAPA_BUSCA, ETAPA_MATERIA, ETAPA_PDF, ETAPA_AUTORIA)

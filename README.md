@@ -114,14 +114,17 @@ Lista das casas que usam o SAPL. O programa usa as colunas **`UF`** e
 Na raiz do projeto, com o ambiente virtual ativado:
 
 ```bash
-python programa.py
+sapyl
 ```
+
+(ou `python -m sapyl`, ou ainda `python programa.py` na raiz do repositório)
 
 O programa faz perguntas no terminal. Responda digitando o número da opção
 (respostas inválidas são pedidas de novo):
 
-1. **Apenas atualizar a tabela de um projeto anterior?** `1` sim
-   (veja [Atualizar um projeto](#atualizar-um-projeto)), `2` não.
+1. **O que você quer fazer?** `1` novo projeto ou retomar um projeto, `2`
+   atualizar um projeto (veja [Atualizar um projeto](#atualizar-um-projeto)),
+   `3` autoria e tramitação (veja [Autoria e tramitação](#autoria-e-tramitação)).
 2. **Nome do projeto**: é criada a pasta `<nome>_proj/`. Se o nome já existe,
    o programa oferece **retomar** esse projeto ou escolher outro nome; um
    projeto existente nunca é sobrescrito.
@@ -142,7 +145,7 @@ perguntado de novo.
 
 ### Retomar um projeto
 
-Rode `python programa.py`, responda `2` na primeira pergunta, digite o nome do
+Rode `sapyl`, escolha `1` na primeira pergunta, digite o nome do
 projeto e escolha `1- retomar este projeto`. O programa:
 
 - não refaz as buscas que terminaram (e refaz as que ficaram incompletas);
@@ -220,8 +223,8 @@ não existem mais nas páginas do SAPL e vinham sempre vazias.
 Para atualizar os dados de matérias já encontradas (por exemplo, depois de
 filtrar manualmente as relevantes no `_resultado_final.csv`):
 
-1. Rode `python programa.py`.
-2. Responda `1` na pergunta "Deseja apenas atualizar a tabela…".
+1. Rode `sapyl`.
+2. Escolha `2` (atualizar um projeto).
 3. Digite o nome do projeto (com ou sem `_proj`).
 
 O resultado é salvo como `<nome>_resultado_final_ATUALIZADO_<dd_mm_aaaa>.csv`
@@ -239,20 +242,23 @@ arquivo atualizado e dos downloads.
 
 ## Autoria e tramitação
 
-O módulo `sapyl/autoria.py` acrescenta as colunas `Autoria` e `Tramite` (a
-tramitação mais recente) a uma planilha de resultados.
+A opção `3` do menu acrescenta a uma planilha as colunas `Autoria` (os autores
+da matéria) e `Tramite` (a tramitação mais recente: data, unidade local,
+unidade de destino e status).
 
-1. Copie o CSV de resultados (com a coluna `Link Materia`) para a pasta onde
-   você roda o programa (a raiz do repositório).
-2. Rode, dessa pasta, e escolha o arquivo na lista:
+1. Rode `sapyl` e escolha `3`.
+2. Digite o **nome de um projeto** (usa o resultado final mais recente dele,
+   inclusive um `_ATUALIZADO_`) ou o **caminho de um CSV** qualquer com a
+   coluna `Link Materia`.
 
-   ```bash
-   python -m sapyl.autoria
-   ```
+A planilha de entrada não é alterada. O resultado vai para
+`<entrada>_autoria_tramitacao.csv`, ao lado dela, com as colunas
+`status_autoria`, `status_tramitacao`, `erro_autoria_tramitacao` e
+`fonte_autoria` (`api` ou `html`). Os dados vêm da API do SAPL, ou das páginas
+da matéria nas casas sem API; as duas fontes dão o mesmo texto.
 
-O arquivo escolhido não é alterado; o resultado vai para
-`<nome>_autoria_tramitacao.csv`, com as colunas `status_autoria`,
-`status_tramitacao` e `erro_autoria_tramitacao`.
+Se a execução parar no meio, rode de novo, escolha `3` e digite a mesma
+entrada: só o que falta (ou falhou) é buscado de novo.
 
 ## Testes
 

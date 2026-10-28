@@ -36,4 +36,4 @@ def test_listas_derivadas_continuam_iguais_as_da_fase1():
     assert colunas.COLUNAS_FINAIS[:3] == ['Link Materia', 'Link Casa', 'Palavras']
     assert colunas.COLUNAS_MATERIAS == ['chave'] + colunas.COLUNAS_FINAIS
     assert colunas.COLUNAS_LINKS == ['chave', 'Link Materia', 'Link Casa', 'Palavras', 'sapl_id']
-    assert colunas.ETAPAS == ('busca', 'materia', 'pdf')
+    assert colunas.ETAPAS == ('busca', 'materia', 'pdf', 'autoria')

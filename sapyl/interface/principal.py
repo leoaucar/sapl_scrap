@@ -27,7 +27,7 @@ from typing import Any
 
 import pandas as pd
 
-from sapyl import __version__, registro
+from sapyl import __version__, autoria, registro
 from sapyl import casas as cl
 from sapyl import projeto as gp
 from sapyl.busca import buscar, buscas_pendentes, chave_busca
@@ -38,6 +38,7 @@ from sapyl.estado import Cache, Estado
 from sapyl.interface.entrada import (
     Leitor,
     abrir_ou_criar,
+    escolher_entrada_autoria,
     escolher_projeto_existente,
     perguntar_opcao,
     perguntar_sim_nao,
@@ -56,7 +57,12 @@ from sapyl.tabela import (
 )
 
 BOAS_VINDAS = f'{registro.NOME} (versão {__version__})\n'
-PERGUNTA_ATUALIZAR = 'Deseja apenas atualizar a tabela de algum projeto anterior? 1- sim, 2- não\n'
+PERGUNTA_MODO = (
+    'O que você quer fazer?\n'
+    '1- novo projeto ou retomar um projeto\n'
+    '2- atualizar um projeto\n'
+    '3- autoria e tramitação\n'
+)
 PERGUNTA_TABELA = 'Deseja usar a mesma tabela de casas do último projeto? 1- sim, 2- não\n'
 PERGUNTA_SUL = 'Deseja restringir a busca a Sul e Sudeste? 1- sim, 2- não\n'
 PERGUNTA_RELEVANTES = (
@@ -66,6 +72,10 @@ PERGUNTA_DOWNLOAD = 'Deseja baixar os textos originais (PDFs)? 1- sim, 2- não\n
 # Horários das requisições recentes de cada site, compartilhados entre
 # execuções e projetos (veja cliente_http). Fica na pasta de trabalho.
 ARQUIVO_HISTORICO = '.sapl_historico.json'
+MENSAGEM_INTERROMPIDO_AUTORIA = (
+    '\nExecução interrompida. Para continuar de onde parou, rode o programa de novo, '
+    'escolha 3 e digite a mesma entrada.'
+)
 MENSAGEM_INTERROMPIDO = (
     '\nExecução interrompida. Para continuar de onde parou, rode o programa '
     'de novo, digite o mesmo nome de projeto e escolha "retomar".'
@@ -237,19 +247,43 @@ def executar_atualizacao(
         estado.fechar()
 
 
+def executar_autoria(raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = input) -> str:
+    """Autoria e tramitação de um projeto (o resultado mais recente) ou de um CSV.
+
+    Saída, estado e log ficam ao lado da planilha de entrada (na pasta do
+    projeto, para um projeto). Devolve o texto do resumo.
+    """
+    planilha, projeto = escolher_entrada_autoria(raiz, entrada)
+    if projeto is not None:
+        registro.configurar(projeto.pasta, projeto.nome, 'autoria')
+        casas = cl.ler_tabela_casas(projeto.casas) if projeto.casas.exists() else None
+        finais = cl.enderecos_finais(casas) if casas is not None else {}
+        fontes = Fontes(Cache(projeto.cache), finais)
+    else:
+        registro.configurar(planilha.parent, planilha.stem, 'autoria')
+        fontes = Fontes()
+    log.info('Autoria e tramitação de %s', planilha)
+    saida, contagens = autoria.processar(planilha, cliente, fontes)
+    return registro.resumo_autoria(contagens, saida)
+
+
 def main(
     entrada: Leitor = input, cliente: ClienteSAPL | None = None, raiz: str | Path = '.'
 ) -> int:
-    """Pergunta o modo e roda o projeto (novo, retomado ou atualização).
+    """Pergunta o modo e roda: projeto novo ou retomado, atualização, ou autoria e tramitação.
 
     Devolve o código de saída: 0, ou 1 se a execução foi interrompida.
     """
     raiz = Path(raiz)
     cliente = cliente or ClienteSAPL(historico=str(raiz / ARQUIVO_HISTORICO))
     print(BOAS_VINDAS)
+    modo = None
     try:
-        if perguntar_sim_nao(PERGUNTA_ATUALIZAR, entrada):
+        modo = perguntar_opcao(PERGUNTA_MODO, ['1', '2', '3'], entrada)
+        if modo == '2':
             texto = executar_atualizacao(raiz, cliente, entrada)
+        elif modo == '3':
+            texto = executar_autoria(raiz, cliente, entrada)
         else:
             projeto, novo = abrir_ou_criar(raiz, entrada)
             registro.configurar(projeto.pasta, projeto.nome, 'novo' if novo else 'retomada')
@@ -264,7 +298,7 @@ def main(
             texto = executar_projeto(projeto, config, cliente, raiz)
     except (KeyboardInterrupt, EOFError):
         # Ctrl+C a qualquer momento, ou Ctrl+D / fim da entrada numa pergunta
-        print(MENSAGEM_INTERROMPIDO)
+        print(MENSAGEM_INTERROMPIDO_AUTORIA if modo == '3' else MENSAGEM_INTERROMPIDO)
         return 1
     log.info(texto)
     return 0

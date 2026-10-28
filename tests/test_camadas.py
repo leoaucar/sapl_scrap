@@ -15,8 +15,7 @@ CAMADAS = [
     {'projeto'},
     {'interface'},
 ]
-# Até a T18, autoria.py ainda pergunta qual CSV usar (essa escolha vai para a interface)
-EXCECOES = {('autoria', 'interface')}
+EXCECOES: set[tuple[str, str]] = set()
 
 
 def _grupo(modulo):

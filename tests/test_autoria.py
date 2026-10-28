@@ -1,11 +1,16 @@
 """Autoria e tramitação: API, HTML e o arquivo de saída."""
 
+import json
+import re
+
 import pandas as pd
 import pytest
 
 from sapyl import autoria as at
+from sapyl import materias as m
 from sapyl.cliente_http import ClienteSAPL
-from tests.apoio import ler_fixture, roteiro
+from sapyl.estado import Cache
+from tests.apoio import PASTA_FIXTURES
 
 AL = 'https://sapl.al.ac.leg.br/'
 RB = 'https://sapl.riobranco.ac.leg.br/'
@@ -45,77 +50,8 @@ def test_pagina_sem_tabela(cliente, sessao):
     assert at.tramitacao_html(RB + 'materia/2', cliente) == ('', '')
 
 
-def test_main_escolhe_arquivo_e_grava_novo(tmp_path, cliente, sessao):
-    entrada = tmp_path / 'resultado.csv'
-    pd.DataFrame(
-        {'Link Materia': [AL + 'materia/15951', RB + 'materia/1'], 'Titulo': ['a', 'b']}
-    ).to_csv(entrada)  # com índice, como os arquivos antigos
-    (tmp_path / 'outro.csv').write_text('x\n1\n')
-    original = entrada.read_text()
-    sessao.responder(
-        AL + 'materia/15951/autoria', fixture='sapl/sapl.al.ac.leg.br/materia_15951_autoria.html'
-    )
-    sessao.responder(
-        AL + 'materia/15951/tramitacao',
-        fixture='sapl/sapl.al.ac.leg.br/materia_15951_tramitacao.html',
-    )
-    for casa, i in ((AL, '15951'), (RB, '1')):
-        for lista in ('autoria', 'tramitacao'):
-            sessao.responder(f'{casa}api/materia/{lista}/?materia={i}', status=404)
-    sessao.responder(RB + 'materia/1/autoria', status=503)
-    sessao.responder(
-        RB + 'materia/1/tramitacao',
-        texto=ler_fixture('sapl/sapl.riobranco.ac.leg.br/materia_34049_tramitacao.html'),
-    )
-    ler = roteiro('3', '2')  # opção inválida, depois resultado.csv (2ª na lista)
-    assert at.main(tmp_path, ler, cliente) == 0
-    assert '1- outro.csv' in ler.perguntas[0] and '2- resultado.csv' in ler.perguntas[0]
-    assert entrada.read_text() == original
-    saida = pd.read_csv(
-        tmp_path / 'resultado_autoria_tramitacao.csv', dtype=str, keep_default_na=False
-    )
-    assert list(saida.columns) == [
-        'Link Materia',
-        'Titulo',
-        'Autoria',
-        'Tramite',
-        'status_autoria',
-        'status_tramitacao',
-        'erro_autoria_tramitacao',
-        'fonte_autoria',
-    ]
-    assert saida['status_autoria'].tolist() == ['ok', 'erro']
-    assert saida['erro_autoria_tramitacao'].tolist() == ['', 'autoria: HTTP 503']
-    assert saida['Tramite'][0].startswith('10/07/2024 | ')
-    assert not saida['Tramite'][1].startswith('[')  # texto, não lista Python
-    # a saída não aparece como opção numa próxima execução
-    assert len(list(tmp_path.glob('*.csv'))) == 3
-    assert at.escolher_csv(tmp_path, roteiro('2')).name == 'resultado.csv'
-
-
-def test_main_sem_csv(tmp_path, capsys):
-    assert at.main(tmp_path, roteiro(), None) == 1
-    assert 'Nenhum arquivo .csv' in capsys.readouterr().out
-
-
-def test_main_interrompido_na_pergunta(tmp_path, capsys):
-    (tmp_path / 'a.csv').write_text('Link Materia\nx\n')
-
-    def sem_mais_respostas(texto=''):
-        raise EOFError
-
-    assert at.main(tmp_path, sem_mais_respostas, None) == 1
-    assert 'Interrompido' in capsys.readouterr().out
-
-
 # --- Pela API (FR-14, FR-15, FR-16) -----------------------------------------
 
-import json  # noqa: E402
-import re  # noqa: E402
-
-from sapyl import materias as m  # noqa: E402
-from sapyl.estado import Cache  # noqa: E402
-from tests.apoio import PASTA_FIXTURES  # noqa: E402
 
 CV = 'https://sapl.cascavel.pr.leg.br/'
 RECURSOS = {
@@ -259,3 +195,82 @@ def test_lista_de_autores_em_varias_paginas(cliente, sessao):
         == 'Zé Lopes (Parlamentar); Executivo Municipal - sapladm (Poder Executivo)'
     )
     assert json.dumps(linha)  # só texto
+
+
+# --- Planilha inteira, com retomada (FR-17, FR-18) --------------------------
+
+
+def _entrada(tmp_path, links, indice=False):
+    caminho = tmp_path / 'resultado.csv'
+    pd.DataFrame({'Link Materia': links, 'Titulo': [f't{i}' for i in range(len(links))]}).to_csv(
+        caminho, index=indice
+    )
+    return caminho
+
+
+def _sem_api(sessao, casa, *ids):
+    for i in ids:
+        for lista in ('autoria', 'tramitacao'):
+            sessao.responder(f'{casa}api/materia/{lista}/?materia={i}', status=404)
+
+
+def test_processar_grava_copia_com_as_colunas_novas(tmp_path, cliente, sessao):
+    entrada = _entrada(tmp_path, [AL + 'materia/15951', AL + 'materia/15951/ta', 'lixo'], True)
+    original = entrada.read_bytes()
+    _sem_api(sessao, AL, '15951')
+    _responder_html(sessao, AL, '15951')
+    saida, contagens = at.processar(entrada, cliente)
+    assert entrada.read_bytes() == original
+    assert saida == tmp_path / 'resultado_autoria_tramitacao.csv'
+    tabela = pd.read_csv(saida, dtype=str, keep_default_na=False)
+    assert list(tabela.columns) == ['Link Materia', 'Titulo', *at.COLUNAS_AUTORIA]
+    assert tabela['Autoria'].tolist()[:2] == ['PEDRO LONGO (Parlamentar)'] * 2  # mesma matéria
+    assert tabela['erro_autoria_tramitacao'][2] == 'link de matéria inválido'
+    assert contagens == {'ok': 1}
+    assert sessao.contar('/materia/15951/autoria') == 1  # repetida: buscada uma vez
+
+
+def test_interrompida_e_retomada_so_busca_o_que_falta(tmp_path, cliente, sessao, monkeypatch):
+    ids = ['15951', '17764']
+    entrada = _entrada(tmp_path, [AL + f'materia/{i}' for i in ids] + [RB + 'materia/5'])
+    _sem_api(sessao, AL, *ids)
+    for i in ids:
+        _responder_html(sessao, AL, i)
+    sessao.responder(f'{RB}api/materia/autoria/?materia=5', status=503)
+    sessao.responder(f'{RB}api/materia/tramitacao/?materia=5', json_dados={'results': []})
+
+    original, vezes = at.raspar_autoria, []
+
+    def cair_na_segunda(link, *args):
+        vezes.append(link)
+        if len(vezes) == 2:
+            raise KeyboardInterrupt
+        return original(link, *args)
+
+    monkeypatch.setattr(at, 'raspar_autoria', cair_na_segunda)
+    with pytest.raises(KeyboardInterrupt):
+        at.processar(entrada, cliente)
+    monkeypatch.setattr(at, 'raspar_autoria', original)
+    assert not (tmp_path / 'resultado_autoria_tramitacao.csv').exists()
+
+    sessao.pedidos.clear()
+    saida, contagens = at.processar(entrada, cliente)
+    assert not any('15951' in u for u in sessao.pedidos)  # já feita antes da queda
+    assert contagens == {'ok': 2, 'erro': 1}
+    tabela = pd.read_csv(saida, dtype=str, keep_default_na=False)
+    assert tabela['status_autoria'].tolist() == ['ok', 'ok', 'erro']
+
+    # a que falhou é tentada de novo numa próxima execução; as ok, não
+    sessao.limpar(f'{RB}api/materia/autoria/?materia=5')
+    sessao.responder(f'{RB}api/materia/autoria/?materia=5', json_dados={'results': []})
+    sessao.pedidos.clear()
+    _, contagens = at.processar(entrada, cliente)
+    assert contagens == {'ok': 3}
+    assert all('materia=5' in u for u in sessao.pedidos)
+
+
+def test_planilha_sem_link_materia(tmp_path, cliente):
+    caminho = tmp_path / 'x.csv'
+    caminho.write_text('Titulo\na\n', encoding='utf-8')
+    with pytest.raises(ValueError, match='Link Materia'):
+        at.processar(caminho, cliente)

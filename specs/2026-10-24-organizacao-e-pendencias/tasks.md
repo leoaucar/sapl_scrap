@@ -181,13 +181,19 @@ Rules for every task (same as Phase 1):
     `__str__` (T02 finding). New column `fonte_autoria` (`api`/`html`).
     TR-3 holds for the 4 matters with saved HTML tabs. Author lists follow
     `next` pages (up to 20).
-- [ ] **T18 Authors and procedure in the menu, with resume** (FR-7, FR-17, FR-18)
+- [x] **T18 Authors and procedure in the menu, with resume** (FR-7, FR-17, FR-18)
   - Menu option 3. The input is a project name or a CSV path. Output and
     state go in the project folder or next to the CSV. Partial file and state
     as in plan §7.8. Remove `autoria_e_tramitacao/`.
   - Tests: project input picks the latest final, CSV input works, the input
     is not modified, Ctrl+C then resume fetches only what's missing, and the
     output has the input's columns plus the new ones.
+  - *As built:* the first question is now `1` new/resume, `2` update, `3`
+    authors and procedure (test scripts' first answers swapped). Input
+    choice is in `interface/entrada.py`, so the layer-test exception is gone
+    and `python -m sapyl.autoria` no longer exists. A project input uses its
+    cache and `url_final`. Nothing in `autoria_e_tramitacao/` is tracked;
+    the folder only remains on disk for the untracked research file.
 
 ## Phase E: Phase 1 findings, end-to-end, docs
 

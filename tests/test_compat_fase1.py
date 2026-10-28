@@ -52,7 +52,7 @@ def test_fixture_tem_os_arquivos_da_fase1():
 
 def test_retomada_so_pede_o_que_falhou(copia):
     cliente, sessao = _cliente()
-    assert programa.main(roteiro('2', 'fase1', '1'), cliente, copia) == 0
+    assert programa.main(roteiro('1', 'fase1', '1'), cliente, copia) == 0
     assert not any('/sistema/search/' in u for u in sessao.pedidos)
     materias = [
         u
@@ -81,7 +81,7 @@ def test_busca_incompleta_de_projeto_antigo_usa_os_dois_arquivos(copia):
     with open(pasta / 'fase1_estado.csv', 'a', encoding='utf-8', newline='') as estado:
         estado.write('busca,"sapl.cascavel.pr.leg.br|""plano+diretor""",incompleta,x,27/10/2026\n')
     cliente, sessao = _cliente()
-    assert programa.main(roteiro('2', 'fase1', '1'), cliente, copia) == 0
+    assert programa.main(roteiro('1', 'fase1', '1'), cliente, copia) == 0
     buscas = [u for u in sessao.pedidos if '/sistema/search/' in u]
     assert buscas and all('sapl.cascavel.pr.leg.br' in u and 'plano+diretor' in u for u in buscas)
     # o arquivo antigo não é escrito; a busca refeita vai para o arquivo novo

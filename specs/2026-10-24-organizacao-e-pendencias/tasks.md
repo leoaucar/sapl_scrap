@@ -166,7 +166,7 @@ Rules for every task (same as Phase 1):
     new address. Update mode reads `url_final` from the project's house
     table. Tests in `tests/test_redirecionamento.py`, including a full run
     where the old address only gets the availability test.
-- [ ] **T16 Update mode keeps the researcher's columns** (FR-19, FR-20)
+- [x] **T16 Update mode keeps the researcher's columns** (FR-19, FR-20)
   - Tests: extra columns are carried over by key and in order, the
     `Relevante` prompt appears only when the column exists, the accepted
     values are normalised, and the filter count is logged.

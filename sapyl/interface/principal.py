@@ -45,12 +45,23 @@ from sapyl.interface.entrada import (
 from sapyl.links import deduplicar_links, ler_links, links_das_buscas, salvar_links
 from sapyl.materias import Fontes, raspar_todas
 from sapyl.palavras import importar_palavras, preparar_termos
-from sapyl.tabela import ler_final, montar_final, salvar_final
+from sapyl.tabela import (
+    COLUNA_RELEVANTE,
+    colunas_extras,
+    filtrar_relevantes,
+    juntar_colunas_extras,
+    ler_final,
+    montar_final,
+    salvar_final,
+)
 
 BOAS_VINDAS = f'{registro.NOME} (versão {__version__})\n'
 PERGUNTA_ATUALIZAR = 'Deseja apenas atualizar a tabela de algum projeto anterior? 1- sim, 2- não\n'
 PERGUNTA_TABELA = 'Deseja usar a mesma tabela de casas do último projeto? 1- sim, 2- não\n'
 PERGUNTA_SUL = 'Deseja restringir a busca a Sul e Sudeste? 1- sim, 2- não\n'
+PERGUNTA_RELEVANTES = (
+    'Atualizar só as matérias marcadas como relevantes (coluna Relevante)? 1- sim, 2- não\n'
+)
 PERGUNTA_DOWNLOAD = 'Deseja baixar os textos originais (PDFs)? 1- sim, 2- não\n'
 # Horários das requisições recentes de cada site, compartilhados entre
 # execuções e projetos (veja cliente_http). Fica na pasta de trabalho.
@@ -184,14 +195,29 @@ def executar_projeto(
 def executar_atualizacao(
     raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = input, hoje: str | None = None
 ) -> str:
-    """Modo atualização: raspa de novo as matérias de um resultado final existente."""
+    """Modo atualização: raspa de novo as matérias de um resultado final existente.
+
+    As colunas acrescentadas à mão no resultado (ex.: `Relevante`, anotações)
+    passam para o arquivo novo. Se houver a coluna `Relevante`, pergunta se é
+    para atualizar só as matérias marcadas.
+    """
     base = escolher_projeto_existente(raiz, entrada)
+    tabela = ler_final(base.final)
+    so_relevantes = COLUNA_RELEVANTE in tabela.columns and perguntar_sim_nao(
+        PERGUNTA_RELEVANTES, entrada
+    )
     downloads = perguntar_sim_nao(PERGUNTA_DOWNLOAD, entrada)
     hoje = hoje or datetime.now().strftime('%d_%m_%Y')
     projeto = gp.Projeto(raiz, base.nome, data=hoje)
     registro.configurar(projeto.pasta, projeto.nome, 'atualizacao')
     log.info('Atualizando o projeto %s a partir de %s', projeto.nome, base.final)
-    tabela = ler_final(base.final)
+    extras = colunas_extras(tabela)
+    if extras:
+        log.info('Colunas acrescentadas mantidas: %s', ', '.join(extras))
+    if so_relevantes:
+        total = len(tabela)
+        tabela = filtrar_relevantes(tabela)
+        log.info('Só as relevantes: %d de %d matérias', len(tabela), total)
     if 'Palavras' not in tabela.columns:
         tabela['Palavras'] = ''
     links = deduplicar_links(tabela[COLUNAS_ORIGEM].to_dict('records'))
@@ -205,7 +231,7 @@ def executar_atualizacao(
         final = montar_final(projeto.materias, links)
         if downloads:
             final = baixar_todos(final, str(projeto.downloads), cliente, estado)
-        salvar_final(final, projeto.final)
+        salvar_final(juntar_colunas_extras(final, tabela), projeto.final)
         return registro.resumo(estado, links, projeto.final, downloads=downloads)
     finally:
         estado.fechar()

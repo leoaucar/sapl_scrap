@@ -1,6 +1,7 @@
 """Tabela final: ordem das colunas, tentativa mais recente, compatibilidade."""
 
 import pandas as pd
+import pytest
 
 from sapyl import colunas
 from sapyl import links as lk
@@ -88,3 +89,53 @@ def test_salvar_e_ler_final_e_formato_antigo(tmp_path):
     # versões antigas gravavam o índice do pandas como primeira coluna
     pd.DataFrame({'Link Materia': ['x'], 'Link Casa': ['y']}).to_csv(tmp_path / 'velho.csv')
     assert list(t.ler_final(tmp_path / 'velho.csv').columns) == ['Link Materia', 'Link Casa']
+
+
+# --- Colunas da pessoa e relevantes (FR-19, FR-20) --------------------------
+
+CASA = 'https://sapl.a.leg.br/'
+
+
+def _final(*ids):
+    linhas = []
+    for i in ids:
+        linha = {c: '' for c in colunas.COLUNAS_FINAIS}
+        linha.update({'Link Casa': CASA, 'Link Materia': f'{CASA}materia/{i}', 'sapl_id': i})
+        linhas.append(linha)
+    return pd.DataFrame(linhas, columns=colunas.COLUNAS_FINAIS)
+
+
+@pytest.mark.parametrize('valor', ['sim', 'S', ' x ', '1', 'TRUE', 'Sim '])
+def test_valores_aceitos_como_relevante(valor):
+    assert t.eh_relevante(valor)
+
+
+@pytest.mark.parametrize('valor', ['', 'não', 'n', '0', 'false', 'talvez'])
+def test_valores_nao_relevantes(valor):
+    assert not t.eh_relevante(valor)
+
+
+def test_colunas_extras_e_filtro():
+    entrada = _final('1', '2', '3')
+    entrada['Relevante'] = ['x', '', 'sim']
+    entrada['Notas'] = ['a', 'b', 'c']
+    assert t.colunas_extras(entrada) == ['Relevante', 'Notas']
+    assert t.filtrar_relevantes(entrada)['sapl_id'].tolist() == ['1', '3']
+
+
+def test_juntar_extras_pela_chave_e_na_ordem():
+    entrada = _final('1', '2', '3')
+    entrada['Notas'] = ['um', 'dois', 'três']
+    entrada['Relevante'] = ['x', '', 'x']
+    # final em outra ordem, com /ta no link da entrada e uma matéria a mais
+    entrada.loc[1, 'Link Materia'] = f'{CASA}materia/2/ta'
+    final = _final('3', '2', '1', '9')
+    junto = t.juntar_colunas_extras(final, entrada)
+    assert list(junto.columns) == colunas.COLUNAS_FINAIS + ['Notas', 'Relevante']
+    assert junto['Notas'].tolist() == ['três', 'dois', 'um', '']
+    assert junto['Relevante'].tolist() == ['x', '', 'x', '']
+
+
+def test_sem_extras_nao_muda_nada():
+    final = _final('1')
+    assert t.juntar_colunas_extras(final, _final('1')) is final

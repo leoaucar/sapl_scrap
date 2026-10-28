@@ -228,6 +228,15 @@ O resultado é salvo como `<nome>_resultado_final_ATUALIZADO_<dd_mm_aaaa>.csv`
 e os downloads, se pedidos, em `downloads<dd_mm_aaaa>/`. A atualização também
 pode ser retomada no mesmo dia.
 
+Colunas que você acrescentou à planilha (anotações, classificações…) passam
+para o arquivo atualizado, depois das colunas do programa, na linha da mesma
+matéria.
+
+Se a planilha tiver uma coluna **`Relevante`**, o programa pergunta se é para
+atualizar só as matérias marcadas. Contam como marcadas: `sim`, `s`, `x`, `1`
+ou `true` (maiúsculas e espaços não importam). As demais ficam de fora do
+arquivo atualizado e dos downloads.
+
 ## Autoria e tramitação
 
 O módulo `sapyl/autoria.py` acrescenta as colunas `Autoria` e `Tramite` (a

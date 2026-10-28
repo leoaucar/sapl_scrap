@@ -230,3 +230,52 @@ def test_sem_aviso_quando_as_palavras_sao_iguais(projeto_tmp, cliente, sessao, s
 def test_sem_aviso_sem_arquivo_de_palavras(projeto_tmp):
     (projeto_tmp / 'arquivos_csv' / 'palavras_chave.xlsx').unlink()
     assert programa.avisar_palavras_mudadas(projeto_tmp, [P]) == []
+
+
+# --- Atualização com colunas da pessoa e Relevante (FR-19, FR-20) ------------
+
+
+def _marcar(projeto_tmp, relevantes):
+    caminho = projeto_tmp / 'teste_proj' / 'teste_resultado_final.csv'
+    final = ler_final(caminho)
+    final['Relevante'] = [relevantes.get(i, '') for i in final['sapl_id']]
+    final['Notas'] = [f'nota {i}' for i in final['sapl_id']]
+    final.to_csv(caminho, index=False)
+
+
+def _atualizado(projeto_tmp):
+    pasta = projeto_tmp / 'teste_proj'
+    return ler_final(next(pasta.glob('teste_resultado_final_ATUALIZADO_*')))
+
+
+def test_atualizacao_mantem_colunas_e_filtra_relevantes(projeto_tmp, cliente, sessao, sapl, caplog):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    _marcar(projeto_tmp, {'38415': ' Sim', '43300': 'x'})
+    sessao.pedidos.clear()
+    ler = roteiro('1', 'teste', '1', '2')  # atualizar, nome, só relevantes, sem downloads
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert programa.PERGUNTA_RELEVANTES in ler.perguntas
+    final = _atualizado(projeto_tmp)
+    assert final['sapl_id'].tolist() == ['38415', '43300']
+    assert list(final.columns)[-2:] == ['Relevante', 'Notas']
+    assert final['Notas'].tolist() == ['nota 38415', 'nota 43300']
+    assert any('Só as relevantes: 2 de 4' in r.getMessage() for r in caplog.records)
+    raspadas = [u for u in sessao.pedidos if '/materia/' in u and '/media/' not in u]
+    assert not any('43301' in u or '42263' in u for u in raspadas)
+
+
+def test_atualizacao_sem_filtro_mantem_todas_e_as_colunas(projeto_tmp, cliente, sessao, sapl):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    _marcar(projeto_tmp, {'38415': 'sim'})
+    assert programa.main(roteiro('1', 'teste', '2', '2'), cliente, projeto_tmp) == 0
+    final = _atualizado(projeto_tmp)
+    assert final['sapl_id'].tolist() == ['38415', '43301', '43300', '42263']
+    assert final['Relevante'].tolist() == ['sim', '', '', '']
+
+
+def test_sem_coluna_relevante_nao_pergunta(projeto_tmp, cliente, sessao, sapl):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    ler = roteiro('1', 'teste', '2')
+    assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert programa.PERGUNTA_RELEVANTES not in ler.perguntas

@@ -84,6 +84,36 @@ def perguntar_configuracao(raiz: str | Path, entrada: Leitor = input) -> dict[st
     }
 
 
+def avisar_palavras_mudadas(raiz: str | Path, salvas: list[str]) -> list[str]:
+    """Na retomada, avisa se o arquivo de palavras atual difere das palavras do projeto.
+
+    O projeto continua com as palavras salvas em config.json. Devolve o texto do
+    aviso (linhas), ou [] se as palavras são iguais ou não há arquivo de palavras.
+    """
+    pasta = _pasta_csv(raiz)
+    if not any((pasta / f'palavras_chave.{ext}').exists() for ext in ('csv', 'xlsx')):
+        return []
+    try:
+        atuais = preparar_termos(importar_palavras(pasta))
+    except (OSError, ValueError, KeyError) as erro:
+        log.debug('Não deu para ler o arquivo de palavras para comparar: %s', erro)
+        return []
+    novas = [p for p in atuais if p not in salvas]
+    fora = [p for p in salvas if p not in atuais]
+    if not novas and not fora:
+        return []
+    linhas = ['O arquivo de palavras-chave mudou desde que este projeto foi criado.']
+    if novas:
+        linhas.append('  Novas no arquivo (não serão buscadas): ' + ', '.join(novas))
+    if fora:
+        linhas.append('  Do projeto, fora do arquivo (continuam): ' + ', '.join(fora))
+    linhas.append(
+        '  O projeto continua com as palavras salvas. Para buscar as novas, crie um projeto novo.'
+    )
+    log.warning('\n'.join(linhas))
+    return linhas
+
+
 def preparar_casas(
     projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
 ) -> pd.DataFrame:
@@ -198,6 +228,7 @@ def main(
                 gp.salvar_config(projeto, config)
             else:
                 log.info('Retomando o projeto %s', projeto.nome)
+                avisar_palavras_mudadas(raiz, config['palavras'])
             log.info('Buscando os termos: %s', ', '.join(config['palavras']))
             texto = executar_projeto(projeto, config, cliente, raiz)
     except (KeyboardInterrupt, EOFError):

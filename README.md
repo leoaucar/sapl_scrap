@@ -150,6 +150,11 @@ projeto e escolha `1- retomar este projeto`. O programa:
 - tenta de novo as matérias com `status = erro`;
 - não baixa de novo os PDFs que já estão na pasta.
 
+A retomada usa as palavras-chave salvas no projeto (`config.json`). Se o
+arquivo de palavras mudou desde então, o programa avisa quais palavras são
+novas e quais saíram, e continua com as salvas. Para buscar palavras novas,
+crie um projeto novo.
+
 ### Resumo e log
 
 No fim de cada execução aparece um resumo: casas pesquisadas, buscas

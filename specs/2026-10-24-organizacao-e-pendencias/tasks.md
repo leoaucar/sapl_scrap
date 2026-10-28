@@ -143,7 +143,7 @@ Rules for every task (same as Phase 1):
     as `api` starts as confirmed, so an isolated 404 can't switch it. Update
     mode shares the project's cache. Tests in `tests/test_cache.py`, plus a
     resume check in `test_ponta_a_ponta`.
-- [ ] **T13 Keywords warning on resume** (FR-23)
+- [x] **T13 Keywords warning on resume** (FR-23)
   - Tests: the warning lists added and removed terms, the saved terms are
     used, and no warning appears when the terms are equal or the file is
     missing.

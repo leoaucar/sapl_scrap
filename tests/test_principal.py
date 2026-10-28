@@ -193,3 +193,40 @@ def test_boas_vindas_e_resumo_com_o_nome_sapyl(projeto_tmp, cliente, sessao, sap
     assert saida.startswith('SAPyL: Raspador do Sistema de Apoio Legislativo (versão 0.2.0)')
     resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
     assert '===== Resumo (SAPyL 0.2.0) =====' in resumo
+
+
+# --- Palavras mudadas na retomada (FR-23) -----------------------------------
+
+
+def _palavras(projeto_tmp, *linhas):
+    texto = 'Palavras\n' + ''.join(f'"{linha}"\n' for linha in linhas)
+    (projeto_tmp / 'arquivos_csv' / 'palavras_chave.csv').write_text(texto, encoding='utf-8')
+
+
+def test_retomada_avisa_palavras_mudadas_e_usa_as_salvas(
+    projeto_tmp, cliente, sessao, sapl, caplog
+):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    _palavras(projeto_tmp, 'plano diretor', 'saneamento')  # saiu "orçamento, ..."; entrou uma
+    sessao.pedidos.clear()
+    with caplog.at_level(logging.WARNING, logger='sapyl'):
+        assert programa.main(roteiro('2', 'teste', '1'), cliente, projeto_tmp) == 0
+    aviso = next(r.getMessage() for r in caplog.records if 'palavras-chave mudou' in r.getMessage())
+    assert 'Novas no arquivo (não serão buscadas): "saneamento"' in aviso
+    assert f'Do projeto, fora do arquivo (continuam): {ORC}' in aviso
+    assert 'crie um projeto novo' in aviso
+    assert not any('saneamento' in u for u in sessao.pedidos)
+    config = json.loads((projeto_tmp / 'teste_proj' / 'config.json').read_text(encoding='utf-8'))
+    assert config['palavras'] == [P, ORC]
+
+
+def test_sem_aviso_quando_as_palavras_sao_iguais(projeto_tmp, cliente, sessao, sapl, caplog):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    with caplog.at_level(logging.WARNING, logger='sapyl'):
+        programa.main(roteiro('2', 'teste', '1'), cliente, projeto_tmp)
+    assert not any('palavras-chave mudou' in r.getMessage() for r in caplog.records)
+
+
+def test_sem_aviso_sem_arquivo_de_palavras(projeto_tmp):
+    (projeto_tmp / 'arquivos_csv' / 'palavras_chave.xlsx').unlink()
+    assert programa.avisar_palavras_mudadas(projeto_tmp, [P]) == []

@@ -7,7 +7,9 @@ Garante, para cada site (host):
   de novo;
 - em erro de rede, timeout ou 5xx, tenta de novo com esperas crescentes;
 - nunca tenta para sempre: depois de `max_tentativas`, devolve a falha com o
-  motivo (`HTTP 429`, `HTTP 503`, `timeout`, `conexao`).
+  motivo (`HTTP 429`, `HTTP 503`, `timeout`, `conexao`);
+- erros que não passam sozinhos voltam na hora, numa tentativa só:
+  certificado inválido (`ssl`) e nome que não existe mais no DNS (`dns`).
 
 Com `historico` (um arquivo JSON), os horários das requisições recentes de
 cada site são guardados no disco a cada requisição e lidos quando o cliente
@@ -25,6 +27,7 @@ linha do log é a da resposta, que pode chegar segundos depois.
 
 import json
 import os
+import socket
 import time
 from collections import defaultdict, deque
 from collections.abc import Callable, Iterator
@@ -35,6 +38,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
+from urllib3.exceptions import NameResolutionError
 
 from sapyl import __version__, registro
 
@@ -50,6 +54,9 @@ ESPERA_MINIMA = 0.01  # segundos
 USER_AGENT = f'SAPyL/{__version__} (pesquisa; +https://github.com/leoaucar/sapyl)'
 
 log = registro.logger('http')
+
+# Quantos níveis de "causado por" seguir ao procurar a causa de um erro de rede
+PROFUNDIDADE_CAUSAS = 8
 
 
 @dataclass
@@ -80,6 +87,36 @@ class Resposta:
         """Libera a conexão (necessário com `stream=True`)."""
         if self.bruta is not None:
             self.bruta.close()
+
+
+def _causas(erro: BaseException) -> list[BaseException]:
+    """O erro e as exceções que o causaram (`__cause__`, `__context__`, `args`, `reason`).
+
+    O `requests` embrulha o erro original: ConnectionError -> MaxRetryError
+    (em `args`) -> `.reason` NameResolutionError -> socket.gaierror.
+    """
+    achadas, fila, vistas = [], [(erro, 0)], set()
+    while fila:
+        atual, nivel = fila.pop(0)
+        if not isinstance(atual, BaseException) or id(atual) in vistas:
+            continue
+        vistas.add(id(atual))
+        achadas.append(atual)
+        if nivel >= PROFUNDIDADE_CAUSAS:
+            continue
+        seguintes = [getattr(atual, 'reason', None), atual.__cause__, atual.__context__]
+        seguintes += list(getattr(atual, 'args', ()))
+        fila += [(s, nivel + 1) for s in seguintes]
+    return achadas
+
+
+def motivo_permanente(erro: BaseException) -> str:
+    """'ssl' ou 'dns' se o erro não vai passar tentando de novo; '' nos demais."""
+    if isinstance(erro, requests.exceptions.SSLError):
+        return 'ssl'
+    if any(isinstance(c, (NameResolutionError, socket.gaierror)) for c in _causas(erro)):
+        return 'dns'
+    return ''
 
 
 def criar_sessao() -> requests.Session:
@@ -217,8 +254,13 @@ class ClienteSAPL:
                 bruta = self.sessao.get(url, timeout=timeout or self.timeout, stream=stream)
             except requests.Timeout:
                 status, erro = None, 'timeout'
-            except requests.RequestException:
-                status, erro = None, 'conexao'
+            except requests.RequestException as falha:
+                status, erro = None, motivo_permanente(falha) or 'conexao'
+                if erro != 'conexao':
+                    # certificado inválido ou nome inexistente: tentar de novo não resolve
+                    self._registrar(host, url, erro, tentativa, 0, enviada)
+                    log.warning('Falha em %s: %s (sem nova tentativa)', url, erro)
+                    return Resposta(url, False, None, erro, tentativa, None)
             else:
                 status = bruta.status_code
                 if status == 200:

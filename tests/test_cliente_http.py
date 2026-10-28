@@ -320,3 +320,55 @@ def test_historico_guarda_no_maximo_o_limite_por_site(sessao, relogio, tmp_path)
     dados = json.loads((tmp_path / 'h.json').read_text(encoding='utf-8'))
     assert len(dados['requisicoes']['sapl.a.leg.br']) <= 35
     assert not (tmp_path / 'h.json.tmp').exists()
+
+
+# --- Erros permanentes: SSL e DNS (FR-24) -----------------------------------
+
+
+def _erro_dns(com_resolucao=True):
+    """O erro que o requests lança para um nome que não existe (veja a cadeia real)."""
+    import socket
+
+    from urllib3.exceptions import MaxRetryError, NameResolutionError
+
+    origem = socket.gaierror(-2, 'Name or service not known')
+    if not com_resolucao:
+        erro = requests.ConnectionError('falha ao conectar')
+        erro.__cause__ = origem
+        return erro
+    motivo = NameResolutionError('sapl.x.leg.br', None, origem)
+    return requests.ConnectionError(MaxRetryError(None, A, reason=motivo))
+
+
+@pytest.mark.parametrize(
+    'erro, motivo',
+    [
+        (requests.exceptions.SSLError('certificate verify failed'), 'ssl'),
+        (_erro_dns(), 'dns'),
+        (_erro_dns(com_resolucao=False), 'dns'),
+    ],
+    ids=['ssl', 'dns-urllib3', 'dns-gaierror'],
+)
+def test_erro_permanente_volta_numa_tentativa(cliente, sessao, relogio, erro, motivo, caplog):
+    sessao.responder(A, erro=erro)
+    with caplog.at_level(logging.DEBUG, logger='sapyl.http'):
+        r = cliente.get(A)
+    assert (r.ok, r.status, r.erro, r.tentativas) == (False, None, motivo, 1)
+    assert len(sessao.pedidos) == 1 and relogio.esperas == []
+    assert any('sem nova tentativa' in m.getMessage() for m in caplog.records)
+
+
+def test_outros_erros_de_conexao_continuam_com_retentativas(cliente, sessao, relogio):
+    erro = requests.ConnectionError('conexão recusada')
+    erro.__cause__ = ConnectionRefusedError(111, 'Connection refused')
+    sessao.responder(A, erro=erro)
+    r = cliente.get(A)
+    assert (r.erro, r.tentativas) == ('conexao', 4)
+    assert relogio.esperas == [5, 15, 45]
+
+
+def test_motivo_permanente_nao_se_perde_em_ciclos():
+    erro = requests.ConnectionError('a')
+    outro = requests.ConnectionError(erro)
+    erro.__context__ = outro  # ciclo
+    assert http_sapl.motivo_permanente(erro) == ''

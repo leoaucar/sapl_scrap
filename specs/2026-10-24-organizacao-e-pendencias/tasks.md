@@ -116,11 +116,16 @@ Rules for every task (same as Phase 1):
 
 ## Phase D: Leftover issues
 
-- [ ] **T10 SSL and DNS errors are not retried** (FR-24)
+- [x] **T10 SSL and DNS errors are not retried** (FR-24)
   - `test_cliente_http.py`: `SSLError` → `ssl`, 1 attempt. A
     `ConnectionError` caused by `NameResolutionError` → `dns`, 1 attempt. One
     caused by `socket.gaierror` → `dns`. A plain `ConnectionError` still gets
     4 attempts.
+  - *As built:* checked first against real errors (a `.invalid` name and
+    `expired.badssl.com`): DNS arrives as `ConnectionError` → `MaxRetryError`
+    (in `args`) → `.reason` `NameResolutionError` → `gaierror`; SSL as
+    `requests.exceptions.SSLError`. `motivo_permanente()` gives `dns`/`ssl`
+    for exactly those, and the tests build the same chains.
 - [ ] **T11 One log per run** (FR-26)
   - `registro.configurar(pasta, nome, modo)` creates `logs/<nome>_<data_hora>_<modo>.log`.
   - Tests: name format, one file per run, summary shows the path, old

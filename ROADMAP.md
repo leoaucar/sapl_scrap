@@ -214,7 +214,7 @@ tempo**, nunca de acelerar dentro da mesma casa.
 Estimativa com 20 casas em paralelo: a execução completa passa a ser limitada
 pela casa com mais matérias, algo como **30–60 min**, em vez de 10–20 h.
 
-### Fase 3: Saída em banco SQL
+### Fase 3: Saída em banco SQL e armazenamento de documentos
 - [ ] Gravar os resultados em **SQLite** (padrão, um arquivo `.db` por projeto)
       ou **PostgreSQL** (configurável), usando SQLAlchemy
 - [ ] Esquema proposto:
@@ -227,6 +227,22 @@ pela casa com mais matérias, algo como **30–60 min**, em vez de 10–20 h.
   - `autorias` e `tramitacoes` (materia_id, ...)
 - [ ] `UPSERT` para atualizar matérias sem duplicar
 - [ ] Manter a exportação para CSV/Excel a partir do banco
+- [ ] **Documentos fora do banco relacional (parte NoSQL):** os PDFs e outros
+      arquivos das matérias (textos originais, anexos, documentos acessórios)
+      e o texto extraído deles ficam num armazenamento de documentos, e o SQL
+      guarda só a referência (`documentos`: materia_id, tipo, url de origem,
+      chave no armazenamento, tamanho, hash, baixado_em)
+  - Padrão local, sem servidor: a pasta do projeto, com os arquivos
+    nomeados pelo hash (o mesmo PDF achado duas vezes é guardado uma vez)
+  - Opções configuráveis: **MongoDB** (GridFS para os arquivos, uma coleção
+    com o texto extraído e os metadados de cada documento) ou um
+    armazenamento de objetos compatível com S3 (**MinIO** local, **S3** na
+    nuvem, Fase 7)
+  - Uma interface única (`guardar`, `abrir`, `existe`, `apagar`) para os
+    downloads e para a busca no conteúdo (Fase 6) não dependerem de onde os
+    arquivos estão
+  - Migração dos projetos atuais: importar a pasta `downloads/` sem baixar
+    nada de novo
 
 ### Fase 3b: Sugestão de palavras-chave
 A pessoa descreve o tema ou dá algumas palavras, e o programa sugere variações

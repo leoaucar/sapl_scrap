@@ -1,8 +1,8 @@
 # Validation: Code organization, SAPyL identity and leftover issues
 
 - **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Tasks:** [tasks.md](tasks.md)
-- **Status:** Not run · checklist aligned with what was built (T22, 2026-10-27)
-- **Run by / date:** _fill in_
+- **Status:** ✅ Passed (2026-10-27) · §4–§5 shortened to 9 houses at the user's request (full runs moved to the parallel-runs validation)
+- **Run by / date:** Claude (Opus 5.5), 2026-10-27/28, on branch `spec/2026-10-24-organizacao-e-pendencias`
 
 Manual checks on the implementation branch after T01–T22 (and T21a), against real sites
 where needed. They cover the acceptance criteria in spec §8. The branch is
@@ -16,11 +16,11 @@ rate limiter and could double the load on a site.
 
 | # | Check | Result |
 |---|---|---|
-| 0.1 | Tasks T01–T22 and T21a ticked | |
-| 0.2 | CI green: `testes` (3.10, 3.12, ruff + pytest) and `instalacao` | |
-| 0.3 | `pytest` offline < 30 s; coverage ≥ 95 % (AC 2) | time: ___ s · coverage: ___ % |
-| 0.4 | `ruff check` and `ruff format --check` clean (AC 2) | |
-| 0.5 | Traceability table in `tasks.md` complete | |
+| 0.1 | Tasks T01–T22 and T21a ticked | ✅ |
+| 0.2 | CI green: `testes` (3.10, 3.12, ruff + pytest) and `instalacao` | ✅ (after formatting the script block in this file, which newer ruff also checks) |
+| 0.3 | `pytest` offline < 30 s; coverage ≥ 95 % (AC 2) | ✅ time: 21.7 s · coverage: 98 % (275 tests) |
+| 0.4 | `ruff check` and `ruff format --check` clean (AC 2) | ✅ |
+| 0.5 | Traceability table in `tasks.md` complete | ✅ (33 rows) |
 
 ## 1. Install and run — AC 1
 
@@ -38,9 +38,9 @@ sapyl            # menu appears; answer 3, then Ctrl+C → short message, no tra
 
 | Check | Expected | Result |
 |---|---|---|
-| `pip install .` works on a clean environment | yes | |
-| The three `--version` calls print `0.2.0` | yes | |
-| `sapyl` shows the 3-option menu, and Ctrl+C exits cleanly | yes | |
+| `pip install .` works on a clean environment | yes | ✅ fresh clone of the branch, new venv (uv, Python 3.12) |
+| The three `--version` calls print `0.2.0` | yes | ✅ |
+| `sapyl` shows the 3-option menu, and Ctrl+C exits cleanly | yes | ✅ (end of input at the option-3 question: the authors/procedure resume message, exit 1, no traceback) |
 
 ## 2. Repository contents — AC 3
 
@@ -50,8 +50,8 @@ git ls-files | grep -E 'casas_resultado\.csv|tabela_limpa|_proj/|\.log$|\.pdf$'
 
 | Check | Expected | Result |
 |---|---|---|
-| Command output | empty | |
-| Fresh clone: new project does not offer to reuse a house table | yes | |
+| Command output | empty | ✅ only `tests/fixtures/projeto_fase1/` (the Phase 1 sample project, on purpose) |
+| Fresh clone: new project does not offer to reuse a house table | yes | ✅ the next question after the name is "Sul e Sudeste" |
 
 ## 3. Phase 1 project still works — AC 4
 
@@ -60,23 +60,30 @@ Use the Phase 1 validation project `val_a` as it is (back it up first with
 
 | Check | Expected | Result |
 |---|---|---|
-| Resume `val_a`: no search and no `ok` matter requested again (check the new log in `val_a_proj/logs/`) | 0 repeats | |
-| Keywords warning appears if `palavras_chave.*` differs from `config.json` | yes | |
-| Update `val_a`: `_ATUALIZADO_` files created, same keys | yes | |
-| Old `val_a.log` untouched; new runs log to `logs/` | yes | |
+| Resume `val_a`: no search and no `ok` matter requested again (check the new log in `val_a_proj/logs/`) | 0 repeats | ✅ 0 requests in `logs/val_a_…_retomada.log`; "0 a raspar, 1189 já raspadas" |
+| Keywords warning appears if `palavras_chave.*` differs from `config.json` | yes | ✅ the tracked `palavras_chave.xlsx` is the education list: 23 new and 3 kept terms listed; the saved 3 were used |
+| Update `val_a`: `_ATUALIZADO_` files created, same keys | yes | ✅ 1189 rows, same keys, all `ok`, 0 errors (21:51–22:32). One isolated API 404 (AL 5337) went to the HTML page for that matter only. Rate: max 35/60 s per host, 0 × 429; shortest span covering 36 requests 60.997 s (log send time is taken after the reservation and history write, a few ms of jitter; the limiter reserves at 61 s) |
+| Old `val_a.log` untouched; new runs log to `logs/` | yes | ✅ same md5 after resume and update; `logs/` has the `retomada` and `atualizacao` files |
 
-## 4. New 10-house run — AC 7 and rate limit
+## 4. New run — AC 7 and rate limit
 
-Same inputs as Phase 1 run A (the 3 keywords, 10 Acre houses, no downloads),
-project `val2_a`.
+Same inputs as Phase 1 run A (the 3 keywords, no downloads), project `val2_a`.
+
+> **Shortened on 2026-10-27, at the user's request:** this run uses the 9 Acre
+> houses **without Rio Branco** (Rio Branco alone has 1126 of the 1189 matters,
+> about an hour at 35/min). The size check compares the same 9 houses' rows of
+> `val_a`'s raw file. The full 10-house run of §4 and §5 is done in the
+> validation of the next spec (parallel runs), which runs those houses
+> anyway. Runs from a separate working folder with a copy of
+> `.sapl_historico.json`, so the rate limit still counts the previous run.
 
 | Check | Expected | Result |
 |---|---|---|
-| `val2_a_paginas_busca.csv` size vs Phase 1 `val_a_resultados_crus_casas.csv` | ≥ 10× smaller | ___ MB vs ___ MB |
-| Same set of keys as Phase 1 `val_a` (allowing for new matters on the sites) | yes, differences explained | |
-| Max requests per host per 60 s (script below, all files in `logs/`, `enviada` time) | ≤ 35 | |
-| Shortest span covering 36 consecutive requests to one host (V4 margin) | ≥ 61 s (ms truncation aside) | |
-| `HTTP 429` lines in the logs | 0 | |
+| `val2_a_paginas_busca.csv` size vs Phase 1 `val_a_resultados_crus_casas.csv` | ≥ 10× smaller | ✅ 0.014 MB vs 0.97 MB for the same 9 houses (51 pages): **69× smaller** |
+| Same set of keys as Phase 1 `val_a` (allowing for new matters on the sites) | yes, differences explained | ✅ 180 = 180, identical keys, all `ok` (22:31–22:37) |
+| Max requests per host per 60 s (script below, all files in `logs/`, `enviada` time) | ≤ 35 | ✅ 35 (AL, 220 requests); 7–9 on the other houses |
+| Shortest span covering 36 consecutive requests to one host (V4 margin) | ≥ 61 s (ms truncation aside) | ✅ 60.999 s (AL); 60.997 s (RB, `val_a` update) — logged send time is a few ms after the 61 s reservation |
+| `HTTP 429` lines in the logs | 0 | ✅ 0 (the 27 × 404 are the ends of the 27 searches) |
 
 ```python
 import collections, datetime as dt, pathlib, re, sys
@@ -112,23 +119,23 @@ for host, ts in sorted(por_host.items()):
     menor = min(((ts[k + 35] - ts[k]).total_seconds() for k in range(len(ts) - 35)), default=None)
     print(f'{host:36s} {len(ts):6d} req  max/60s={pico:3d}  menor intervalo 1ª–36ª={menor}')
 ```
-| `cache.json` present; a resume of `val2_a` makes no API probe or name lookup already in it | yes | |
+| `cache.json` present; a resume of `val2_a` makes no API probe or name lookup already in it | yes | ✅ `cache.json` with AL = `api` and 11 names; the resume made 0 requests (see §6 for names reused while re-scraping) |
 
 ## 5. Authors and procedure — AC 5
 
-Menu option 3 on project `val2_a`. Then, separately, on a CSV holding a few
+Menu option 3 on project `val2_a` (the 9 houses of §4, see the note there). Then, separately, on a CSV holding a few
 matters from a house **without** API (if Phase 1 validation found one;
 otherwise, record "not available").
 
 | Check | Expected | Result |
 |---|---|---|
-| Uses the latest final of the project; input not modified | yes | |
-| `fonte_autoria` = `api` for Acre houses | yes | |
-| Ctrl+C halfway, then option 3 again on the same input: only the missing matters are requested | yes | |
-| Output has the input columns + `Autoria`, `Tramite`, `status_autoria`, `status_tramitacao`, `erro_autoria_tramitacao`, `fonte_autoria` | yes | |
-| Spot check 5 matters in the browser: authors and latest procedure match | all match | |
-| ≤ 35 requests per host per 60 s in the autoria log | yes | |
-| HTML-only house: `fonte_autoria` = `html`, fields filled | yes / not available | |
+| Uses the latest final of the project; input not modified | yes | ✅ `val2_a_resultado_final.csv`; its columns unchanged in the output |
+| `fonte_autoria` = `api` for Acre houses | yes | ✅ 178 `api`; 2 mixed (`api+html`, `html+api`): an isolated 404 on one list sent only that part of that matter to the HTML page, filled |
+| Ctrl+C halfway, then option 3 again on the same input: only the missing matters are requested | yes | ✅ SIGINT after 48/180: exit in 0.1 s with the resume message; resume did "132 de 132", none of the 48 requested again |
+| Output has the input columns + `Autoria`, `Tramite`, `status_autoria`, `status_tramitacao`, `erro_autoria_tramitacao`, `fonte_autoria` | yes | ✅ 180 rows, 180 `ok` / 180 `ok`; 13 empty `Tramite` (no procedure record) |
+| Spot check 5 matters in the browser: authors and latest procedure match | all match | ✅ 6 matters (19510, 15817, 14785, 1986, 2131 and 5891, the one with no author) compared with the live HTML tabs through the program's HTML parser: all equal |
+| ≤ 35 requests per host per 60 s in the autoria log | yes | ✅ AL: 652 requests, max 35/60 s, shortest 36-span 60.999 s, 0 × 429 |
+| HTML-only house: `fonte_autoria` = `html`, fields filled | yes / not available | not available (no HTML-only house among these; covered offline by TR-3 and the end-to-end test with Cascavel's HTML tabs) |
 
 ## 6. Update with `Relevante` — AC 6
 
@@ -140,10 +147,10 @@ otherwise, record "not available").
 
 | Check | Expected | Result |
 |---|---|---|
-| Update asks "Atualizar só as matérias marcadas como relevantes?" | yes | |
-| With `1`: only the 6 marked rows are re-scraped (log), and the output has 6 rows | yes | |
-| `Relevante` and `Notas` columns kept, values intact, after the program columns | yes | |
-| Without `Relevante` column: the question does not appear | yes | |
+| Update asks "Atualizar só as matérias marcadas como relevantes?" | yes | ✅ |
+| With `1`: only the 6 marked rows are re-scraped (log), and the output has 6 rows | yes | ✅ "Só as relevantes: 6 de 180"; 6 requests (one API call per matter, no name lookup: all from `cache.json`); 6 rows, all `ok` |
+| `Relevante` and `Notas` columns kept, values intact, after the program columns | yes | ✅ last two columns; values as typed, including ` X ` |
+| Without `Relevante` column: the question does not appear | yes | ✅ (backup restored first) |
 
 ## 7. Broken houses — AC 8
 
@@ -161,10 +168,10 @@ what records `dns`/`ssl`; a reused table skips it), limit `1`, no downloads.
 
 | Check | Expected | Result |
 |---|---|---|
-| Non-existent domain: 1 attempt only, reason `dns` (log) | yes | |
-| The real house is searched normally | yes | |
-| An SSL failure, if a known house has one: reason `ssl`, 1 attempt | yes / not available | |
-| A redirecting house, if one is known: `url_final` recorded and used | yes / not seen | |
+| Non-existent domain: 1 attempt only, reason `dns` (log) | yes | ✅ `sapl.marata.rs.leg.br`: one DEBUG line `dns`, "sem nova tentativa"; table `ativa=False, motivo=dns` |
+| The real house is searched normally | yes | ✅ AL: 24 matters, all `ok`; summary "1 fora do ar" |
+| An SSL failure, if a known house has one: reason `ssl`, 1 attempt | yes / not available | not available (no known house; checked against `expired.badssl.com` during T10 and offline) |
+| A redirecting house, if one is known: `url_final` recorded and used | yes / not seen | not seen (no redirect in any run; `url_final` empty everywhere; covered offline) |
 
 Delete the working folder afterwards.
 
@@ -172,12 +179,12 @@ Delete the working folder afterwards.
 
 | Check | Expected | Result |
 |---|---|---|
-| README opens with "SAPyL — Raspador do Sistema de Apoio Legislativo" and the purpose | yes | |
-| README install/use sections match what was run in §1 | yes | |
-| `AUTHORS.md` citation uses SAPyL | yes | |
-| `User-Agent` in the log/headers says `SAPyL/0.2.0` | yes | |
-| `docs/index.html` opened locally: sections of FR-13a, readable at phone width and in dark mode | yes | |
-| Site install/use steps say the same as the README | yes | |
+| README opens with "SAPyL — Raspador do Sistema de Apoio Legislativo" and the purpose | yes | ✅ name, tagline, how to cite, "Para que serve" |
+| README install/use sections match what was run in §1 | yes | ✅ `pip install .`, `sapyl`, the 3-option menu |
+| `AUTHORS.md` citation uses SAPyL | yes | ✅ |
+| `User-Agent` in the log/headers says `SAPyL/0.2.0` | yes | ✅ `SAPyL/0.2.0 (pesquisa; +https://github.com/leoaucar/sapyl)` |
+| `docs/index.html` opened locally: sections of FR-13a, readable at phone width and in dark mode | yes | ✅ checked in headless Firefox at 390 and 1280 px (T21a); dark mode by the CSS tokens |
+| Site install/use steps say the same as the README | yes | ✅ |
 
 ## 9. After the merge: rename on GitHub — AC 9
 
@@ -199,23 +206,23 @@ Only with the user's go-ahead.
 
 | Acceptance criterion (spec §8) | Section | Result |
 |---|---|---|
-| 1. Install and command | 1 | |
-| 2. Lint, format, tests, coverage | 0 | |
-| 3. No generated/research data in git | 2 | |
-| 4. Phase 1 project resumes and updates | 3 | |
-| 5. Authors/procedure: API, HTML, resume, limit | 5 | |
-| 6. Update keeps columns, filter works | 6 | |
-| 7. Search file ≥ 10× smaller | 4 | |
-| 8. DNS failure after one attempt | 7 | |
-| 9. Repository renamed, links updated | 9 | |
-| 10. Project site online, install steps work | 8, 9 | |
+| 1. Install and command | 1 | ✅ |
+| 2. Lint, format, tests, coverage | 0 | ✅ |
+| 3. No generated/research data in git | 2 | ✅ |
+| 4. Phase 1 project resumes and updates | 3 | ✅ |
+| 5. Authors/procedure: API, HTML, resume, limit | 5 | ✅ (9 houses; HTML-only house not available) |
+| 6. Update keeps columns, filter works | 6 | ✅ |
+| 7. Search file ≥ 10× smaller | 4 | ✅ 69× |
+| 8. DNS failure after one attempt | 7 | ✅ |
+| 9. Repository renamed, links updated | 9 | after the merge |
+| 10. Project site online, install steps work | 8, 9 | after the merge |
 
 **Issues found** (each becomes a task in `tasks.md`):
 
 | # | Description | Task | Fixed and re-checked |
 |---|---|---|---|
-| | | | |
+| — | No issue found. Notes: (a) the logged send time is a few ms after the limiter's 61 s reservation (shortest 36-span 60.997 s); the parallel-runs spec's `ao_reservar` hook will allow measuring the reservation itself. (b) Isolated API 404s (1 matter in the `val_a` update, 2 lists in option 3) went to the HTML for that item only, as designed. | — | — |
 
-**Decision:** ☐ merge into `main` ☐ fix and re-run
+**Decision:** ☑ merge into `main` ☐ fix and re-run
 
 **Notes:**

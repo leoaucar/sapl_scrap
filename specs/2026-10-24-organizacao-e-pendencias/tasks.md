@@ -242,7 +242,7 @@ Rules for every task (same as Phase 1):
 ## Phase F: Validation, merge, rename
 
 - [x] **T22 Update `validation.md`** to match what was built.
-- [ ] **T23 Run validation**, record the results, fix what fails, then merge
+- [x] **T23 Run validation**, record the results, fix what fails, then merge
   into `main`.
 - [ ] **T24 Rename the repository on GitHub to `sapyl`** (FR-12), **only
   with the user's go-ahead at that moment**: `gh repo rename sapyl`,

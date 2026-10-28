@@ -327,6 +327,30 @@ nenhuma requisição aos sites do SAPL.
 - [ ] Testes com um banco pequeno de exemplo e PDFs de fixture (com e sem
       texto), sem acessar a rede
 
+**Mais critérios de busca nos sites (na coleta)**
+
+Hoje a coleta só pesquisa palavras-chave (`/sistema/search/`). O SAPL tem
+outras formas de achar matérias, que podem trazer o que a pessoa quer sem
+depender das palavras da ementa.
+
+- [ ] **Reavaliar os sites atuais** antes de decidir: numa amostra de casas
+      (por estado e por versão do SAPL), ver quais filtros existem e
+      funcionam na pesquisa de matérias (`/materia/pesquisar-materia`) e na
+      API (`/api/materia/materialegislativa/?…`), quanto custam em
+      requisições e se os resultados batem com a página. Registrar o que
+      cada versão aceita; casas sem o filtro continuam só com palavras
+- [ ] **Buscar por autoria:** por parlamentar, comissão ou Executivo
+      (ex.: "todas as matérias de autoria do prefeito"), com a lista de
+      autores de cada casa (`/api/base/autor/`) para a pessoa escolher pelo
+      nome
+- [ ] **Outros critérios, se os sites permitirem:** tipo de matéria, ano ou
+      período de apresentação, situação (em tramitação ou não), regime,
+      assunto/indexação e número
+- [ ] **Combinar** os critérios com as palavras-chave (ex.: palavra +
+      tipo + período), guardados no projeto como as palavras de hoje, com
+      a mesma retomada e o mesmo limite de requisições
+- [ ] Testes com respostas salvas dos filtros (fixtures), sem acessar a rede
+
 ### Fase 7: Configuração e execução em nuvem
 - [ ] Trocar as perguntas interativas por **configuração em arquivo**
       (`config.yaml`) e **linha de comando** (`argparse`), mantendo o modo

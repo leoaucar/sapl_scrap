@@ -270,12 +270,13 @@ aprende com as matérias já coletadas no banco.
   - **Acompanhamento:** progresso da execução (casas concluídas, matérias,
     erros), atualizado por polling
   - **Resultados:** tabela com filtros por UF, casa, ano, tipo e palavra,
-    busca no texto da ementa e link para o PDF
+    busca no texto da ementa e link para o PDF (a busca completa, em todos os
+    campos e no conteúdo, vem na Fase 6)
   - **Exportação:** botões para CSV/Excel
   - **Marcar relevância:** coluna "Relevante" editável, que alimenta o modo
     atualização e os downloads seletivos
 - [ ] Servir a interface como arquivos estáticos (primeiro localmente; S3 +
-      CloudFront quando houver a versão em nuvem, Fase 6)
+      CloudFront quando houver a versão em nuvem, Fase 7)
 
 ### Fase 5: Qualidade
 - [x] Testes automatizados (`pytest`) com páginas HTML salvas, sem acessar a
@@ -284,7 +285,34 @@ aprende com as matérias já coletadas no banco.
 - [ ] Fixar versões testadas (`requirements.lock`)
 - [x] CI no GitHub Actions (testes, `ruff` e instalação limpa)
 
-### Fase 6: Configuração e execução em nuvem
+### Fase 6: Busca nos resultados
+Depois de coletar, a pessoa precisa achar o que interessa dentro do que veio:
+uma busca que filtra o banco de um projeto (Fase 3) por palavras, por
+qualquer campo ou pelo conteúdo do texto das matérias. Tudo local, sem
+nenhuma requisição aos sites do SAPL.
+
+- [ ] **Palavras em qualquer campo ou num campo escolhido:** título, ementa,
+      indexação, tipo, número, ano, data, casa, UF, palavras da busca,
+      autoria e tramitação. Mesma sintaxe das palavras-chave (expressão
+      exata, termos juntos com vírgula), mais `OU` e exclusão (`-termo`)
+- [ ] **Filtros combinados:** UF, casa, tipo, período de apresentação, situação
+      (`Em Tramitacao`), status da raspagem e `Relevante`
+- [ ] **Busca no conteúdo:** extrair o texto dos PDFs baixados (`pypdf` ou
+      `pdfminer.six`) para uma tabela `textos` (materia_id, texto, método,
+      extraído em), com o trecho encontrado em destaque. PDFs escaneados ficam
+      marcados como "sem texto"; OCR (Tesseract) como plugin opcional
+- [ ] **Índice de texto completo** no SQLite (FTS5, com o `unicode61` sem
+      acentos: "orçamento" acha "orcamento"), ordenado por relevância (bm25);
+      no PostgreSQL, `tsvector` com o dicionário `portuguese`
+- [ ] **Onde usar:** uma opção no menu do programa (e, depois, na linha de
+      comando) e a tela de resultados da interface web (Fase 4)
+- [ ] **Saída:** exportar o resultado filtrado para CSV/Excel, marcar as
+      matérias encontradas como `Relevante` (alimenta o modo atualização e os
+      downloads seletivos) e salvar buscas para repetir depois
+- [ ] Testes com um banco pequeno de exemplo e PDFs de fixture (com e sem
+      texto), sem acessar a rede
+
+### Fase 7: Configuração e execução em nuvem
 - [ ] Trocar as perguntas interativas por **configuração em arquivo**
       (`config.yaml`) e **linha de comando** (`argparse`), mantendo o modo
       interativo como opção

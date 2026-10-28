@@ -1,0 +1,9 @@
+{
+  "id": 2,
+  "__str__": "Aguardando emissão de parecer da comissão",
+  "link_detail_backend": "/sistema/materia/status-tramitacao/2",
+  "metadata": {},
+  "sigla": "AGPARECER",
+  "descricao": "Aguardando emissão de parecer da comissão",
+  "indicador": "R"
+}

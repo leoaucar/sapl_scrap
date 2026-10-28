@@ -1,0 +1,13 @@
+{
+  "id": 41,
+  "__str__": "Executivo Municipal - sapladm",
+  "link_detail_backend": "/sistema/autor/41",
+  "metadata": {},
+  "autor_related": null,
+  "object_id": null,
+  "nome": "Executivo Municipal",
+  "cargo": "sapladm",
+  "tipo": 8,
+  "content_type": null,
+  "operadores": null
+}

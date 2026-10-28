@@ -49,8 +49,9 @@ bloqueadas falham na hora e viram linhas vazias.
 ## 3. Bugs e riscos conhecidos
 
 > **Situação:** os itens 1–9, 11 e 12 foram corrigidos na spec
-> `2026-10-24-runtime-improvements`. O item 10 e as pendências encontradas
-> depois estão na Fase 1b.
+> `2026-10-24-runtime-improvements`. O item 10 foi corrigido na Fase 1b
+> (spec `2026-10-24-organizacao-e-pendencias`), junto com as pendências
+> encontradas depois.
 
 Em ordem de prioridade (lista original de 15/10/2026):
 
@@ -120,67 +121,77 @@ Resolver antes de qualquer outra coisa, porque hoje uma execução completa
 > (veja `validation.md`).
 
 ### Fase 1b: Organização do código, nova identidade e pendências
-Próxima spec (`specs/<data>-organizacao-e-pendencias/`), depois da validação
-da Fase 1. A Fase 1 só reorganizou o necessário para testar; esta fase arruma
+Spec [`specs/2026-10-24-organizacao-e-pendencias/`](specs/2026-10-24-organizacao-e-pendencias/),
+aprovada em 27/10/2026. A Fase 1 só reorganizou o necessário para testar; esta fase arruma
 a estrutura antes do paralelismo e fecha os bugs que ficaram de fora.
 
 **Organização do código**
-- [ ] Transformar o projeto em um pacote Python com `pyproject.toml`,
+- [x] Transformar o projeto em um pacote Python com `pyproject.toml`,
       separando camadas: HTTP, busca, matérias (API/HTML), downloads,
       estado/projeto, interface (perguntas)
-- [ ] Um único ponto de entrada (`python -m <pacote>`), mantendo
+- [x] Um único ponto de entrada (`python -m <pacote>`), mantendo
       `programa.py` como atalho
-- [ ] Trazer `autoria_e_tramitacao/` para dentro do pacote, como mais uma
+- [x] Trazer `autoria_e_tramitacao/` para dentro do pacote, como mais uma
       opção do programa (sem o ajuste de `sys.path`)
-- [ ] Nomes consistentes (funções, colunas, arquivos de saída)
-- [ ] Tipagem (type hints) e docstrings nas funções públicas
-- [ ] Formatação e lint automáticos (`ruff`) rodando também no CI
-- [ ] Separar dados de entrada de dados gerados: `arquivos_csv/` só com as
+- [x] Nomes consistentes (funções, colunas, arquivos de saída)
+- [x] Tipagem (type hints) e docstrings nas funções públicas
+- [x] Formatação e lint automáticos (`ruff`) rodando também no CI
+- [x] Separar dados de entrada de dados gerados: `arquivos_csv/` só com as
       planilhas de entrada; a tabela geral de casas testadas
       (`casas_resultado.csv`, reescrita pelo programa) fora do git;
       rever `palavras_chave_res.csv` e `teste_raspagem.csv`
-- [ ] Tirar do repositório dados de pesquisa que não são exemplo
+- [x] Tirar do repositório dados de pesquisa que não são exemplo
       (`autoria_e_tramitacao/tabela_limpa_2.csv`)
-- [ ] Remover código morto e comentários desatualizados que sobrarem
+- [x] Remover código morto e comentários desatualizados que sobrarem
 
 **Nova identidade: SAPyL — Raspador do Sistema de Apoio Legislativo.**
 Projeto de código aberto que ajuda qualquer pessoa a acompanhar o que está
 acontecendo em várias casas legislativas do Brasil ao mesmo tempo.
 - [ ] Renomear o repositório no GitHub para `sapyl`, atualizando links e o
       badge do CI; pacote Python e comando também `sapyl`
-- [ ] Identidade só em texto no README (nome, chamada curta, badges), sem
+- [x] Identidade só em texto no README (nome, chamada curta, badges), sem
       logotipo
-- [ ] Reescrever a descrição do README e os nomes no código e na
+- [x] Reescrever a descrição do README e os nomes no código e na
       documentação com a nova marca
+- [ ] Página do projeto no GitHub Pages (`docs/`, uma página estática em
+      português): o que é, para quem serve, o que produz, instalação e
+      uso. Publicada por um workflow do GitHub Actions, depois da troca de
+      nome do repositório (endereço `leoaucar.github.io/sapyl`).
+      *A página está pronta em `docs/`; falta publicar.*
 
 **Bugs e pendências que ficaram de fora da Fase 1**
-- [ ] **Autoria e tramitação não retoma:** o script só grava no fim; uma
+- [x] **Autoria e tramitação não retoma:** o script só grava no fim; uma
       interrupção perde tudo. Usar o mesmo estado e gravação linha a linha
       do programa principal.
-- [ ] **Autoria e tramitação pela API** (`/api/materia/autoria/?materia=`,
+- [x] **Autoria e tramitação pela API** (`/api/materia/autoria/?materia=`,
       `/api/materia/tramitacao/?materia=`), com o HTML como reserva, como já
       é feito com as matérias.
-- [ ] **Modo atualização perde colunas da pessoa:** colunas acrescentadas à
+- [x] **Modo atualização perde colunas da pessoa:** colunas acrescentadas à
       mão no resultado final (ex.: `Relevante`, anotações) não passam para o
       arquivo `_ATUALIZADO_`. Preservá-las, e reativar como opção o filtro
       "só as relevantes" (hoje comentado).
-- [ ] **Arquivo bruto da busca grande** (item 10 do §3; ~1 GB numa execução
+- [x] **Arquivo bruto da busca grande** (item 10 do §3; ~1 GB numa execução
       completa): guardar só os links extraídos de cada página, mantendo a
       retomada.
-- [ ] **Palavras de projeto retomado:** vêm do `config.json`; mudar o arquivo
+- [x] **Palavras de projeto retomado:** vêm do `config.json`; mudar o arquivo
       de palavras não tem efeito e ninguém é avisado. Avisar quando forem
       diferentes.
-- [ ] **Erros permanentes tratados como temporários:** erro de certificado
+- [x] **Erros permanentes tratados como temporários:** erro de certificado
       (SSL) ou de DNS é tentado 4 vezes, com esperas. Não repetir esses.
-- [ ] **Retomada refaz a sondagem da API e as consultas de nomes** (tipo,
+- [x] **Retomada refaz a sondagem da API e as consultas de nomes** (tipo,
       regime): guardar a fonte de cada casa e os nomes no projeto.
-- [ ] **Log sem limite:** o `.log` cresce a cada retomada; separar por
+- [x] **Log sem limite:** o `.log` cresce a cada retomada; separar por
       execução ou rodar o arquivo.
-- [ ] **Casas que redirecionam para outro domínio:** links absolutos para o
+- [x] **Casas que redirecionam para outro domínio:** links absolutos para o
       domínio novo são descartados. Tratar os dois domínios como a mesma casa
       (se a validação confirmar o caso).
-- [ ] **Achados da validação da Fase 1** (lista em
+- [x] **Achados da validação da Fase 1** (lista em
       `specs/2026-10-24-runtime-improvements/validation.md`, "Issues found").
+
+> **Situação (27/10/2026):** os itens marcados estão feitos no ramo da spec,
+> com testes, e passam pela validação contra os sites reais antes de entrar
+> no `main` (tarefa T23). Faltam a troca de nome do repositório e a
+> publicação da página, logo depois da validação.
 
 ### Fase 2: Velocidade (paralelismo)
 O limite é **por site**, então o ganho vem de **processar várias casas ao mesmo
@@ -202,7 +213,7 @@ tempo**, nunca de acelerar dentro da mesma casa.
 Estimativa com 20 casas em paralelo: a execução completa passa a ser limitada
 pela casa com mais matérias, algo como **30–60 min**, em vez de 10–20 h.
 
-### Fase 3: Saída em banco SQL
+### Fase 3: Saída em banco SQL e armazenamento de documentos
 - [ ] Gravar os resultados em **SQLite** (padrão, um arquivo `.db` por projeto)
       ou **PostgreSQL** (configurável), usando SQLAlchemy
 - [ ] Esquema proposto:
@@ -215,6 +226,22 @@ pela casa com mais matérias, algo como **30–60 min**, em vez de 10–20 h.
   - `autorias` e `tramitacoes` (materia_id, ...)
 - [ ] `UPSERT` para atualizar matérias sem duplicar
 - [ ] Manter a exportação para CSV/Excel a partir do banco
+- [ ] **Documentos fora do banco relacional (parte NoSQL):** os PDFs e outros
+      arquivos das matérias (textos originais, anexos, documentos acessórios)
+      e o texto extraído deles ficam num armazenamento de documentos, e o SQL
+      guarda só a referência (`documentos`: materia_id, tipo, url de origem,
+      chave no armazenamento, tamanho, hash, baixado_em)
+  - Padrão local, sem servidor: a pasta do projeto, com os arquivos
+    nomeados pelo hash (o mesmo PDF achado duas vezes é guardado uma vez)
+  - Opções configuráveis: **MongoDB** (GridFS para os arquivos, uma coleção
+    com o texto extraído e os metadados de cada documento) ou um
+    armazenamento de objetos compatível com S3 (**MinIO** local, **S3** na
+    nuvem, Fase 7)
+  - Uma interface única (`guardar`, `abrir`, `existe`, `apagar`) para os
+    downloads e para a busca no conteúdo (Fase 6) não dependerem de onde os
+    arquivos estão
+  - Migração dos projetos atuais: importar a pasta `downloads/` sem baixar
+    nada de novo
 
 ### Fase 3b: Sugestão de palavras-chave
 A pessoa descreve o tema ou dá algumas palavras, e o programa sugere variações
@@ -250,7 +277,84 @@ aprende com as matérias já coletadas no banco.
   OpenWordnet-PT, que traz sinônimos da língua geral, não do jargão
   legislativo.)
 
-### Fase 4: Configuração e execução em nuvem
+### Fase 4: Interface web básica (HTML + CSS + JS)
+- [ ] API pequena (**FastAPI** ou **Flask**) sobre o banco da Fase 3
+- [ ] Páginas em HTML, CSS e JavaScript puro (sem framework):
+  - **Novo projeto:** formulário com as palavras-chave, os estados e o limite
+    de casas
+  - **Acompanhamento:** progresso da execução (casas concluídas, matérias,
+    erros), atualizado por polling
+  - **Resultados:** tabela com filtros por UF, casa, ano, tipo e palavra,
+    busca no texto da ementa e link para o PDF (a busca completa, em todos os
+    campos e no conteúdo, vem na Fase 6)
+  - **Exportação:** botões para CSV/Excel
+  - **Marcar relevância:** coluna "Relevante" editável, que alimenta o modo
+    atualização e os downloads seletivos
+- [ ] Servir a interface como arquivos estáticos (primeiro localmente; S3 +
+      CloudFront quando houver a versão em nuvem, Fase 7)
+
+### Fase 5: Qualidade
+- [x] Testes automatizados (`pytest`) com páginas HTML salvas, sem acessar a
+      rede
+- [x] Verificar a compatibilidade com o pandas 3 (o CI roda com pandas 2 e 3)
+- [ ] Fixar versões testadas (`requirements.lock`)
+- [x] CI no GitHub Actions (testes, `ruff` e instalação limpa)
+
+### Fase 6: Busca nos resultados e mais critérios de busca
+Duas partes. A primeira: depois de coletar, a pessoa precisa achar o que
+interessa dentro do que veio, com uma busca que filtra o banco de um projeto
+(Fase 3) por palavras, por qualquer campo ou pelo conteúdo do texto das
+matérias, tudo local, sem nenhuma requisição aos sites do SAPL. A segunda:
+coletar também por outros critérios além das palavras-chave, como a autoria.
+
+**Busca nos resultados (local)**
+
+- [ ] **Palavras em qualquer campo ou num campo escolhido:** título, ementa,
+      indexação, tipo, número, ano, data, casa, UF, palavras da busca,
+      autoria e tramitação. Mesma sintaxe das palavras-chave (expressão
+      exata, termos juntos com vírgula), mais `OU` e exclusão (`-termo`)
+- [ ] **Filtros combinados:** UF, casa, tipo, período de apresentação, situação
+      (`Em Tramitacao`), status da raspagem e `Relevante`
+- [ ] **Busca no conteúdo:** extrair o texto dos PDFs baixados (`pypdf` ou
+      `pdfminer.six`) para uma tabela `textos` (materia_id, texto, método,
+      extraído em), com o trecho encontrado em destaque. PDFs escaneados ficam
+      marcados como "sem texto"; OCR (Tesseract) como plugin opcional
+- [ ] **Índice de texto completo** no SQLite (FTS5, com o `unicode61` sem
+      acentos: "orçamento" acha "orcamento"), ordenado por relevância (bm25);
+      no PostgreSQL, `tsvector` com o dicionário `portuguese`
+- [ ] **Onde usar:** uma opção no menu do programa (e, depois, na linha de
+      comando) e a tela de resultados da interface web (Fase 4)
+- [ ] **Saída:** exportar o resultado filtrado para CSV/Excel, marcar as
+      matérias encontradas como `Relevante` (alimenta o modo atualização e os
+      downloads seletivos) e salvar buscas para repetir depois
+- [ ] Testes com um banco pequeno de exemplo e PDFs de fixture (com e sem
+      texto), sem acessar a rede
+
+**Mais critérios de busca nos sites (na coleta)**
+
+Hoje a coleta só pesquisa palavras-chave (`/sistema/search/`). O SAPL tem
+outras formas de achar matérias, que podem trazer o que a pessoa quer sem
+depender das palavras da ementa.
+
+- [ ] **Reavaliar os sites atuais** antes de decidir: numa amostra de casas
+      (por estado e por versão do SAPL), ver quais filtros existem e
+      funcionam na pesquisa de matérias (`/materia/pesquisar-materia`) e na
+      API (`/api/materia/materialegislativa/?…`), quanto custam em
+      requisições e se os resultados batem com a página. Registrar o que
+      cada versão aceita; casas sem o filtro continuam só com palavras
+- [ ] **Buscar por autoria:** por parlamentar, comissão ou Executivo
+      (ex.: "todas as matérias de autoria do prefeito"), com a lista de
+      autores de cada casa (`/api/base/autor/`) para a pessoa escolher pelo
+      nome
+- [ ] **Outros critérios, se os sites permitirem:** tipo de matéria, ano ou
+      período de apresentação, situação (em tramitação ou não), regime,
+      assunto/indexação e número
+- [ ] **Combinar** os critérios com as palavras-chave (ex.: palavra +
+      tipo + período), guardados no projeto como as palavras de hoje, com
+      a mesma retomada e o mesmo limite de requisições
+- [ ] Testes com respostas salvas dos filtros (fixtures), sem acessar a rede
+
+### Fase 7: Configuração e execução em nuvem
 - [ ] Trocar as perguntas interativas por **configuração em arquivo**
       (`config.yaml`) e **linha de comando** (`argparse`), mantendo o modo
       interativo como opção
@@ -270,25 +374,3 @@ aprende com as matérias já coletadas no banco.
   - Infraestrutura como código com **AWS SAM** ou **Terraform**.
 - [ ] Alternativa mais simples para execuções longas: **ECS Fargate** ou
       **AWS Batch** com o mesmo contêiner, sem o limite de 15 min
-
-### Fase 5: Interface web básica (HTML + CSS + JS)
-- [ ] API pequena (**FastAPI** ou **Flask**) sobre o banco da Fase 3
-- [ ] Páginas em HTML, CSS e JavaScript puro (sem framework):
-  - **Novo projeto:** formulário com as palavras-chave, os estados e o limite
-    de casas
-  - **Acompanhamento:** progresso da execução (casas concluídas, matérias,
-    erros), atualizado por polling
-  - **Resultados:** tabela com filtros por UF, casa, ano, tipo e palavra,
-    busca no texto da ementa e link para o PDF
-  - **Exportação:** botões para CSV/Excel
-  - **Marcar relevância:** coluna "Relevante" editável, que alimenta o modo
-    atualização e os downloads seletivos
-- [ ] Servir a interface como arquivos estáticos (S3 + CloudFront na versão em
-      nuvem)
-
-### Fase 6: Qualidade
-- [ ] Testes automatizados (`pytest`) com páginas HTML salvas, sem acessar a
-      rede
-- [ ] Fixar versões testadas (`requirements.lock`) e verificar a compatibilidade
-      com o pandas 3
-- [ ] CI no GitHub Actions

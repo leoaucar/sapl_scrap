@@ -3,6 +3,7 @@
 Nenhum teste acessa a rede (veja `bloquear_rede` em conftest.py). As respostas
 HTTP são roteiros definidos em cada teste com `SessaoFalsa.responder`.
 """
+
 import json
 import pathlib
 
@@ -34,8 +35,9 @@ class RelogioFalso:
 class RespostaFalsa:
     """Imita o pedaço de `requests.Response` que o código usa."""
 
-    def __init__(self, status=200, texto='', conteudo=None, headers=None,
-                 url='', falhar_no_meio=False):
+    def __init__(
+        self, status=200, texto='', conteudo=None, headers=None, url='', falhar_no_meio=False
+    ):
         self.status_code = status
         self.headers = dict(headers or {})
         self.url = url
@@ -53,7 +55,7 @@ class RespostaFalsa:
 
     def iter_content(self, chunk_size=1):
         for i in range(0, len(self.content), chunk_size):
-            yield self.content[i:i + chunk_size]
+            yield self.content[i : i + chunk_size]
             if self.falhar_no_meio:
                 raise requests.ConnectionError('conexão caiu no meio do download')
 
@@ -66,24 +68,39 @@ class SessaoFalsa:
 
     `responder(url, ...)` enfileira respostas para a URL; a última da fila se
     repete. `responder(url, erro=requests.Timeout())` faz a chamada lançar a
-    exceção. `rota(funcao)` cobre URLs não roteirizadas: `funcao(url)` devolve
+    exceção; `url_final=...` imita um redirecionamento (a resposta vem de outra
+    URL). `rota(funcao)` cobre URLs não roteirizadas: `funcao(url)` devolve
     uma `RespostaFalsa` ou None. URL sem roteiro faz o teste falhar.
     """
 
     def __init__(self):
         self._filas = {}
         self._rotas = []
-        self.pedidos = []      # URLs, na ordem
-        self.chamadas = []     # (url, kwargs)
+        self.pedidos = []  # URLs, na ordem
+        self.chamadas = []  # (url, kwargs)
 
-    def responder(self, url, status=200, texto='', fixture=None, json_dados=None,
-                  conteudo=None, headers=None, erro=None, falhar_no_meio=False):
+    def responder(
+        self,
+        url,
+        status=200,
+        texto='',
+        fixture=None,
+        json_dados=None,
+        conteudo=None,
+        headers=None,
+        erro=None,
+        falhar_no_meio=False,
+        url_final=None,
+    ):
         if fixture is not None:
             texto = ler_fixture(fixture)
         if json_dados is not None:
             texto = json.dumps(json_dados)
-        item = erro if erro is not None else RespostaFalsa(
-            status, texto, conteudo, headers, url, falhar_no_meio)
+        item = (
+            erro
+            if erro is not None
+            else RespostaFalsa(status, texto, conteudo, headers, url_final or url, falhar_no_meio)
+        )
         self._filas.setdefault(url, []).append(item)
         return self
 
@@ -124,6 +141,7 @@ def roteiro(*respostas):
     def ler(texto=''):
         perguntas.append(texto)
         return fila.pop(0)
+
     ler.perguntas = perguntas
     return ler
 
@@ -136,17 +154,42 @@ class SaplFalso:
     próprio conteúdo. `api=None` imita uma casa sem API (404). Páginas de busca
     além das definidas respondem 404 (fim). `falhar(url, 503, 429...)` faz a URL
     responder esses status, um por chamada, antes da resposta normal.
+
+    Autoria e tramitação: `autorias={id: [id do autor...]}` e
+    `tramitacoes={id: [trâmite...]}` alimentam as listas da API;
+    `nomes={('autor', '145'): dados}` (ou `tipoautor`, `statustramitacao`...)
+    as consultas de nomes; `html={'<id>/autoria': página}` as abas HTML.
     """
 
     def __init__(self):
         self._casas = {}
         self._falhas = {}
 
-    def casa(self, url, buscas=None, api=None, html=None, pdfs=None, ativa=True, nomes=None):
+    def casa(
+        self,
+        url,
+        buscas=None,
+        api=None,
+        html=None,
+        pdfs=None,
+        ativa=True,
+        nomes=None,
+        autorias=None,
+        tramitacoes=None,
+    ):
         from urllib.parse import urlparse
+
         self._casas[urlparse(url).hostname] = {
-            'url': url, 'buscas': buscas or {}, 'api': api, 'html': html or {},
-            'pdfs': pdfs or {}, 'ativa': ativa, 'nomes': nomes or {}}
+            'url': url,
+            'buscas': buscas or {},
+            'api': api,
+            'html': html or {},
+            'pdfs': pdfs or {},
+            'ativa': ativa,
+            'nomes': nomes or {},
+            'autorias': autorias or {},
+            'tramitacoes': tramitacoes or {},
+        }
         return self
 
     def falhar(self, url, *status):
@@ -157,13 +200,19 @@ class SaplFalso:
     def _conteudo(item):
         if isinstance(item, (dict, list)):
             return json.dumps(item)
-        if isinstance(item, str) and item.endswith(('.html', '.json')) and '/' in item and '<' not in item:
+        if (
+            isinstance(item, str)
+            and item.endswith(('.html', '.json'))
+            and '/' in item
+            and '<' not in item
+        ):
             return ler_fixture(item)
         return item
 
     def __call__(self, url):
         import re
         from urllib.parse import urlparse
+
         partes = urlparse(url)
         casa = self._casas.get(partes.hostname)
         if casa is None:
@@ -181,6 +230,27 @@ class SaplFalso:
             if n <= len(paginas):
                 return RespostaFalsa(200, self._conteudo(paginas[n - 1]))
             return RespostaFalsa(404, 'fim')
+        if caminho in ('/api/materia/autoria/', '/api/materia/tramitacao/'):
+            if casa['api'] is None:
+                return RespostaFalsa(404, 'sem api')
+            from urllib.parse import parse_qs
+
+            id_ = parse_qs(partes.query)['materia'][0]
+            if caminho == '/api/materia/autoria/':
+                itens = [{'autor': a, 'materia': int(id_)} for a in casa['autorias'].get(id_, [])]
+            else:
+                itens = casa['tramitacoes'].get(id_, [])
+            return RespostaFalsa(
+                200, json.dumps({'pagination': {'links': {'next': None}}, 'results': itens})
+            )
+        achado = re.match(r'^/api/base/(\w+)/(\d+)/$', caminho)
+        if achado:
+            if casa['api'] is None:
+                return RespostaFalsa(404, 'sem api')
+            dados = casa['nomes'].get(achado.groups())
+            if dados is None:
+                return RespostaFalsa(404, 'não existe')
+            return RespostaFalsa(200, self._conteudo(dados))
         achado = re.match(r'^/api/materia/(\w+)/(\d+)/$', caminho)
         if achado:
             recurso, id_ = achado.groups()
@@ -192,8 +262,12 @@ class SaplFalso:
                     return RespostaFalsa(404, 'não existe')
                 return RespostaFalsa(200, self._conteudo(dados))
             nome = casa['nomes'].get((recurso, id_), f'{recurso} {id_}')
-            return RespostaFalsa(200, json.dumps({'id': int(id_), '__str__': nome, 'descricao': nome}))
-        achado = re.match(r'^/materia/(\d+)$', caminho)
+            if not isinstance(nome, str) or nome.endswith('.json'):
+                return RespostaFalsa(200, self._conteudo(nome))
+            return RespostaFalsa(
+                200, json.dumps({'id': int(id_), '__str__': nome, 'descricao': nome})
+            )
+        achado = re.match(r'^/materia/(\d+(?:/autoria|/tramitacao)?)$', caminho)
         if achado:
             pagina = casa['html'].get(achado.group(1))
             if pagina is None:
@@ -203,3 +277,61 @@ class SaplFalso:
         if achado and achado.group(1) in casa['pdfs']:
             return RespostaFalsa(200, conteudo=casa['pdfs'][achado.group(1)])
         return RespostaFalsa(404, 'não existe')
+
+
+# Projeto de exemplo da Fase 1 (tests/fixtures/projeto_fase1/, veja o README
+# das fixtures). O mesmo SAPL falso serve para gerar a pasta e para retomá-la.
+RB_FASE1 = 'https://sapl.riobranco.ac.leg.br/'
+CV_FASE1 = 'https://sapl.cascavel.pr.leg.br/'
+PALAVRAS_FASE1 = ['plano diretor', 'orçamento, emenda impositiva']
+FALHA_FASE1 = f'{RB_FASE1}api/materia/materialegislativa/44086/'
+
+
+def sapl_fase1(falhar=True):
+    """Rio Branco (com API) e Cascavel (só HTML), 4 matérias cada.
+
+    Com `falhar=True`, a matéria 44086 de Rio Branco responde 503 nas 4
+    tentativas e fica com status `erro` (como ficou na pasta gravada).
+    """
+    import copy
+
+    rb, cv = 'sapl/sapl.riobranco.ac.leg.br/', 'sapl/sapl.cascavel.pr.leg.br/'
+    p, o = '"plano+diretor"', '"orçamento"+"emenda+impositiva"'
+
+    def api_minima(sapl_id, titulo):
+        dados = copy.deepcopy(json.loads(ler_fixture(rb + 'api_materia_34049.json')))
+        dados.update(id=int(sapl_id), __str__=titulo, anexadas=[], texto_original=None)
+        return dados
+
+    falso = SaplFalso()
+    falso.casa(
+        RB_FASE1,
+        buscas={p: [rb + 'busca_p1.html'], o: [rb + 'busca_vazia.html']},
+        api={
+            '34049': rb + 'api_materia_34049.json',
+            '46496': rb + 'api_materia_46496.json',
+            '37559': api_minima('37559', 'Projeto de Lei Complementar nº 26 de 2025'),
+            '44086': api_minima('44086', 'Indicação nº 1 de 2026'),
+        },
+        nomes={
+            ('tipomaterialegislativa', '1'): 'Projeto de Lei Ordinária',
+            ('tipomaterialegislativa', '15'): 'Veto',
+            ('regimetramitacao', '1'): 'Ordinária',
+        },
+        pdfs={'34049': b'%PDF-34049', '46496': b'%PDF-46496'},
+    )
+    falso.casa(
+        CV_FASE1,
+        api=None,
+        buscas={p: [cv + 'busca_p1.html'], o: [cv + 'busca_vazia.html']},
+        html={
+            '38415': cv + 'materia_38415.html',
+            '43301': cv + 'materia_43301.html',
+            '43300': 'sinteticas/materia_sem_pdf.html',
+            '42263': 'sinteticas/materia_sem_data.html',
+        },
+        pdfs={'38415': b'%PDF-38415'},
+    )
+    if falhar:
+        falso.falhar(FALHA_FASE1, 503, 503, 503, 503)
+    return falso

@@ -1,6 +1,6 @@
 # Tasks: Code organization, SAPyL identity and leftover issues
 
-- **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Status:** Draft, reviewed (waiting for approval)
+- **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Status:** Approved 2026-10-27
 - **Branch:** `spec/2026-10-24-organizacao-e-pendencias` (from `main`, after the
   runtime-improvements merge)
 
@@ -15,14 +15,14 @@ Rules for every task (same as Phase 1):
 
 ## Phase A: Before moving anything
 
-- [ ] **T01 Branch and Phase 1 project fixture** (TR-4)
+- [x] **T01 Branch and Phase 1 project fixture** (TR-4)
   - Create the branch from the updated `main`.
   - `tests/fixtures/gerar_projeto_fase1.py`: runs the **Phase 1** `programa.main`
     against `SaplFalso` (two houses, one matter failing) and copies the project
     folder to `tests/fixtures/projeto_fase1/`.
   - `tests/test_compat_fase1.py` (first version): the fixture has the expected
     files, and the Phase 1 code resumes it without requesting finished matters.
-- [ ] **T02 New API fixtures** (TR-2)
+- [x] **T02 New API fixtures** (TR-2)
   - autoria, autor, tipoautor, tramitação, statustramitacao and
     unidadetramitacao for Cascavel and Rio Branco (≤ 15 requests per house,
     3 s apart). Remove `ip`/`user`, then update `index.json` and the
@@ -32,24 +32,35 @@ Rules for every task (same as Phase 1):
 
 ## Phase B: Packaging and the move (no behaviour change)
 
-- [ ] **T03 `pyproject.toml` packaging and CI jobs** (FR-1, FR-6 config, TR-5, TR-6)
+- [x] **T03 `pyproject.toml` packaging and CI jobs** (FR-1, FR-6 config, TR-5, TR-6)
   - `[project]`, `[project.scripts]`, the `dev` extra, `[tool.ruff]`, and
     coverage of `sapyl`. Add `ruff` to the dev extra. `requirements*.txt`
     become wrappers.
   - CI: `testes` job (ruff steps allowed to fail until T07) and
     `instalacao` job.
   - Done when CI is green, with the ruff steps marked `continue-on-error`.
-- [ ] **T04 Move modules into `sapyl/`** (FR-3, TR-1)
+  - *As built:* the `sapyl/` folder doesn't exist yet, so coverage stays on
+    `.` until T04, and the `instalacao` job only checks the installed
+    version. Its `sapyl --version` / `python -m sapyl --version` steps are
+    added in T06.
+- [x] **T04 Move modules into `sapyl/`** (FR-3, TR-1)
   - `git mv` every module to the plan §3 path (still the old module
     contents). Change imports to absolute and update the tests' imports only.
     Add `sapyl/__init__.py` with `__version__ = '0.2.0'`.
   - Done when the suite is green with **no assertion changed** and
     `test_compat_fase1` passes.
-- [ ] **T05 Single source for columns and stages** (FR-4)
+  - *As built:* test files renamed with their modules (`test_cliente_http`,
+    `test_busca`, `test_links`, `test_tabela`, `test_downloads`,
+    `test_projeto`, `test_principal`); tests keep the old local names as
+    import aliases (`from sapyl import busca as buscador`). Coverage now on
+    `sapyl`, version read from `sapyl.__version__`. `autoria.py` lost its
+    `sys.path` hack (run as `python -m sapyl.autoria` until T18) and keeps
+    `.sapl_historico.json` in the folder it runs in.
+- [x] **T05 Single source for columns and stages** (FR-4)
   - `sapyl/colunas.py`. Every module imports from it.
   - Test: no other module defines a list containing `'Link Materia'` or
     `'etapa'` (AST scan).
-- [ ] **T06 Split matters, links and the interface** (FR-3, FR-2)
+- [x] **T06 Split matters, links and the interface** (FR-3, FR-2)
   - `materias/` subpackage, `links.py`, `interface/` (`entrada`,
     `principal`), `__main__.py`, the `executar()` entry point with
     `--version`, and the `programa.py` shortcut.
@@ -57,14 +68,29 @@ Rules for every task (same as Phase 1):
     --version` and `python programa.py --version` via `subprocess`, without
     network access.
   - `test_camadas.py`: layer order from plan §3.
-- [ ] **T07 Types, docstrings, ruff** (FR-5, FR-6)
+  - *As built:* `abrir_ou_criar` and `escolher_projeto_existente` moved from
+    `projeto.py` to `interface/entrada.py` (they ask questions, and `projeto`
+    sits below `interface`). `autoria.py` → `interface.entrada` is a listed
+    exception in `test_camadas.py` until T18. The `'; '` separator lives in
+    `colunas.py` (`SEPARADOR`) so `links` doesn't import `materias`. The
+    `instalacao` CI job now runs `sapyl --version` and `python -m sapyl
+    --version` outside the repository.
+- [x] **T07 Types, docstrings, ruff** (FR-5, FR-6)
   - Type hints and docstrings on public functions. `ruff format` goes in
     its own commit (T07a). Then `ruff check` is clean (T07b), and CI drops
     `continue-on-error`.
+  - *As built:* `tests/test_tipagem.py` checks (AST) that every public
+    function and method in `sapyl/` has parameter and return types and a
+    docstring. Shared aliases: `colunas.Linha` (`dict[str, str]`) and
+    `interface.entrada.Leitor`. `registro.resumo` types its `estado` with a
+    small `Protocol`, so the bottom layer doesn't import `Estado`. Naming
+    (FR-5): functions that do something use verbs; functions that only
+    compute a value are named after it (`chave`, `host`, `url_api`,
+    `nome_arquivo`), so those were kept.
 
 ## Phase C: Data and identity
 
-- [ ] **T08 Stop tracking generated and research data** (FR-8, FR-9, FR-10)
+- [x] **T08 Stop tracking generated and research data** (FR-8, FR-9, FR-10)
   - `git rm --cached` + `.gitignore` with comments.
   - Replace `palavras_chave_res.csv` with `exemplo_palavras_chave.csv`
     (plan §6) and add the README table.
@@ -79,84 +105,152 @@ Rules for every task (same as Phase 1):
   - Check that a fresh clone without `casas_resultado.csv` doesn't offer
     to reuse a table (there's already a test for the prompt; add one for a
     missing file).
-- [ ] **T09 SAPyL identity** (FR-11, FR-13)
+- [x] **T09 SAPyL identity** (FR-11, FR-13)
   - README header and "Para que serve", the `User-Agent`, the welcome line
     and summary/log header, and the `AUTHORS.md` citation.
   - Tests: the `User-Agent` contains `SAPyL/0.2.0`, and the summary and the
     welcome line contain `SAPyL`.
+  - *As built:* the logger is renamed `sapl_scrap` → `sapyl` (its name is on
+    every log line), and each log file starts with a DEBUG line with the name
+    and version. Badge and clone URLs keep `sapl_scrap` until T24.
 
 ## Phase D: Leftover issues
 
-- [ ] **T10 SSL and DNS errors are not retried** (FR-24)
+- [x] **T10 SSL and DNS errors are not retried** (FR-24)
   - `test_cliente_http.py`: `SSLError` → `ssl`, 1 attempt. A
     `ConnectionError` caused by `NameResolutionError` → `dns`, 1 attempt. One
     caused by `socket.gaierror` → `dns`. A plain `ConnectionError` still gets
     4 attempts.
-- [ ] **T11 One log per run** (FR-26)
+  - *As built:* checked first against real errors (a `.invalid` name and
+    `expired.badssl.com`): DNS arrives as `ConnectionError` → `MaxRetryError`
+    (in `args`) → `.reason` `NameResolutionError` → `gaierror`; SSL as
+    `requests.exceptions.SSLError`. `motivo_permanente()` gives `dns`/`ssl`
+    for exactly those, and the tests build the same chains.
+- [x] **T11 One log per run** (FR-26)
   - `registro.configurar(pasta, nome, modo)` creates `logs/<nome>_<data_hora>_<modo>.log`.
   - Tests: name format, one file per run, summary shows the path, old
     `<nome>.log` untouched.
-- [ ] **T12 Cache of sources and names** (FR-25)
+  - *As built:* two runs in the same second get `_2`, `_3`… so every run
+    has its own file. The summary's last line is `Log desta execução: <path>`
+    (from the last `configurar`, or passed in). README updated now.
+- [x] **T12 Cache of sources and names** (FR-25)
   - `estado.Cache`. `Fontes`/`Consultas` use it.
   - Tests: a resume makes no API probe and no lookup for known names, a
     failed lookup is not cached, a corrupt file gives a warning and an empty
     cache, and saving is atomic (the temp file is gone).
-- [ ] **T13 Keywords warning on resume** (FR-23)
+  - *As built:* a failed lookup is still asked only once per run (kept in
+    memory), but never written, so the next run tries again. A house saved
+    as `api` starts as confirmed, so an isolated 404 can't switch it. Update
+    mode shares the project's cache. Tests in `tests/test_cache.py`, plus a
+    resume check in `test_ponta_a_ponta`.
+- [x] **T13 Keywords warning on resume** (FR-23)
   - Tests: the warning lists added and removed terms, the saved terms are
     used, and no warning appears when the terms are equal or the file is
     missing.
-- [ ] **T14 Search file with links only** (FR-21, FR-22, NFR-3)
+- [x] **T14 Search file with links only** (FR-21, FR-22, NFR-3)
   - Tests: the page file has links but no HTML, an old raw file is still read
     on resume, both files together give the same deduplicated links, and the
     file for the Rio Branco fixture page is ≥ 10× smaller than its raw row.
-- [ ] **T15 Houses that redirect** (FR-27)
+  - *As built:* `links.links_das_buscas(paginas, cru)` reads the old raw
+    file first, then the new one. The Rio Branco page goes from ~22 KB (raw
+    row) to one line of links. Compat test: an old project with an
+    incomplete search resumes, the old file stays byte-for-byte the same,
+    and the redone search goes to `<nome>_paginas_busca.csv`.
+- [x] **T15 Houses that redirect** (FR-27)
   - Tests: a redirect gives `url_final`, requests go to `url_final`, links on
     either host are accepted, keys stay on the original host, and an old
     table without `url_final` still works.
-- [ ] **T16 Update mode keeps the researcher's columns** (FR-19, FR-20)
+  - *As built:* `Fontes` also knows where each house is (`Fontes.base()`,
+    from `casas.enderecos_finais`); search, matters (API and HTML) and name
+    lookups use it, and `texto_original` from the HTML resolves against the
+    new address. Update mode reads `url_final` from the project's house
+    table. Tests in `tests/test_redirecionamento.py`, including a full run
+    where the old address only gets the availability test.
+- [x] **T16 Update mode keeps the researcher's columns** (FR-19, FR-20)
   - Tests: extra columns are carried over by key and in order, the
     `Relevante` prompt appears only when the column exists, the accepted
     values are normalised, and the filter count is logged.
-- [ ] **T17 Authors and procedure through the API** (FR-14, FR-15, FR-16)
+- [x] **T17 Authors and procedure through the API** (FR-14, FR-15, FR-16)
   - `sapyl/autoria.py` gets API functions with cached lookups and the HTML
     fallback per house.
   - Tests: API path with the T02 fixtures, API≡HTML text for the same
     matter (TR-3), switch to HTML on 404/non-JSON, failures recorded.
-- [ ] **T18 Authors and procedure in the menu, with resume** (FR-7, FR-17, FR-18)
+  - *As built:* reuses `Fontes` (and so the project cache and `url_final`)
+    and `Consultas`, which gains `autor`, `unidade`, `status_tramitacao` and
+    a per-field lookup cached as `<url>#<campo>`. Author text is the API
+    `__str__` (T02 finding). New column `fonte_autoria` (`api`/`html`).
+    TR-3 holds for the 4 matters with saved HTML tabs. Author lists follow
+    `next` pages (up to 20).
+- [x] **T18 Authors and procedure in the menu, with resume** (FR-7, FR-17, FR-18)
   - Menu option 3. The input is a project name or a CSV path. Output and
     state go in the project folder or next to the CSV. Partial file and state
     as in plan §7.8. Remove `autoria_e_tramitacao/`.
   - Tests: project input picks the latest final, CSV input works, the input
     is not modified, Ctrl+C then resume fetches only what's missing, and the
     output has the input's columns plus the new ones.
+  - *As built:* the first question is now `1` new/resume, `2` update, `3`
+    authors and procedure (test scripts' first answers swapped). Input
+    choice is in `interface/entrada.py`, so the layer-test exception is gone
+    and `python -m sapyl.autoria` no longer exists. A project input uses its
+    cache and `url_final`. Nothing in `autoria_e_tramitacao/` is tracked;
+    the folder only remains on disk for the untracked research file.
 
 ## Phase E: Phase 1 findings, end-to-end, docs
 
-- [ ] **T19 Phase 1 validation findings** (spec §9). Only V4 is open:
+- [x] **T19 Phase 1 validation findings** (spec §9). Only V4 is open:
   - **T19.1 Safety margin in the rate window** (FR-29). One constant
     (`MARGEM_SEGUNDOS = 1`). Test: with the fake clock, request 36 goes
     ≥ 61 s after request 1. Update the existing limiter tests' expected
     times.
-- [ ] **T20 End-to-end and compatibility** (TR-4, TR-7)
+  - *As built:* `JANELA_COM_MARGEM = JANELA_SEGUNDOS + MARGEM_SEGUNDOS` is used
+    for the wait, the window cleanup and the on-disk history. New test: in an
+    80-request burst, every request i and i+35 are ≥ 61 s apart. Three
+    existing tests now expect 61 s instead of 60 s.
+- [x] **T20 End-to-end and compatibility** (TR-4, TR-7)
   - `test_ponta_a_ponta.py`: authors/procedure with interruption and resume,
     update with `Relevante` and the filter, a DNS-failing house, and ≤ 35
     requests/60 s per site including autoria.
   - `test_compat_fase1.py` (final version): the new code resumes and updates
     `projeto_fase1`.
-- [ ] **T21 Docs** (NFR-4)
+  - *As built:* `SaplFalso` now serves the authors/procedure lists, `base/`
+    lookups and the HTML tabs; the end-to-end setup uses the T02 samples.
+    The DNS case uses `sapl.marata.rs.leg.br` (the house found broken in the
+    Phase 1 validation). Compat also checks update and option 3 on the
+    Phase 1 project.
+- [x] **T21 Docs** (NFR-4)
   - README (install, `sapyl`, menu, logs, update with `Relevante`, authors
     and procedure), tech-stack (package, ruff), CLAUDE.md (local),
     ROADMAP ticks.
+  - *As built:* README install is `pip install .` (requirements files kept as
+    wrappers), tests section has the dev install and ruff. Tech-stack has the
+    package layout, endpoints, the 1 s margin and the planned specs in
+    ROADMAP order. The site text was re-checked against the finished menu.
+    Dead-code sweep: no unused public function, no stale names.
+- [x] **T21a Project site** (FR-13a, TR-8)
+  - `docs/index.html`, `docs/estilo.css`, `docs/sapyl.js` (plan §6),
+    `.github/workflows/pages.yml`.
+  - `tests/test_site.py` (TR-8). README gets a link to the site.
+  - Built early, on 2026-10-27, at the user's request. It describes the
+    program as this spec leaves it (3-option menu from T18, per-run logs
+    from T11); T21 re-checks the text against the finished program.
+  - *As built:* hemicycle of 105 seats drawn once into inline SVG (it shows
+    without JavaScript; the script only animates it). `test_site.py` runs
+    the page's `prepararTermo` under Node (skipped without Node) and compares
+    it with `preparar_termos`. Checked in headless Firefox at 390 px and
+    1280 px wide. Publishing (switching Pages on) stays in T24.
 
 ## Phase F: Validation, merge, rename
 
-- [ ] **T22 Update `validation.md`** to match what was built.
-- [ ] **T23 Run validation**, record the results, fix what fails, then merge
+- [x] **T22 Update `validation.md`** to match what was built.
+- [x] **T23 Run validation**, record the results, fix what fails, then merge
   into `main`.
 - [ ] **T24 Rename the repository on GitHub to `sapyl`** (FR-12), **only
   with the user's go-ahead at that moment**: `gh repo rename sapyl`,
   `git remote set-url`, and update the badge, clone URL and links on `main`.
   Check that the CI badge renders and that the old URL redirects.
+  - Then, also with the go-ahead: switch Pages on (source: GitHub Actions),
+    run the `pages` workflow, set the repository homepage to
+    `https://leoaucar.github.io/sapyl/`, and check the site opens.
 
 ## Traceability
 
@@ -173,6 +267,7 @@ Rules for every task (same as Phase 1):
 | FR-11 | T09 | review |
 | FR-12 | T24 | manual check (validation) |
 | FR-13 | T09 | `test_registro`, `test_principal` |
+| FR-13a | T21a, T24 | `test_site`, manual check (validation §9) |
 | FR-14, FR-15, FR-16 | T17 | `test_autoria` |
 | FR-17, FR-18 | T18 | `test_autoria`, `test_ponta_a_ponta` |
 | FR-19, FR-20 | T16 | `test_principal`, `test_ponta_a_ponta` |
@@ -191,5 +286,6 @@ Rules for every task (same as Phase 1):
 | TR-5 | T03, T06 | CI `instalacao`, `test_instalacao` |
 | TR-6 | T03, T07 | CI |
 | TR-7 | T20 | `test_ponta_a_ponta` |
+| TR-8 | T21a | `test_site` |
 | NFR-3 | T14 | `test_busca` |
 | NFR-4 | T21 | review |

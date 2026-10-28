@@ -1,4 +1,5 @@
 """Testes das próprias peças de apoio (rede bloqueada, sessão e relógio falsos)."""
+
 import socket
 
 import pandas as pd
@@ -35,6 +36,7 @@ def test_sessao_falsa_lanca_erro_e_recusa_url_desconhecida(sessao):
 def test_sessao_falsa_rotas_e_fixtures(sessao):
     sessao.rota(lambda url: None)
     from tests.apoio import RespostaFalsa
+
     sessao.rota(lambda url: RespostaFalsa(200, 'rota') if url.endswith('/r') else None)
     assert sessao.get('http://x/r').text == 'rota'
     sessao.responder('http://x/f', fixture='sapl/sapl.al.ac.leg.br/busca_vazia.html')

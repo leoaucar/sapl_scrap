@@ -1,0 +1,20 @@
+etapa,chave,status,erro,quando
+busca,"sapl.riobranco.ac.leg.br|""plano+diretor""",completa,,27/10/2026 20:25:59
+busca,"sapl.riobranco.ac.leg.br|""orçamento""+""emenda+impositiva""",completa,,27/10/2026 20:25:59
+busca,"sapl.cascavel.pr.leg.br|""plano+diretor""",completa,,27/10/2026 20:25:59
+busca,"sapl.cascavel.pr.leg.br|""orçamento""+""emenda+impositiva""",completa,,27/10/2026 20:25:59
+materia,sapl.riobranco.ac.leg.br/46496,ok,,27/10/2026 20:25:59
+materia,sapl.riobranco.ac.leg.br/34049,ok,,27/10/2026 20:25:59
+materia,sapl.riobranco.ac.leg.br/37559,ok,,27/10/2026 20:25:59
+materia,sapl.riobranco.ac.leg.br/44086,erro,HTTP 503,27/10/2026 20:25:59
+materia,sapl.cascavel.pr.leg.br/38415,ok,,27/10/2026 20:25:59
+materia,sapl.cascavel.pr.leg.br/43301,ok,,27/10/2026 20:25:59
+materia,sapl.cascavel.pr.leg.br/43300,ok,,27/10/2026 20:25:59
+materia,sapl.cascavel.pr.leg.br/42263,ok,,27/10/2026 20:25:59
+pdf,sapl.riobranco.ac.leg.br/46496,ok,,27/10/2026 20:25:59
+pdf,sapl.riobranco.ac.leg.br/34049,ok,,27/10/2026 20:25:59
+pdf,sapl.riobranco.ac.leg.br/37559,sem_pdf,,27/10/2026 20:25:59
+pdf,sapl.cascavel.pr.leg.br/38415,ok,,27/10/2026 20:25:59
+pdf,sapl.cascavel.pr.leg.br/43301,erro,HTTP 404,27/10/2026 20:25:59
+pdf,sapl.cascavel.pr.leg.br/43300,sem_pdf,,27/10/2026 20:25:59
+pdf,sapl.cascavel.pr.leg.br/42263,erro,HTTP 404,27/10/2026 20:25:59

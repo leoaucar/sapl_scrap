@@ -1,0 +1,57 @@
+{
+  "pagination": {
+    "links": {
+      "next": null,
+      "previous": null
+    },
+    "previous_page": null,
+    "next_page": null,
+    "start_index": 1,
+    "end_index": 2,
+    "total_entries": 2,
+    "total_pages": 1,
+    "page": 1
+  },
+  "results": [
+    {
+      "id": 69117,
+      "__str__": "Requerimento nº 683 de 2025 | Proposição lida e apresentada em Plenário | 09/12/2025",
+      "link_detail_backend": "/materia/tramitacao/69117",
+      "metadata": {},
+      "timestamp": "2025-12-10T16:17:14.895601-03:00",
+      "data_tramitacao": "2025-12-09",
+      "data_encaminhamento": null,
+      "urgente": false,
+      "turno": "",
+      "texto": "",
+      "data_fim_prazo": null,
+      "ip": null,
+      "ultima_edicao": "2025-12-10T16:17:06.010146-03:00",
+      "status": 28,
+      "materia": 38415,
+      "unidade_tramitacao_local": 3,
+      "unidade_tramitacao_destino": 2,
+      "user": null
+    },
+    {
+      "id": 69116,
+      "__str__": "Requerimento nº 683 de 2025 | Autuada e incluída no Pequeno Expediente para leitura. | 08/12/2025",
+      "link_detail_backend": "/materia/tramitacao/69116",
+      "metadata": {},
+      "timestamp": "2025-12-10T16:17:04.535182-03:00",
+      "data_tramitacao": "2025-12-08",
+      "data_encaminhamento": null,
+      "urgente": false,
+      "turno": "",
+      "texto": "",
+      "data_fim_prazo": null,
+      "ip": null,
+      "ultima_edicao": "2025-12-10T16:16:51.591983-03:00",
+      "status": 68,
+      "materia": 38415,
+      "unidade_tramitacao_local": 2,
+      "unidade_tramitacao_destino": 3,
+      "user": null
+    }
+  ]
+}

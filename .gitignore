@@ -2,6 +2,11 @@
 __pycache__/
 *.py[cod]
 
+# Instalação do pacote (pip install / pip install -e)
+*.egg-info/
+build/
+dist/
+
 # Ambientes virtuais
 .venv/
 venv/
@@ -14,6 +19,13 @@ env/
 
 # Saídas de teste
 arquivos_csv/teste_raspagem.csv
+
+# Dados gerados pelo programa: a tabela geral de casas testadas é reescrita
+# a cada execução com todas as casas, então fica só no disco de cada pessoa
+arquivos_csv/casas_resultado.csv
+
+# Dados de pesquisa (não são exemplo): ficam no disco de quem pesquisa
+autoria_e_tramitacao/tabela_limpa_2.csv
 
 # Editores / sistema
 .vscode/
@@ -36,3 +48,7 @@ htmlcov/
 .claude/
 CLAUDE.md
 CLAUDE.local.md
+
+# Exceção: pasta de projeto de exemplo usada nos testes de compatibilidade
+# (vem por último para valer também contra *_proj/, *.pdf e *.log)
+!tests/fixtures/projeto_fase1/**

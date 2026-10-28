@@ -1,4 +1,3 @@
-beautifulsoup4>=4.12
-openpyxl>=3.1
-pandas>=2.1
-requests>=2.31
+# As dependências ficam em pyproject.toml. Este arquivo só instala o programa,
+# para quem já usa "pip install -r requirements.txt".
+.

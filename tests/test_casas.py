@@ -1,10 +1,11 @@
 """Casas legislativas: teste das URLs, UF, filtro Sul/Sudeste e limite."""
+
 import pandas as pd
 import pytest
 import requests
 
-import casas_legislativas as cl
-from http_sapl import ClienteSAPL
+from sapyl import casas as cl
+from sapyl.cliente_http import ClienteSAPL
 
 
 @pytest.fixture
@@ -20,8 +21,9 @@ def test_importar_casas_da_planilha(projeto_tmp):
 
 
 def test_casa_com_falha_fica_na_lista_com_motivo(cliente, sessao):
-    casas = pd.DataFrame({'url': ['https://a/', 'https://b/', 'https://c/'],
-                          'uf': ['AC', 'PR', 'SP']})
+    casas = pd.DataFrame(
+        {'url': ['https://a/', 'https://b/', 'https://c/'], 'uf': ['AC', 'PR', 'SP']}
+    )
     sessao.responder('https://a/', texto='ok')
     sessao.responder('https://b/', erro=requests.ConnectionError())
     sessao.responder('https://c/', status=500)
@@ -37,8 +39,11 @@ def test_casa_com_falha_fica_na_lista_com_motivo(cliente, sessao):
 
 def test_tabela_antiga_lida_com_uf_da_planilha(projeto_tmp):
     antiga = projeto_tmp / 'casas_resultado.csv'
-    antiga.write_text('0,1\nhttps://sapl.a.ac.leg.br/,True\nhttps://sapl.b.pr.leg.br,False\n'
-                      'https://sapl.c.sp.leg.br/,True\n', encoding='utf-8')
+    antiga.write_text(
+        '0,1\nhttps://sapl.a.ac.leg.br/,True\nhttps://sapl.b.pr.leg.br,False\n'
+        'https://sapl.c.sp.leg.br/,True\n',
+        encoding='utf-8',
+    )
     casas = cl.ler_tabela_casas(antiga, projeto_tmp / 'arquivos_csv' / 'casas_legislativas.xlsx')
     assert list(casas.columns) == cl.COLUNAS_CASAS
     assert list(casas['url'])[1] == 'https://sapl.b.pr.leg.br/'
@@ -47,17 +52,23 @@ def test_tabela_antiga_lida_com_uf_da_planilha(projeto_tmp):
 
 
 def test_tabela_nova_ida_e_volta(tmp_path):
-    casas = pd.DataFrame({'url': ['https://a/'], 'ativa': [False], 'motivo': ['timeout'], 'uf': ['RS']})
+    casas = pd.DataFrame(
+        {'url': ['https://a/'], 'ativa': [False], 'motivo': ['timeout'], 'uf': ['RS']}
+    )
     cl.salvar_tabela_casas(casas, tmp_path / 't.csv')
     lida = cl.ler_tabela_casas(tmp_path / 't.csv')
-    assert lida.to_dict('records') == [{'url': 'https://a/', 'ativa': False,
-                                        'motivo': 'timeout', 'uf': 'RS'}]
+    assert lida.to_dict('records') == [
+        {'url': 'https://a/', 'ativa': False, 'motivo': 'timeout', 'uf': 'RS', 'url_final': ''}
+    ]
 
 
 def test_sul_sudeste_aplicado_em_tabela_reaproveitada(projeto_tmp):
     antiga = projeto_tmp / 'casas_resultado.csv'
-    antiga.write_text('0,1\nhttps://sapl.a.ac.leg.br/,True\nhttps://sapl.b.pr.leg.br/,True\n'
-                      'https://sapl.c.sp.leg.br/,True\n', encoding='utf-8')
+    antiga.write_text(
+        '0,1\nhttps://sapl.a.ac.leg.br/,True\nhttps://sapl.b.pr.leg.br/,True\n'
+        'https://sapl.c.sp.leg.br/,True\n',
+        encoding='utf-8',
+    )
     casas = cl.ler_tabela_casas(antiga, projeto_tmp / 'arquivos_csv' / 'casas_legislativas.xlsx')
     assert list(cl.filtrar_sul_sudeste(casas)['uf']) == ['PR', 'SP']
 

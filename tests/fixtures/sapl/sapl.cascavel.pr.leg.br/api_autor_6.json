@@ -1,0 +1,13 @@
+{
+  "id": 6,
+  "__str__": "Prefeito Municipal - Prefeito",
+  "link_detail_backend": "/sistema/autor/6",
+  "metadata": {},
+  "autor_related": null,
+  "object_id": null,
+  "nome": "Prefeito Municipal",
+  "cargo": "Prefeito",
+  "tipo": 8,
+  "content_type": null,
+  "operadores": null
+}

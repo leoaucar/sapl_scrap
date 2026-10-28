@@ -1,6 +1,6 @@
 # Plan: Code organization, SAPyL identity and leftover issues
 
-- **Spec:** [spec.md](spec.md) · **Status:** Draft, reviewed (waiting for approval) · **Date:** 2026-10-24
+- **Spec:** [spec.md](spec.md) · **Status:** Approved 2026-10-27, amended 2026-10-27 (§6 project site) · **Date:** 2026-10-24
 - **Branch for implementation:** `spec/2026-10-24-organizacao-e-pendencias`,
   from `main` **after** the runtime-improvements branch is merged
 
@@ -23,6 +23,7 @@ Rio Branco:
 |---|---|---|
 | Authors API | `/api/materia/autoria/?materia=<id>` → paginated list (`results`, `pagination.total_entries`) with `autor` id and `primeiro_autor` | 1 request per matter + cached author lookups |
 | Author names | `/api/base/autor/<id>/` → `nome`, `cargo`, `tipo` (id); `/api/base/tipoautor/<id>/` → `__str__` ("Parlamentar") | `Autoria` = `nome (tipo)`, same as HTML "Autor (Descrição)" |
+| Author text (checked 2026-10-27, T02) | the HTML author column is the API `__str__`, which is `nome - cargo` when `cargo` is set ("Executivo Municipal - sapladm"), else `nome` | use `__str__`, not `nome`, so API and HTML give the same `Autoria` |
 | Procedure API | `/api/materia/tramitacao/?materia=<id>` → newest first (same order as the HTML table, checked on both houses) | first result = latest step |
 | Procedure names | `status` → `/api/materia/statustramitacao/<id>/` (`descricao`); units → `/api/materia/unidadetramitacao/<id>/` (`__str__`) | cached lookups, like `tipo`/`regime` today |
 | Staff data | list items carry `ip`, `user` | never stored; removed from fixtures |
@@ -177,6 +178,32 @@ tests becomes `sapyl.materias`.
   the existing sections, updated for `pip install .` and `sapyl`.
 - `User-Agent`: `SAPyL/<versão> (pesquisa; +https://github.com/leoaucar/sapyl)`.
 - `AUTHORS.md` citation title: *SAPyL: Raspador do Sistema de Apoio Legislativo*.
+- Project site (FR-13a), written in T21a, after the features it describes:
+  - `docs/index.html`, `docs/estilo.css`, `docs/sapyl.js`, Portuguese,
+    sections: what it is · for whom · how it works · what it produces ·
+    installation · use (menu, input files, outputs, resume, update,
+    authors/procedure) · rate limit and run time · citation and license.
+  - Look: a public-record "paper and ink" palette with the green of the
+    legislative houses; serif headings (system fonts only); a plenary
+    hemicycle drawn in SVG as the main motif; a sample of the output table.
+    Colours as CSS variables, light and dark. Mobile-first CSS: one column by
+    default, grids from ~48 rem up.
+  - JavaScript (progressive enhancement, no libraries): copy buttons,
+    light/dark switch (saved in `localStorage` when allowed), Linux/macOS vs
+    Windows install tabs, a live "keyword line → SAPL query" preview using
+    the same rule as `preparar_termos`, and a run-time estimate from the
+    35 requests/min limit. The query function is also exported for Node so
+    `test_site.py` can compare it with `preparar_termos`.
+  - Commands shown in `<pre><code>` blocks copied from the README, so both
+    say the same. Links to the repository, README, AUTHORS and LICENSE use
+    the post-rename URL `https://github.com/leoaucar/sapyl`.
+  - `.github/workflows/pages.yml`: on push to `main` touching `docs/**` (and
+    by hand), `actions/upload-pages-artifact` with `path: docs` and
+    `actions/deploy-pages`, with `pages: write` and `id-token: write`
+    permissions. It does nothing until Pages is switched on.
+  - Switching Pages on (`gh api -X POST repos/leoaucar/sapyl/pages -f
+    build_type=workflow`) and setting the repository homepage to the site
+    URL are part of T24, after the rename, **with the user's go-ahead**.
 - The rename on GitHub (FR-12) is the last task, after the merge:
   `gh repo rename sapyl`, then `git remote set-url origin …`, then update the
   badge/clone URLs in one commit on `main`. **It needs the user's go-ahead
@@ -344,3 +371,5 @@ Listed in spec §9 when the Phase 1 validation ends. Each becomes a task
 - Keys stay on the original house URL even when it redirects (§7.6).
 - `palavras_chave_res.csv` replaced by a neutral example file, plus the old
   list cleaned as an alternative test (Q1).
+- Project site: one static page in `docs/`, published by Actions, switched
+  on after the rename (Q3, §6).

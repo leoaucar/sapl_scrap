@@ -1,6 +1,6 @@
 # Spec: Code organization, SAPyL identity and leftover issues
 
-- **Status:** Draft, reviewed (waiting for approval)
+- **Status:** Approved 2026-10-27 · amended 2026-10-27 (project site, FR-13a, at the user's request)
 - **Date:** 2026-10-24
 - **Covers:** ROADMAP Phase 1b (organization, new identity, leftover bugs)
 - **Depends on:** [2026-10-24-runtime-improvements](../2026-10-24-runtime-improvements/spec.md)
@@ -138,6 +138,24 @@ kept a flat layout of 13 top-level modules. Some problems remain:
   (GitHub redirects old URLs).
 - **FR-13** User-facing messages that name the program (welcome line,
   summary, log header) say SAPyL.
+- **FR-13a** A project site on GitHub Pages, in Portuguese, for people who
+  won't read the README: one static page (`docs/index.html`, `estilo.css`,
+  `sapyl.js`), mobile first, with a visual theme drawn from public data, open
+  source and legislative houses (inline SVG drawings are fine; no logo, no
+  image files, nothing loaded from outside `docs/`). JavaScript only adds
+  extras (copy buttons, light/dark switch, install tabs, a keyword-to-query
+  preview and a run-time estimate); without it the page still reads in
+  full. It explains what SAPyL is
+  and who it is for, what it produces, the requirements, installation
+  (clone + `pip install .`) and use (the `sapyl` command and its menu: new
+  or resumed project, update, authors and procedure; input files; outputs;
+  resuming; the 35 requests/min limit and what it means for run time),
+  plus citation, license and links to the repository and README. It is
+  readable on a phone and in light and dark mode. A GitHub Actions workflow
+  publishes `docs/` from `main`. Pages is switched on after the rename
+  (FR-12), because GitHub does not redirect Pages addresses of renamed
+  repositories, so the site lives at `https://leoaucar.github.io/sapyl/`.
+  The README links to it.
 
 ### 5.4 Authors and procedure
 
@@ -225,6 +243,12 @@ helpers (`SessaoFalsa`, `RelogioFalso`, `SaplFalso`, `roteiro`).
   the only command-line option added in this spec.
 - **TR-6** CI runs `ruff check`, `ruff format --check` and `pytest` on
   Python 3.10 and 3.12.
+- **TR-8** `test_site.py` checks `docs/index.html`: it parses, has a title
+  and the required sections (FR-13a), shows `pip install .` and `sapyl`,
+  loads nothing from outside `docs/`, and names no removed file or command
+  (`autoria_e_tramit.py`, `palavras_chave_res.csv`, `sapl_scrap` outside
+  the citation of old versions). When `node` is available, the page's
+  keyword-to-query function gives the same result as `preparar_termos`.
 - **TR-7** The end-to-end test from Phase 1 is extended. It runs the
   authors/procedure option with interruption and resume, an update with
   `Relevante` and a filter, and a house with a DNS failure. It also checks
@@ -241,7 +265,8 @@ helpers (`SessaoFalsa`, `RelogioFalso`, `SaplFalso`, `roteiro`).
   10× smaller than the Phase 1 raw file for the same run.
 - **NFR-4 Docs.** README (install with `pip install .`, the `sapyl` command,
   authors/procedure in the menu, logs folder, update with `Relevante`),
-  tech-stack (package layout, ruff), CLAUDE.md, ROADMAP ticks.
+  tech-stack (package layout, ruff), CLAUDE.md, ROADMAP ticks. The project
+  site (FR-13a) says the same as the README about installing and using.
 
 ## 8. Acceptance criteria
 
@@ -263,6 +288,8 @@ helpers (`SessaoFalsa`, `RelogioFalso`, `SaplFalso`, `roteiro`).
    reason `dns`.
 9. The repository is `leoaucar/sapyl` on GitHub, and README, badge, clone
    URL and citation use the new name.
+10. The project site opens at `https://leoaucar.github.io/sapyl/`, and its
+    installation steps work as written in a fresh virtual environment.
 
 ## 9. Validation findings from Phase 1
 
@@ -293,6 +320,11 @@ run on 2026-10-24/25:
   (FR-10a). *Decided 2026-10-24.*
 - **Q2.** Authors/procedure stays a separate menu option, not a question in
   the main flow (FR-7). *Decided 2026-10-24.*
+- **Q3.** The project site goes into this spec (it uses this spec's name and
+  install steps) as one hand-written static page in `docs/`, published by a
+  GitHub Actions workflow (FR-13a). *Decided 2026-10-27.* Refined the same
+  day: HTML + CSS + JavaScript, mobile first, themed on public data, open
+  source and legislative houses.
 
 ## 11. Open questions
 

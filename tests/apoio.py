@@ -154,13 +154,29 @@ class SaplFalso:
     próprio conteúdo. `api=None` imita uma casa sem API (404). Páginas de busca
     além das definidas respondem 404 (fim). `falhar(url, 503, 429...)` faz a URL
     responder esses status, um por chamada, antes da resposta normal.
+
+    Autoria e tramitação: `autorias={id: [id do autor...]}` e
+    `tramitacoes={id: [trâmite...]}` alimentam as listas da API;
+    `nomes={('autor', '145'): dados}` (ou `tipoautor`, `statustramitacao`...)
+    as consultas de nomes; `html={'<id>/autoria': página}` as abas HTML.
     """
 
     def __init__(self):
         self._casas = {}
         self._falhas = {}
 
-    def casa(self, url, buscas=None, api=None, html=None, pdfs=None, ativa=True, nomes=None):
+    def casa(
+        self,
+        url,
+        buscas=None,
+        api=None,
+        html=None,
+        pdfs=None,
+        ativa=True,
+        nomes=None,
+        autorias=None,
+        tramitacoes=None,
+    ):
         from urllib.parse import urlparse
 
         self._casas[urlparse(url).hostname] = {
@@ -171,6 +187,8 @@ class SaplFalso:
             'pdfs': pdfs or {},
             'ativa': ativa,
             'nomes': nomes or {},
+            'autorias': autorias or {},
+            'tramitacoes': tramitacoes or {},
         }
         return self
 
@@ -212,6 +230,27 @@ class SaplFalso:
             if n <= len(paginas):
                 return RespostaFalsa(200, self._conteudo(paginas[n - 1]))
             return RespostaFalsa(404, 'fim')
+        if caminho in ('/api/materia/autoria/', '/api/materia/tramitacao/'):
+            if casa['api'] is None:
+                return RespostaFalsa(404, 'sem api')
+            from urllib.parse import parse_qs
+
+            id_ = parse_qs(partes.query)['materia'][0]
+            if caminho == '/api/materia/autoria/':
+                itens = [{'autor': a, 'materia': int(id_)} for a in casa['autorias'].get(id_, [])]
+            else:
+                itens = casa['tramitacoes'].get(id_, [])
+            return RespostaFalsa(
+                200, json.dumps({'pagination': {'links': {'next': None}}, 'results': itens})
+            )
+        achado = re.match(r'^/api/base/(\w+)/(\d+)/$', caminho)
+        if achado:
+            if casa['api'] is None:
+                return RespostaFalsa(404, 'sem api')
+            dados = casa['nomes'].get(achado.groups())
+            if dados is None:
+                return RespostaFalsa(404, 'não existe')
+            return RespostaFalsa(200, self._conteudo(dados))
         achado = re.match(r'^/api/materia/(\w+)/(\d+)/$', caminho)
         if achado:
             recurso, id_ = achado.groups()
@@ -223,10 +262,12 @@ class SaplFalso:
                     return RespostaFalsa(404, 'não existe')
                 return RespostaFalsa(200, self._conteudo(dados))
             nome = casa['nomes'].get((recurso, id_), f'{recurso} {id_}')
+            if not isinstance(nome, str) or nome.endswith('.json'):
+                return RespostaFalsa(200, self._conteudo(nome))
             return RespostaFalsa(
                 200, json.dumps({'id': int(id_), '__str__': nome, 'descricao': nome})
             )
-        achado = re.match(r'^/materia/(\d+)$', caminho)
+        achado = re.match(r'^/materia/(\d+(?:/autoria|/tramitacao)?)$', caminho)
         if achado:
             pagina = casa['html'].get(achado.group(1))
             if pagina is None:

@@ -89,3 +89,26 @@ def test_busca_incompleta_de_projeto_antigo_usa_os_dois_arquivos(copia):
     assert (pasta / 'fase1_paginas_busca.csv').exists()
     final = ler_final(pasta / 'fase1_resultado_final.csv')
     assert len(final) == 8 and final['sapl_id'].is_unique
+
+
+def test_atualizacao_de_projeto_antigo(copia):
+    cliente, sessao = _cliente()
+    assert programa.main(roteiro('2', 'fase1', '2'), cliente, copia) == 0
+    pasta = copia / 'fase1_proj'
+    [arquivo] = pasta.glob('fase1_resultado_final_ATUALIZADO_*.csv')
+    final = ler_final(arquivo)
+    assert len(final) == 8 and set(final['status']) == {'ok'}
+    assert not any('/sistema/search/' in u for u in sessao.pedidos)
+    # a tabela de casas da Fase 1 (sem url_final) continua valendo
+    assert all(
+        u.startswith(('https://sapl.riobranco', 'https://sapl.cascavel')) for u in sessao.pedidos
+    )
+
+
+def test_autoria_de_projeto_antigo(copia):
+    cliente, sessao = _cliente()
+    assert programa.main(roteiro('3', 'fase1'), cliente, copia) == 0
+    saida = copia / 'fase1_proj' / 'fase1_resultado_final_autoria_tramitacao.csv'
+    tabela = ler_final(saida)
+    assert len(tabela) == 8
+    assert set(tabela['fonte_autoria']) <= {'api', 'html'}

@@ -1,9 +1,11 @@
-"""Teste de ponta a ponta contra um SAPL falso (TR-9).
+"""Teste de ponta a ponta contra um SAPL falso (TR-9 da Fase 1, TR-7 da spec 2).
 
 Duas casas: Rio Branco com API, Cascavel sem API (só HTML). A busca de Rio
 Branco tem 40 páginas (passa do limite de 35/min), uma página recebe 429 e
 uma matéria falha de vez. Confere tabela final, estado, PDFs, resumo,
-retomada e que nenhum site recebe mais de 35 requisições em 60 s.
+retomada e que nenhum site recebe mais de 35 requisições em 60 s. Também:
+autoria e tramitação interrompida e retomada, atualização com `Relevante` e
+uma casa cujo nome não existe mais (DNS).
 """
 
 import copy
@@ -26,6 +28,7 @@ P = '"plano+diretor"'
 ORC = '"orçamento"+"emenda+impositiva"'
 PAGINAS_RB = 40
 FALHA = materias.url_api(RB, '44086')  # falha de vez (4 × 503)
+DNS = 'https://sapl.marata.rs.leg.br/'  # nome que não existe mais (validação da Fase 1)
 
 
 def _api_minima(sapl_id, titulo):
@@ -34,8 +37,31 @@ def _api_minima(sapl_id, titulo):
     return dados
 
 
-def montar(projeto_tmp):
-    """Sessão, relógio e cliente novos, com o SAPL falso das duas casas."""
+def _lista(arquivo):
+    return json.loads(ler_fixture(arquivo))['results']
+
+
+def _nomes_das_fixtures(pasta):
+    """{(recurso, id): fixture} das consultas de nomes salvas (autor, unidade...)."""
+    import re
+
+    from tests.apoio import PASTA_FIXTURES
+
+    nomes = {}
+    for arquivo in (PASTA_FIXTURES / pasta).glob('api_*.json'):
+        achado = re.match(
+            r'api_(autor|tipoautor|statustramitacao|unidadetramitacao)_(\d+)\.json$', arquivo.name
+        )
+        if achado:
+            nomes[achado.groups()] = pasta + arquivo.name
+    return nomes
+
+
+def montar(projeto_tmp, casa_dns=False):
+    """Sessão, relógio e cliente novos, com o SAPL falso das duas casas.
+
+    `casa_dns`: põe na planilha uma terceira casa cujo nome não existe mais.
+    """
     falso = SaplFalso()
     falso.casa(
         RB,
@@ -53,6 +79,12 @@ def montar(projeto_tmp):
             ('tipomaterialegislativa', '1'): 'Projeto de Lei Ordinária',
             ('tipomaterialegislativa', '15'): 'Veto',
             ('regimetramitacao', '1'): 'Ordinária',
+            **_nomes_das_fixtures(F_RB),
+        },
+        autorias={'34049': [145], '46496': [41], '37559': [145], '44086': [145]},
+        tramitacoes={
+            '34049': _lista(F_RB + 'api_tramitacao_34049.json'),
+            '46496': _lista(F_RB + 'api_tramitacao_46496.json'),
         },
         pdfs={'34049': b'%PDF-34049', '46496': b'%PDF-46496'},
     )
@@ -65,6 +97,16 @@ def montar(projeto_tmp):
             '43301': F_CV + 'materia_43301.html',
             '43300': 'sinteticas/materia_sem_pdf.html',
             '42263': 'sinteticas/materia_sem_data.html',
+            **{
+                f'{i}/{aba}': F_CV + f'materia_{origem}_{aba}.html'
+                for i, origem in (
+                    ('38415', '38415'),
+                    ('43301', '43301'),
+                    ('43300', '43301'),
+                    ('42263', '43301'),
+                )
+                for aba in ('autoria', 'tramitacao')
+            },
         },
         pdfs={'38415': b'%PDF-38415'},
     )
@@ -86,9 +128,14 @@ def montar(projeto_tmp):
     arquivos = projeto_tmp / 'arquivos_csv'
     import pandas as pd
 
-    pd.DataFrame({'UF': ['AC', 'PR'], 'URL do serviço': [RB, CV]}).to_excel(
-        arquivos / 'casas_legislativas.xlsx', index=False
-    )
+    casas = {'UF': ['AC', 'PR'], 'URL do serviço': [RB, CV]}
+    if casa_dns:
+        from tests.test_cliente_http import _erro_dns
+
+        casas['UF'].append('RS')
+        casas['URL do serviço'].append(DNS)
+        sessao.responder(DNS, erro=_erro_dns())
+    pd.DataFrame(casas).to_excel(arquivos / 'casas_legislativas.xlsx', index=False)
     return cliente, sessao, horarios
 
 
@@ -253,3 +300,82 @@ def test_retomada_com_cliente_novo_respeita_o_limite(projeto_tmp, monkeypatch):
         tempos = sorted(t for s, t in horarios if s == site)
         for i, t in enumerate(tempos):
             assert sum(1 for u in tempos[i:] if u - t < 60) <= 35, site
+
+
+def _limite_respeitado(horarios):
+    for site in {s for s, _ in horarios}:
+        tempos = sorted(t for s, t in horarios if s == site)
+        for i, t in enumerate(tempos):
+            assert sum(1 for u in tempos[i:] if u - t < 60) <= 35, site
+
+
+# --- Autoria e tramitação, atualização e DNS (TR-7 da spec 2) ---------------
+
+
+def test_autoria_interrompida_e_retomada(projeto_tmp, monkeypatch):
+    from sapyl import autoria
+
+    cliente, sessao, horarios = montar(projeto_tmp)
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+
+    original, chamadas = autoria.raspar_autoria, []
+
+    def cair_na_terceira(link, *args):
+        chamadas.append(link)
+        if len(chamadas) == 3:
+            raise KeyboardInterrupt
+        return original(link, *args)
+
+    monkeypatch.setattr(autoria, 'raspar_autoria', cair_na_terceira)
+    assert programa.main(roteiro('3', 'p'), cliente, projeto_tmp) == 1
+    monkeypatch.setattr(autoria, 'raspar_autoria', original)
+
+    sessao.pedidos.clear()
+    assert programa.main(roteiro('3', 'p'), cliente, projeto_tmp) == 0
+    feitas = [lk for lk in chamadas[:2]]
+    assert not any(f'materia={lk.rsplit("/", 1)[1]}' in u for lk in feitas for u in sessao.pedidos)
+
+    saida = ler_final(projeto_tmp / 'p_proj' / 'p_resultado_final_autoria_tramitacao.csv')
+    assert len(saida) == 8
+    por_id = saida.set_index('sapl_id')
+    assert por_id.at['34049', 'Autoria'] == 'Zé Lopes (Parlamentar)'
+    assert por_id.at['34049', 'Tramite'].startswith('21/09/2026 | Redação Legislativa - RL')
+    assert por_id.at['34049', 'fonte_autoria'] == 'api'
+    assert por_id.at['38415', 'Autoria'] == 'Everton Guimarães (Parlamentar)'
+    assert por_id.at['38415', 'fonte_autoria'] == 'html'
+    assert set(saida['status_autoria']) == {'ok'} and set(saida['status_tramitacao']) == {'ok'}
+    # Cascavel já é conhecida como "sem API" (cache do projeto): nada vai à API dela
+    assert not any(u.startswith(CV + 'api/') for u in sessao.pedidos)
+    _limite_respeitado(horarios)
+
+
+def test_atualizacao_com_relevante(projeto_tmp):
+    cliente, sessao, horarios = montar(projeto_tmp)
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    caminho = projeto_tmp / 'p_proj' / 'p_resultado_final.csv'
+    final = ler_final(caminho)
+    final['Relevante'] = ['x' if i in ('34049', '38415') else '' for i in final['sapl_id']]
+    final['Anotacao'] = 'ver'
+    final.to_csv(caminho, index=False)
+
+    assert programa.main(roteiro('2', 'p', '1', '2'), cliente, projeto_tmp) == 0
+    [arquivo] = (projeto_tmp / 'p_proj').glob('p_resultado_final_ATUALIZADO_*.csv')
+    atualizado = ler_final(arquivo)
+    assert sorted(atualizado['sapl_id']) == ['34049', '38415']
+    assert list(atualizado.columns)[-2:] == ['Relevante', 'Anotacao']
+    assert set(atualizado['status']) == {'ok'}
+    _limite_respeitado(horarios)
+
+
+def test_casa_com_dns_quebrado_falha_numa_tentativa(projeto_tmp, caplog):
+    cliente, sessao, horarios = montar(projeto_tmp, casa_dns=True)
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    assert sessao.contar('sapl.marata.rs.leg.br') == 1
+    from sapyl import casas as cl
+
+    tabela = cl.ler_tabela_casas(projeto_tmp / 'p_proj' / 'casas_resultado.csv')
+    marata = tabela[tabela['url'] == DNS].iloc[0]
+    assert (bool(marata['ativa']), marata['motivo']) == (False, 'dns')
+    resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
+    assert '1 fora do ar, não pesquisadas' in resumo

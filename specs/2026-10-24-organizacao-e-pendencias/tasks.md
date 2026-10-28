@@ -206,12 +206,17 @@ Rules for every task (same as Phase 1):
     for the wait, the window cleanup and the on-disk history. New test: in an
     80-request burst, every request i and i+35 are ≥ 61 s apart. Three
     existing tests now expect 61 s instead of 60 s.
-- [ ] **T20 End-to-end and compatibility** (TR-4, TR-7)
+- [x] **T20 End-to-end and compatibility** (TR-4, TR-7)
   - `test_ponta_a_ponta.py`: authors/procedure with interruption and resume,
     update with `Relevante` and the filter, a DNS-failing house, and ≤ 35
     requests/60 s per site including autoria.
   - `test_compat_fase1.py` (final version): the new code resumes and updates
     `projeto_fase1`.
+  - *As built:* `SaplFalso` now serves the authors/procedure lists, `base/`
+    lookups and the HTML tabs; the end-to-end setup uses the T02 samples.
+    The DNS case uses `sapl.marata.rs.leg.br` (the house found broken in the
+    Phase 1 validation). Compat also checks update and option 3 on the
+    Phase 1 project.
 - [ ] **T21 Docs** (NFR-4)
   - README (install, `sapyl`, menu, logs, update with `Relevante`, authors
     and procedure), tech-stack (package, ruff), CLAUDE.md (local),

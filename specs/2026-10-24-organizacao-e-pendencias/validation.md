@@ -1,10 +1,10 @@
 # Validation: Code organization, SAPyL identity and leftover issues
 
 - **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Tasks:** [tasks.md](tasks.md)
-- **Status:** Not run
+- **Status:** Not run · checklist aligned with what was built (T22, 2026-10-27)
 - **Run by / date:** _fill in_
 
-Manual checks on the implementation branch after T01–T22, against real sites
+Manual checks on the implementation branch after T01–T22 (and T21a), against real sites
 where needed. They cover the acceptance criteria in spec §8. The branch is
 merged only when every check is ✅, or each ❌ has become a task that was
 fixed and re-checked. The GitHub rename (AC 9) is checked after the merge.
@@ -16,7 +16,7 @@ rate limiter and could double the load on a site.
 
 | # | Check | Result |
 |---|---|---|
-| 0.1 | Tasks T01–T22 ticked | |
+| 0.1 | Tasks T01–T22 and T21a ticked | |
 | 0.2 | CI green: `testes` (3.10, 3.12, ruff + pytest) and `instalacao` | |
 | 0.3 | `pytest` offline < 30 s; coverage ≥ 95 % (AC 2) | time: ___ s · coverage: ___ % |
 | 0.4 | `ruff check` and `ruff format --check` clean (AC 2) | |
@@ -74,7 +74,40 @@ project `val2_a`.
 |---|---|---|
 | `val2_a_paginas_busca.csv` size vs Phase 1 `val_a_resultados_crus_casas.csv` | ≥ 10× smaller | ___ MB vs ___ MB |
 | Same set of keys as Phase 1 `val_a` (allowing for new matters on the sites) | yes, differences explained | |
-| Max requests per host per 60 s (Phase 1 script, reading `logs/*.log`, using the `enviada` time) | ≤ 35 | |
+| Max requests per host per 60 s (script below, all files in `logs/`, `enviada` time) | ≤ 35 | |
+| Shortest span covering 36 consecutive requests to one host (V4 margin) | ≥ 61 s (ms truncation aside) | |
+| `HTTP 429` lines in the logs | 0 | |
+
+```python
+import collections, datetime as dt, pathlib, re, sys
+
+# uso: python limite.py <pasta do projeto>   (lê logs/*.log e o <nome>.log antigo, se houver)
+pasta = pathlib.Path(sys.argv[1])
+arquivos = sorted(pasta.glob('logs/*.log')) + sorted(pasta.glob('*.log'))
+pat = re.compile(r'^(\S+ \S+) DEBUG sapyl\.http (\S+) \| \S+ \| (\S+) \| tentativa.*?\| enviada (\S+)$')
+por_host, status = collections.defaultdict(list), collections.Counter()
+for arquivo in arquivos:
+    for linha in arquivo.read_text(encoding='utf-8').splitlines():
+        m = pat.match(linha)
+        if not m:
+            continue
+        resposta = dt.datetime.strptime(m.group(1), '%Y-%m-%d %H:%M:%S,%f')
+        enviada = dt.datetime.combine(resposta.date(), dt.datetime.strptime(m.group(4), '%H:%M:%S.%f').time())
+        if enviada > resposta:  # enviada antes da meia-noite, resposta depois
+            enviada -= dt.timedelta(days=1)
+        por_host[m.group(2)].append(enviada)
+        status[m.group(3)] += 1
+print(status)
+for host, ts in sorted(por_host.items()):
+    ts.sort()
+    i = pico = 0
+    for j, t in enumerate(ts):
+        while (t - ts[i]).total_seconds() >= 60:
+            i += 1
+        pico = max(pico, j - i + 1)
+    menor = min(((ts[k + 35] - ts[k]).total_seconds() for k in range(len(ts) - 35)), default=None)
+    print(f'{host:36s} {len(ts):6d} req  max/60s={pico:3d}  menor intervalo 1ª–36ª={menor}')
+```
 | `cache.json` present; a resume of `val2_a` makes no API probe or name lookup already in it | yes | |
 
 ## 5. Authors and procedure — AC 5
@@ -86,12 +119,12 @@ otherwise, record "not available").
 | Check | Expected | Result |
 |---|---|---|
 | Uses the latest final of the project; input not modified | yes | |
-| `fonte` = `api` for Acre houses | yes | |
+| `fonte_autoria` = `api` for Acre houses | yes | |
 | Ctrl+C halfway, then option 3 again on the same input: only the missing matters are requested | yes | |
-| Output has the input columns + `Autoria`, `Tramite`, statuses | yes | |
+| Output has the input columns + `Autoria`, `Tramite`, `status_autoria`, `status_tramitacao`, `erro_autoria_tramitacao`, `fonte_autoria` | yes | |
 | Spot check 5 matters in the browser: authors and latest procedure match | all match | |
 | ≤ 35 requests per host per 60 s in the autoria log | yes | |
-| HTML-only house: `fonte` = `html`, fields filled | yes / not available | |
+| HTML-only house: `fonte_autoria` = `html`, fields filled | yes / not available | |
 
 ## 6. Update with `Relevante` — AC 6
 
@@ -103,22 +136,24 @@ otherwise, record "not available").
 
 | Check | Expected | Result |
 |---|---|---|
-| Update asks "só as relevantes?" | yes | |
+| Update asks "Atualizar só as matérias marcadas como relevantes?" | yes | |
 | With `1`: only the 6 marked rows are re-scraped (log), and the output has 6 rows | yes | |
 | `Relevante` and `Notas` columns kept, values intact, after the program columns | yes | |
 | Without `Relevante` column: the question does not appear | yes | |
 
 ## 7. Broken houses — AC 8
 
-Make a test house table (`arquivos_csv/casas_resultado.csv`, back up the
-original) with:
+In a separate working folder (so the real `arquivos_csv/` is untouched),
+make `arquivos_csv/casas_legislativas.xlsx` with columns `UF` and
+`URL do serviço` and these houses, plus a one-line `palavras_chave.csv`:
 - `https://sapl.marata.rs.leg.br/` (its name stopped resolving: on 2026-10-24
   it failed with `NameResolutionError`/`socket.gaierror`, yet the old shared
   table listed it as active). If it resolves again, use
   `https://sapl.naoexiste-sapyl.leg.br/` instead.
 - one real Acre house
 
-Run a new project with reuse `1` and limit `1`.
+Run a new project there **without** reusing a table (the availability test is
+what records `dns`/`ssl`; a reused table skips it), limit `1`, no downloads.
 
 | Check | Expected | Result |
 |---|---|---|
@@ -127,7 +162,7 @@ Run a new project with reuse `1` and limit `1`.
 | An SSL failure, if a known house has one: reason `ssl`, 1 attempt | yes / not available | |
 | A redirecting house, if one is known: `url_final` recorded and used | yes / not seen | |
 
-Restore the original house table afterwards.
+Delete the working folder afterwards.
 
 ## 8. Docs and identity
 

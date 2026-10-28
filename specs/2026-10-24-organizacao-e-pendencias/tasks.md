@@ -197,11 +197,15 @@ Rules for every task (same as Phase 1):
 
 ## Phase E: Phase 1 findings, end-to-end, docs
 
-- [ ] **T19 Phase 1 validation findings** (spec §9). Only V4 is open:
+- [x] **T19 Phase 1 validation findings** (spec §9). Only V4 is open:
   - **T19.1 Safety margin in the rate window** (FR-29). One constant
     (`MARGEM_SEGUNDOS = 1`). Test: with the fake clock, request 36 goes
     ≥ 61 s after request 1. Update the existing limiter tests' expected
     times.
+  - *As built:* `JANELA_COM_MARGEM = JANELA_SEGUNDOS + MARGEM_SEGUNDOS` is used
+    for the wait, the window cleanup and the on-disk history. New test: in an
+    80-request burst, every request i and i+35 are ≥ 61 s apart. Three
+    existing tests now expect 61 s instead of 60 s.
 - [ ] **T20 End-to-end and compatibility** (TR-4, TR-7)
   - `test_ponta_a_ponta.py`: authors/procedure with interruption and resume,
     update with `Relevante` and the filter, a DNS-failing house, and ≤ 35

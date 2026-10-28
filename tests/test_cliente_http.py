@@ -35,9 +35,9 @@ def test_36a_requisicao_espera_a_janela_liberar(cliente, sessao, relogio):
         cliente.get(A)
         relogio.t += 1  # uma requisição por segundo
     cliente.get(A)
-    # a mais antiga foi em `inicio`; a 36ª só sai 60 s depois dela
-    assert relogio.agora() == pytest.approx(inicio + 60, abs=0.05)
-    assert sum(relogio.esperas) == pytest.approx(25, abs=0.05)
+    # a mais antiga foi em `inicio`; a 36ª só sai 61 s depois dela (60 s + margem, V4)
+    assert relogio.agora() == pytest.approx(inicio + 61, abs=0.05)
+    assert sum(relogio.esperas) == pytest.approx(26, abs=0.05)
 
 
 def test_nunca_mais_de_35_em_60_segundos(cliente, sessao, relogio):
@@ -70,7 +70,7 @@ def test_limite_configuravel(sessao, relogio):
     cliente.get(A)
     assert relogio.esperas == []
     cliente.get(A)
-    assert relogio.esperas == [60]
+    assert relogio.esperas == [61]  # janela de 60 s + margem (V4)
 
 
 def test_timeout_padrao_e_stream_repassados(cliente, sessao):
@@ -264,7 +264,7 @@ def test_nova_execucao_respeita_requisicoes_da_anterior(sessao, relogio, tmp_pat
     # programa interrompido e retomado: um cliente novo, com janela vazia na memória
     segunda = _cliente_com_historico(sessao, relogio, tmp_path / 'h.json')
     segunda.get(A)
-    assert relogio.agora() >= inicio + 60 - 0.05
+    assert relogio.agora() >= inicio + 61 - 0.05
 
 
 def test_historico_antigo_e_ignorado(sessao, relogio, tmp_path):
@@ -372,3 +372,17 @@ def test_motivo_permanente_nao_se_perde_em_ciclos():
     outro = requests.ConnectionError(erro)
     erro.__context__ = outro  # ciclo
     assert http_sapl.motivo_permanente(erro) == ''
+
+
+# --- Margem na janela (achado V4, FR-29) -------------------------------------
+
+
+def test_requisicoes_1_e_36_saem_a_pelo_menos_61_segundos(cliente, sessao, relogio):
+    sessao.responder(A, texto='ok')
+    horarios = []
+    for _ in range(80):  # rajada: o limitador decide quando cada uma sai
+        cliente.get(A)
+        horarios.append(relogio.agora())
+    for i in range(len(horarios) - 35):
+        assert horarios[i + 35] - horarios[i] >= 61 - 1e-9
+    assert http_sapl.MARGEM_SEGUNDOS == 1.0

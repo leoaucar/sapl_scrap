@@ -45,6 +45,11 @@ from sapyl import __version__, registro
 # Limite observado nos servidores do SAPL (teste de 15/10/2026)
 LIMITE_POR_MINUTO = 35
 JANELA_SEGUNDOS = 60.0
+# Folga além da janela (achado V4): com atraso de rede, requisições enviadas a
+# 60,0 s uma da outra podem chegar ao servidor a menos de 60 s. Assim, a 1ª e a
+# 36ª requisição a um site saem sempre a pelo menos 61 s uma da outra.
+MARGEM_SEGUNDOS = 1.0
+JANELA_COM_MARGEM = JANELA_SEGUNDOS + MARGEM_SEGUNDOS
 MAX_TENTATIVAS = 4
 ESPERAS_ERRO = (5, 15, 45)  # segundos, para erro de rede/timeout/5xx
 RETRY_AFTER_PADRAO = 60
@@ -187,7 +192,7 @@ class ClienteSAPL:
         agora, parede = self.relogio(), self.relogio_parede()
         for host, horarios in (dados.get('requisicoes') or {}).items():
             for t in sorted(horarios)[-self.limite :]:
-                if parede - t < JANELA_SEGUNDOS:
+                if parede - t < JANELA_COM_MARGEM:
                     self._janelas[host].append(agora - (parede - t))
                     self._parede[host].append(t)
         for host, ate in (dados.get('bloqueios') or {}).items():
@@ -199,7 +204,8 @@ class ClienteSAPL:
         parede = self.relogio_parede()
         dados = {
             'requisicoes': {
-                h: [t for t in ts if parede - t < JANELA_SEGUNDOS] for h, ts in self._parede.items()
+                h: [t for t in ts if parede - t < JANELA_COM_MARGEM]
+                for h, ts in self._parede.items()
             },
             'bloqueios': {h: t for h, t in self._bloqueado_parede.items() if t > parede},
         }
@@ -219,7 +225,7 @@ class ClienteSAPL:
             espera = self._bloqueado_ate.get(host, 0) - agora
             if espera <= 0:
                 janela = self._janelas[host]
-                while janela and agora - janela[0] >= JANELA_SEGUNDOS:
+                while janela and agora - janela[0] >= JANELA_COM_MARGEM:
                     janela.popleft()
                 if len(janela) < self.limite:
                     janela.append(agora)
@@ -230,7 +236,7 @@ class ClienteSAPL:
                     if self.historico:
                         self._salvar_historico()
                     return
-                espera = JANELA_SEGUNDOS - (agora - janela[0])
+                espera = JANELA_COM_MARGEM - (agora - janela[0])
             # Espera mínima: evita laço infinito com esperas de 1e-14 s (arredondamento)
             self.dormir(max(espera, ESPERA_MINIMA))
 

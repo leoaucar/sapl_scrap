@@ -65,7 +65,9 @@ def test_projeto_novo_do_comeco_ao_fim(projeto_tmp, cliente, sessao, sapl):
     ]
     config = json.loads((pasta / 'config.json').read_text(encoding='utf-8'))
     assert config['palavras'] == [P, ORC] and config['downloads'] is True
-    assert (pasta / 'teste.log').exists()
+    logs = sorted(p.name for p in (pasta / 'logs').iterdir())
+    assert len(logs) == 1 and logs[0].startswith('teste_') and logs[0].endswith('_novo.log')
+    assert not (pasta / 'teste.log').exists()
     # todas as casas testadas e sem filtro: a tabela geral é atualizada
     geral = (projeto_tmp / 'arquivos_csv' / 'casas_resultado.csv').read_text()
     assert 'https://sapl.c.sp.leg.br/,False,HTTP 500,SP' in geral

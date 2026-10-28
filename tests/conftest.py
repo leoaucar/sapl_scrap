@@ -6,6 +6,7 @@ import socket
 import pandas as pd
 import pytest
 
+from sapyl import registro
 from tests.apoio import RelogioFalso, SessaoFalsa
 
 
@@ -29,6 +30,7 @@ def limpar_log():
     for handler in list(log.handlers):
         log.removeHandler(handler)
         handler.close()
+    registro._log_atual = None
 
 
 @pytest.fixture

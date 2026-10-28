@@ -2,14 +2,16 @@
 
 Todas as mensagens passam pelo logger `sapyl`:
 - no terminal, nível INFO (progresso e avisos);
-- no arquivo `<pasta>/<nome>.log`, nível DEBUG (inclui uma linha por
-  requisição HTTP, usada para conferir o limite de requisições).
+- num arquivo por execução, `<pasta>/logs/<nome>_<aaaa-mm-dd_hhmmss>_<modo>.log`,
+  nível DEBUG (inclui uma linha por requisição HTTP, usada para conferir o
+  limite de requisições). O `<nome>.log` de projetos antigos fica como está.
 """
 
 import logging
 import os
 from collections import Counter
 from collections.abc import Iterable
+from datetime import datetime
 from pathlib import Path
 from typing import Protocol
 
@@ -23,6 +25,12 @@ FORMATO_ARQUIVO = '%(asctime)s %(levelname)s %(name)s %(message)s'
 # Marca os handlers criados aqui, para `configurar` poder ser chamada de novo
 _MARCA = '_sapyl'
 
+# Modos de execução, que vão no nome do arquivo de log
+MODOS = ('novo', 'retomada', 'atualizacao', 'autoria')
+
+# Arquivo de log da execução atual (o resumo mostra o caminho)
+_log_atual: str | None = None
+
 
 class _Contagens(Protocol):
     """O que o resumo usa do estado do projeto (`sapyl.estado.Estado`)."""
@@ -30,8 +38,27 @@ class _Contagens(Protocol):
     def contagens(self, etapa: str, chaves: Iterable[str] | None = None) -> Counter[str]: ...
 
 
-def configurar(pasta: str | Path, nome: str) -> str:
-    """Liga o log no terminal e em `<pasta>/<nome>.log`. Pode ser chamada várias vezes."""
+def caminho_do_log(pasta: str | Path, nome: str, modo: str, agora: datetime | None = None) -> Path:
+    """`<pasta>/logs/<nome>_<aaaa-mm-dd_hhmmss>_<modo>.log`, sem repetir um arquivo existente."""
+    if modo not in MODOS:
+        raise ValueError(f'Modo de execução desconhecido: {modo}')
+    base = f'{nome}_{(agora or datetime.now()).strftime("%Y-%m-%d_%H%M%S")}_{modo}'
+    pasta_logs = Path(pasta) / 'logs'
+    caminho, n = pasta_logs / f'{base}.log', 1
+    while caminho.exists():
+        n += 1
+        caminho = pasta_logs / f'{base}_{n}.log'
+    return caminho
+
+
+def configurar(
+    pasta: str | Path, nome: str, modo: str = 'novo', agora: datetime | None = None
+) -> str:
+    """Liga o log no terminal e num arquivo novo em `<pasta>/logs/`. Devolve o caminho.
+
+    Pode ser chamada várias vezes: troca os destinos anteriores pelos novos.
+    """
+    global _log_atual
     logger = logging.getLogger(LOGGER)
     logger.setLevel(logging.DEBUG)
     for handler in list(logger.handlers):
@@ -43,8 +70,8 @@ def configurar(pasta: str | Path, nome: str) -> str:
     terminal.setLevel(logging.INFO)
     terminal.setFormatter(logging.Formatter('%(message)s'))
 
-    os.makedirs(pasta, exist_ok=True)
-    caminho = os.path.join(pasta, nome + '.log')
+    caminho = str(caminho_do_log(pasta, nome, modo, agora))
+    os.makedirs(os.path.dirname(caminho), exist_ok=True)
     arquivo = logging.FileHandler(caminho, encoding='utf-8')
     arquivo.setLevel(logging.DEBUG)
     arquivo.setFormatter(logging.Formatter(FORMATO_ARQUIVO))
@@ -53,7 +80,8 @@ def configurar(pasta: str | Path, nome: str) -> str:
         setattr(handler, _MARCA, True)
         logger.addHandler(handler)
     # Cabeçalho, só no arquivo: cada execução começa com o nome e a versão
-    logger.debug('%s %s: início da execução', NOME, __version__)
+    logger.debug('%s %s: início da execução (%s)', NOME, __version__, modo)
+    _log_atual = caminho
     return caminho
 
 
@@ -69,12 +97,14 @@ def resumo(
     buscas: list[tuple[str, str]] | None = None,
     casas_inativas: int = 0,
     downloads: bool = False,
+    caminho_log: str | None = None,
 ) -> str:
     """Texto do resumo do fim da execução, contado a partir do estado do projeto.
 
     `buscas`: lista de (casa, status) das buscas do projeto (None no modo
     atualização, que não faz buscas). Como tudo vem do estado, o resumo é o
-    do projeto inteiro, também depois de uma retomada.
+    do projeto inteiro, também depois de uma retomada. A última linha mostra
+    o log desta execução (`caminho_log`, ou o da última `configurar`).
     """
     chaves = {link['chave'] for link in links}
     linhas = ['', f'===== Resumo (SAPyL {__version__}) =====']
@@ -107,8 +137,11 @@ def resumo(
     linhas.append(f'Resultado: {caminho_final}')
     if falhas:
         linhas.append(
-            'Houve falhas (veja as colunas status/erro e o arquivo .log). '
+            'Houve falhas (veja as colunas status/erro e o log desta execução). '
             'Para tentar de novo só o que falhou, rode o programa outra vez '
             'e escolha retomar este projeto.'
         )
+    caminho_log = caminho_log or _log_atual
+    if caminho_log:
+        linhas.append(f'Log desta execução: {caminho_log}')
     return '\n'.join(linhas)

@@ -158,7 +158,7 @@ def executar_atualizacao(
     downloads = perguntar_sim_nao(PERGUNTA_DOWNLOAD, entrada)
     hoje = hoje or datetime.now().strftime('%d_%m_%Y')
     projeto = gp.Projeto(raiz, base.nome, data=hoje)
-    registro.configurar(projeto.pasta, projeto.nome)
+    registro.configurar(projeto.pasta, projeto.nome, 'atualizacao')
     log.info('Atualizando o projeto %s a partir de %s', projeto.nome, base.final)
     tabela = ler_final(base.final)
     if 'Palavras' not in tabela.columns:
@@ -191,7 +191,7 @@ def main(
             texto = executar_atualizacao(raiz, cliente, entrada)
         else:
             projeto, novo = abrir_ou_criar(raiz, entrada)
-            registro.configurar(projeto.pasta, projeto.nome)
+            registro.configurar(projeto.pasta, projeto.nome, 'novo' if novo else 'retomada')
             config = None if novo else gp.carregar_config(projeto)
             if config is None:
                 config = perguntar_configuracao(raiz, entrada)

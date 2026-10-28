@@ -1,6 +1,10 @@
 """Configuração do log (terminal + arquivo) e resumo final."""
 
 import logging
+from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from sapyl import registro
 
@@ -26,9 +30,9 @@ def test_configurar_cria_terminal_info_e_arquivo_debug(tmp_path):
 
 def test_configurar_duas_vezes_nao_duplica(tmp_path):
     registro.configurar(tmp_path, 'a')
-    registro.configurar(tmp_path, 'b')
+    caminho = registro.configurar(tmp_path, 'b')
     assert len(_handlers()) == 2
-    assert (tmp_path / 'b.log').exists()
+    assert Path(caminho).parent == tmp_path / 'logs' and Path(caminho).name.startswith('b_')
 
 
 # --- Resumo final (FR-26) ---------------------------------------------------
@@ -93,3 +97,48 @@ def test_log_comeca_com_nome_e_versao(tmp_path):
     caminho = registro.configurar(tmp_path, 'p')
     primeira = open(caminho, encoding='utf-8').readline()
     assert 'DEBUG sapyl SAPyL: Raspador do Sistema de Apoio Legislativo 0.2.0' in primeira
+
+
+# --- Um log por execução (FR-26) --------------------------------------------
+
+AGORA = datetime(2026, 10, 27, 14, 5, 9)
+
+
+@pytest.mark.parametrize('modo', ['novo', 'retomada', 'atualizacao', 'autoria'])
+def test_nome_do_log_tem_data_hora_e_modo(tmp_path, modo):
+    caminho = registro.configurar(tmp_path / 'p_proj', 'p', modo, agora=AGORA)
+    assert caminho == str(tmp_path / 'p_proj' / 'logs' / f'p_2026-10-27_140509_{modo}.log')
+
+
+def test_modo_desconhecido_e_recusado(tmp_path):
+    with pytest.raises(ValueError):
+        registro.configurar(tmp_path, 'p', 'outro')
+
+
+def test_cada_execucao_tem_o_seu_arquivo_mesmo_no_mesmo_segundo(tmp_path):
+    primeiro = registro.configurar(tmp_path, 'p', 'novo', agora=AGORA)
+    registro.logger().info('primeira execução')
+    segundo = registro.configurar(tmp_path, 'p', 'retomada', agora=AGORA)
+    terceiro = registro.configurar(tmp_path, 'p', 'retomada', agora=AGORA)
+    assert len({primeiro, segundo, terceiro}) == 3
+    assert terceiro.endswith('_retomada_2.log')
+    assert 'primeira execução' in open(primeiro, encoding='utf-8').read()
+    assert 'primeira execução' not in open(segundo, encoding='utf-8').read()
+
+
+def test_log_antigo_do_projeto_fica_como_esta(tmp_path):
+    antigo = tmp_path / 'p.log'
+    antigo.write_text('log da Fase 1\n', encoding='utf-8')
+    registro.configurar(tmp_path, 'p', 'retomada')
+    registro.logger().info('nova execução')
+    assert antigo.read_text(encoding='utf-8') == 'log da Fase 1\n'
+
+
+def test_resumo_termina_com_o_log_desta_execucao(tmp_path):
+    from sapyl.estado import Estado
+
+    caminho = registro.configurar(tmp_path, 'p', 'novo')
+    estado = Estado(tmp_path / 'e.csv')
+    texto = registro.resumo(estado, [], 'f.csv')
+    estado.fechar()
+    assert texto.splitlines()[-1] == f'Log desta execução: {caminho}'

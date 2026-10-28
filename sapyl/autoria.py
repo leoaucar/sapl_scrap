@@ -124,7 +124,7 @@ def main(
 
     Devolve o código de saída (0 ou 1).
     """
-    registro.configurar(pasta, 'autoria_tramitacao')
+    registro.configurar(pasta, 'autoria_tramitacao', 'autoria')
     print(BOAS_VINDAS)
     try:
         caminho = escolher_csv(pasta, entrada)

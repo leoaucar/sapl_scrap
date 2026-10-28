@@ -126,10 +126,13 @@ Rules for every task (same as Phase 1):
     (in `args`) → `.reason` `NameResolutionError` → `gaierror`; SSL as
     `requests.exceptions.SSLError`. `motivo_permanente()` gives `dns`/`ssl`
     for exactly those, and the tests build the same chains.
-- [ ] **T11 One log per run** (FR-26)
+- [x] **T11 One log per run** (FR-26)
   - `registro.configurar(pasta, nome, modo)` creates `logs/<nome>_<data_hora>_<modo>.log`.
   - Tests: name format, one file per run, summary shows the path, old
     `<nome>.log` untouched.
+  - *As built:* two runs in the same second get `_2`, `_3`… so every run
+    has its own file. The summary's last line is `Log desta execução: <path>`
+    (from the last `configurar`, or passed in). README updated now.
 - [ ] **T12 Cache of sources and names** (FR-25)
   - `estado.Cache`. `Fontes`/`Consultas` use it.
   - Tests: a resume makes no API probe and no lookup for known names, a

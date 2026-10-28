@@ -67,3 +67,8 @@ def test_retomada_so_pede_o_que_falhou(copia):
     )
     final = ler_final(copia / 'fase1_proj' / 'fase1_resultado_final.csv')
     assert set(final['status']) == {'ok'} and len(final) == 8
+    # o log antigo fica como estava; a retomada ganha o seu próprio arquivo
+    antigo = (ORIGEM / 'fase1.log').read_text(encoding='utf-8')
+    assert (copia / 'fase1_proj' / 'fase1.log').read_text(encoding='utf-8') == antigo
+    logs = list((copia / 'fase1_proj' / 'logs').glob('fase1_*_retomada.log'))
+    assert len(logs) == 1

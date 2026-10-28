@@ -154,10 +154,14 @@ projeto e escolha `1- retomar este projeto`. O programa:
 
 No fim de cada execução aparece um resumo: casas pesquisadas, buscas
 incompletas, matérias encontradas, únicas, raspadas e com erro, downloads e o
-caminho do resultado. Se houve falhas, ele lembra de retomar o projeto.
+caminho do resultado. Se houve falhas, ele lembra de retomar o projeto. A
+última linha mostra o log desta execução.
 
-Tudo o que aparece no terminal, e mais uma linha para cada requisição feita
-aos sites, fica em `<nome>_proj/<nome>.log`.
+Cada execução (novo projeto, retomada, atualização) tem o seu próprio log em
+`<nome>_proj/logs/<nome>_<aaaa-mm-dd_hhmmss>_<modo>.log`, com tudo o que
+aparece no terminal e mais uma linha para cada requisição feita aos sites.
+Projetos criados antes da versão 0.2 também têm um `<nome>.log`, que fica
+como estava.
 
 ## Resultados
 
@@ -171,7 +175,7 @@ Tudo fica dentro da pasta `<nome>_proj/`:
 | `<nome>_links_totais.csv`             | Links únicos de matérias encontrados                  |
 | `<nome>_materias_legislativas.csv`    | Cada tentativa de raspagem (a mais recente vale)      |
 | `<nome>_estado.csv`                   | Progresso, usado para retomar                         |
-| `<nome>.log`                          | Registro da execução                                  |
+| `logs/`                               | Um log por execução (`<nome>_<data_hora>_<modo>.log`) |
 | `config.json`                         | Respostas dadas ao criar o projeto                    |
 | `downloads/`                          | Textos originais, como `<site>_<id>.pdf`              |
 

@@ -170,11 +170,17 @@ Rules for every task (same as Phase 1):
   - Tests: extra columns are carried over by key and in order, the
     `Relevante` prompt appears only when the column exists, the accepted
     values are normalised, and the filter count is logged.
-- [ ] **T17 Authors and procedure through the API** (FR-14, FR-15, FR-16)
+- [x] **T17 Authors and procedure through the API** (FR-14, FR-15, FR-16)
   - `sapyl/autoria.py` gets API functions with cached lookups and the HTML
     fallback per house.
   - Tests: API path with the T02 fixtures, API≡HTML text for the same
     matter (TR-3), switch to HTML on 404/non-JSON, failures recorded.
+  - *As built:* reuses `Fontes` (and so the project cache and `url_final`)
+    and `Consultas`, which gains `autor`, `unidade`, `status_tramitacao` and
+    a per-field lookup cached as `<url>#<campo>`. Author text is the API
+    `__str__` (T02 finding). New column `fonte_autoria` (`api`/`html`).
+    TR-3 holds for the 4 matters with saved HTML tabs. Author lists follow
+    `next` pages (up to 20).
 - [ ] **T18 Authors and procedure in the menu, with resume** (FR-7, FR-17, FR-18)
   - Menu option 3. The input is a project name or a CSV path. Output and
     state go in the project folder or next to the CSV. Partial file and state

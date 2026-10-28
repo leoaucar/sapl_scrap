@@ -25,6 +25,7 @@ class Consultas:
         self.base = casa_url.rstrip('/')
         self.cache = cache if cache is not None else Cache()
         self._falhas = set()
+        self._respostas: dict[str, dict[str, Any]] = {}
 
     def _nome(self, caminho: str, campo: str) -> str:
         url = f'{self.base}/api/{caminho}/'
@@ -51,6 +52,61 @@ class Consultas:
                 return nome
             self._falhas.add(url)
         return ''
+
+    def _campo(self, caminho: str, campo: str) -> str:
+        """Um campo de um objeto da API. O objeto é pedido uma vez por execução.
+
+        Guardado no cache como `<url>#<campo>`, porque um mesmo objeto (ex.: o
+        autor) dá mais de um campo (nome e tipo).
+        """
+        url = f'{self.base}/api/{caminho}/'
+        chave = f'{url}#{campo}'
+        guardado = self.cache.nome(chave)
+        if guardado is not None:
+            return guardado
+        if url in self._falhas:
+            return ''
+        if url not in self._respostas:
+            resposta = self.cliente.get(url)
+            dados = None
+            if resposta.ok:
+                try:
+                    dados = resposta.json()
+                except ValueError:
+                    dados = None
+            if not isinstance(dados, dict):
+                log.warning(
+                    'Não foi possível obter %s (%s)', url, resposta.erro or 'resposta inesperada'
+                )
+                self._falhas.add(url)
+                return ''
+            self._respostas[url] = dados
+        valor = limpar(self._respostas[url].get(campo))
+        if valor:
+            self.cache.guardar_nome(chave, valor)
+        return valor
+
+    def autor(self, id_: int | None) -> str:
+        """'NOME (Tipo)' de um autor, como na página de autoria (ex.: 'Zé Lopes (Parlamentar)').
+
+        O nome é o `__str__` da API, que inclui o cargo quando há (`nome - cargo`).
+        """
+        if not id_:
+            return ''
+        nome = self._campo(f'base/autor/{id_}', '__str__')
+        tipo_id = self._campo(f'base/autor/{id_}', 'tipo')
+        tipo = self._campo(f'base/tipoautor/{tipo_id}', '__str__') if tipo_id else ''
+        if not nome:
+            return ''
+        return f'{nome} ({tipo})' if tipo else nome
+
+    def status_tramitacao(self, id_: int | None) -> str:
+        """Descrição de um status de tramitação."""
+        return self._nome(f'materia/statustramitacao/{id_}', 'descricao') if id_ else ''
+
+    def unidade(self, id_: int | None) -> str:
+        """Nome de uma unidade de tramitação (ex.: 'Plenário da Câmara - PLEN')."""
+        return self._nome(f'materia/unidadetramitacao/{id_}', '__str__') if id_ else ''
 
     def tipo(self, id_: int | None) -> str:
         """Nome do tipo de matéria (ex.: 'Projeto de Lei Ordinária')."""

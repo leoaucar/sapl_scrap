@@ -10,6 +10,17 @@ assembleias brasileiras que usam o SAPL. Software livre (AGPL-3.0).
 Página do projeto, com instalação e uso passo a passo:
 <https://leoaucar.github.io/sapyl/>
 
+## Como citar
+
+Se você usar o SAPyL, ou dados produzidos com ele, em trabalhos ou
+publicações, cite assim:
+
+> AUCAR, Leonardo Nogueira; AQUINO, Renata; MOURA, Fernanda. *SAPyL: Raspador do
+> Sistema de Apoio Legislativo*. 2023–2026. Software livre (AGPL-3.0).
+
+Versões anteriores a 0.2 se chamavam *sapl_scrap*. Veja também
+[AUTHORS.md](AUTHORS.md).
+
 ## Para que serve
 
 Muitas Câmaras Municipais e Assembleias Legislativas publicam seus projetos

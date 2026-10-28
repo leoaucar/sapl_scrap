@@ -47,7 +47,12 @@ COLUNAS_MATERIAS = ['chave'] + COLUNAS_FINAIS
 # Links únicos (`<nome>_links_totais.csv`)
 COLUNAS_LINKS = ['chave'] + COLUNAS_ORIGEM + ['sapl_id']
 
-# Arquivo bruto da busca (`<nome>_resultados_crus_casas.csv`)
+# Páginas da busca (`<nome>_paginas_busca.csv`): só os links de matérias de
+# cada página, separados por espaço
+COLUNAS_PAGINAS = ['Casa', 'Palavra', 'Pagina', 'links', 'link']
+
+# Arquivo bruto da busca das versões até 0.1 (`<nome>_resultados_crus_casas.csv`,
+# com o HTML de cada página). Só é lido, para retomar projetos antigos.
 COLUNAS_CRU = ['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link']
 
 # Tabela de casas testadas (`casas_resultado.csv`)

@@ -3,9 +3,11 @@
 Cada matéria é identificada pela chave `<host>/<sapl_id>` (ex.:
 `sapl.riobranco.ac.leg.br/34049`), nunca pela posição na tabela.
 
-Os links vêm das páginas de busca, guardadas no arquivo bruto do projeto
-(`<projeto>_resultados_crus_casas.csv`, colunas
-`Indice, Casa, Palavra, Pagina, html, link`).
+Os links vêm das páginas de busca. Cada página fica em
+`<projeto>_paginas_busca.csv` só com os links de matérias encontrados
+(COLUNAS_PAGINAS). Projetos das versões até 0.1 têm, em vez disso (ou além
+disso, se foram retomados), o arquivo bruto `<projeto>_resultados_crus_casas.csv`,
+com o HTML de cada página; ele continua sendo lido.
 """
 
 import csv
@@ -17,7 +19,7 @@ from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
-from sapyl.colunas import COLUNAS_LINKS, SEPARADOR, Linha
+from sapyl.colunas import COLUNAS_LINKS, COLUNAS_PAGINAS, SEPARADOR, Linha
 from sapyl.estado import ler_csv
 
 # O HTML de cada página fica numa célula do CSV; aumenta o limite de tamanho
@@ -116,6 +118,36 @@ def raspar_resultados(arquivo_cru: str | Path) -> list[Linha]:
                 links.append(
                     {'Link Materia': link, 'Link Casa': linha['Casa'], 'Palavras': linha['Palavra']}
                 )
+    return links
+
+
+def raspar_paginas(arquivo_paginas: str | Path) -> list[Linha]:
+    """Lê o arquivo de páginas da busca e devolve dicts `Link Materia, Link Casa, Palavras`.
+
+    Pode haver repetições; use `deduplicar_links` em seguida.
+    """
+    links = []
+    for linha in ler_csv(arquivo_paginas, COLUNAS_PAGINAS):
+        for link in linha['links'].split():
+            links.append(
+                {'Link Materia': link, 'Link Casa': linha['Casa'], 'Palavras': linha['Palavra']}
+            )
+    return links
+
+
+def links_das_buscas(
+    arquivo_paginas: str | Path, arquivo_cru: str | Path | None = None
+) -> list[Linha]:
+    """Links de todas as buscas do projeto: o arquivo bruto antigo (se houver) e o novo.
+
+    Nessa ordem: as matérias achadas antes da atualização do programa vêm
+    primeiro, como vinham. Pode haver repetições.
+    """
+    links = []
+    if arquivo_cru is not None and Path(arquivo_cru).exists():
+        links += raspar_resultados(arquivo_cru)
+    if Path(arquivo_paginas).exists():
+        links += raspar_paginas(arquivo_paginas)
     return links
 
 

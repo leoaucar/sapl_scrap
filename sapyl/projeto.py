@@ -34,8 +34,13 @@ class Projeto:
 
     @property
     def cru(self) -> Path:
-        """Arquivo bruto da busca (páginas de resultados)."""
+        """Arquivo bruto da busca das versões até 0.1 (só lido, em projetos antigos)."""
         return self._arquivo('resultados_crus_casas', sufixo=False)
+
+    @property
+    def paginas(self) -> Path:
+        """Páginas da busca, só com os links de matérias de cada uma."""
+        return self._arquivo('paginas_busca', sufixo=False)
 
     @property
     def links(self) -> Path:

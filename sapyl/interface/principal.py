@@ -42,7 +42,7 @@ from sapyl.interface.entrada import (
     perguntar_opcao,
     perguntar_sim_nao,
 )
-from sapyl.links import deduplicar_links, ler_links, raspar_resultados, salvar_links
+from sapyl.links import deduplicar_links, ler_links, links_das_buscas, salvar_links
 from sapyl.materias import Fontes, raspar_todas
 from sapyl.palavras import importar_palavras, preparar_termos
 from sapyl.tabela import ler_final, montar_final, salvar_final
@@ -150,8 +150,8 @@ def executar_projeto(
         casas = preparar_casas(projeto, config, cliente, raiz)
         palavras = config['palavras']
         if buscas_pendentes(casas, palavras, estado) or not projeto.links.exists():
-            buscar(casas, palavras, cliente, estado, projeto.cru)
-            brutos = raspar_resultados(projeto.cru) if projeto.cru.exists() else []
+            buscar(casas, palavras, cliente, estado, projeto.paginas)
+            brutos = links_das_buscas(projeto.paginas, projeto.cru)
             links = deduplicar_links(brutos)
             salvar_links(links, projeto.links)
             log.info('Links de matérias: %d encontrados, %d únicos', len(brutos), len(links))

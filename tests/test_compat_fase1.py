@@ -72,3 +72,20 @@ def test_retomada_so_pede_o_que_falhou(copia):
     assert (copia / 'fase1_proj' / 'fase1.log').read_text(encoding='utf-8') == antigo
     logs = list((copia / 'fase1_proj' / 'logs').glob('fase1_*_retomada.log'))
     assert len(logs) == 1
+
+
+def test_busca_incompleta_de_projeto_antigo_usa_os_dois_arquivos(copia):
+    pasta = copia / 'fase1_proj'
+    cru = (pasta / 'fase1_resultados_crus_casas.csv').read_bytes()
+    # uma das buscas de Cascavel ficou incompleta na Fase 1
+    with open(pasta / 'fase1_estado.csv', 'a', encoding='utf-8', newline='') as estado:
+        estado.write('busca,"sapl.cascavel.pr.leg.br|""plano+diretor""",incompleta,x,27/10/2026\n')
+    cliente, sessao = _cliente()
+    assert programa.main(roteiro('2', 'fase1', '1'), cliente, copia) == 0
+    buscas = [u for u in sessao.pedidos if '/sistema/search/' in u]
+    assert buscas and all('sapl.cascavel.pr.leg.br' in u and 'plano+diretor' in u for u in buscas)
+    # o arquivo antigo não é escrito; a busca refeita vai para o arquivo novo
+    assert (pasta / 'fase1_resultados_crus_casas.csv').read_bytes() == cru
+    assert (pasta / 'fase1_paginas_busca.csv').exists()
+    final = ler_final(pasta / 'fase1_resultado_final.csv')
+    assert len(final) == 8 and final['sapl_id'].is_unique

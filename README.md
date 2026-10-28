@@ -176,7 +176,7 @@ Tudo fica dentro da pasta `<nome>_proj/`:
 |---------------------------------------|-------------------------------------------------------|
 | **`<nome>_resultado_final.csv`**      | **Planilha final, uma linha por matéria — use esta**  |
 | `casas_resultado.csv`                 | Casas do projeto: `url, ativa, motivo, uf`            |
-| `<nome>_resultados_crus_casas.csv`    | HTML de cada página de busca                          |
+| `<nome>_paginas_busca.csv`            | Links de matérias de cada página de busca             |
 | `<nome>_links_totais.csv`             | Links únicos de matérias encontrados                  |
 | `<nome>_materias_legislativas.csv`    | Cada tentativa de raspagem (a mais recente vale)      |
 | `<nome>_estado.csv`                   | Progresso, usado para retomar                         |

@@ -76,3 +76,36 @@ def test_raspar_resultados_le_o_arquivo_bruto(tmp_path):
         'Palavras': '"plano+diretor"',
     }
     assert links[-1]['Palavras'] == '"lei+orgânica"'
+
+
+def test_arquivo_antigo_e_novo_juntos_dao_os_mesmos_links(tmp_path):
+    from sapyl.colunas import COLUNAS_PAGINAS
+    from sapyl.estado import ArquivoCSV
+    from sapyl.links import deduplicar_links, links_das_buscas
+
+    cv = 'https://sapl.cascavel.pr.leg.br/'
+    html = ler_fixture('sapl/sapl.cascavel.pr.leg.br/busca_p1.html')
+    # tudo no formato antigo
+    cru = tmp_path / 'cru.csv'
+    with open(cru, 'w', newline='', encoding='utf-8') as f:
+        escritor = csv.writer(f)
+        escritor.writerow(['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link'])
+        escritor.writerow(['', cv, '"plano+diretor"', 1, html, 'u'])
+        escritor.writerow(['', cv, '"lei+orgânica"', 1, '<a href="/materia/38415">x</a>', 'u'])
+    # a primeira busca no formato antigo, a segunda no novo (projeto retomado)
+    so_a_primeira = tmp_path / 'cru1.csv'
+    with open(so_a_primeira, 'w', newline='', encoding='utf-8') as f:
+        escritor = csv.writer(f)
+        escritor.writerow(['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link'])
+        escritor.writerow(['', cv, '"plano+diretor"', 1, html, 'u'])
+    paginas = ArquivoCSV(tmp_path / 'paginas.csv', COLUNAS_PAGINAS)
+    paginas.anexar(
+        {'Casa': cv, 'Palavra': '"lei+orgânica"', 'Pagina': 1, 'links': cv + 'materia/38415'}
+    )
+    paginas.fechar()
+
+    so_antigo = deduplicar_links(raspar_resultados(cru))
+    misturado = deduplicar_links(links_das_buscas(tmp_path / 'paginas.csv', so_a_primeira))
+    assert misturado == so_antigo
+    assert misturado[0]['Palavras'] == '"plano+diretor"; "lei+orgânica"'
+    assert links_das_buscas(tmp_path / 'nao_existe.csv', tmp_path / 'tambem_nao.csv') == []

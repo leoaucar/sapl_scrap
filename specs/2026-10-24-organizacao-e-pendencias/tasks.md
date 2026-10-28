@@ -147,10 +147,15 @@ Rules for every task (same as Phase 1):
   - Tests: the warning lists added and removed terms, the saved terms are
     used, and no warning appears when the terms are equal or the file is
     missing.
-- [ ] **T14 Search file with links only** (FR-21, FR-22, NFR-3)
+- [x] **T14 Search file with links only** (FR-21, FR-22, NFR-3)
   - Tests: the page file has links but no HTML, an old raw file is still read
     on resume, both files together give the same deduplicated links, and the
     file for the Rio Branco fixture page is ≥ 10× smaller than its raw row.
+  - *As built:* `links.links_das_buscas(paginas, cru)` reads the old raw
+    file first, then the new one. The Rio Branco page goes from ~22 KB (raw
+    row) to one line of links. Compat test: an old project with an
+    incomplete search resumes, the old file stays byte-for-byte the same,
+    and the redone search goes to `<nome>_paginas_busca.csv`.
 - [ ] **T15 Houses that redirect** (FR-27)
   - Tests: a redirect gives `url_final`, requests go to `url_final`, links on
     either host are accepted, keys stay on the original host, and an old

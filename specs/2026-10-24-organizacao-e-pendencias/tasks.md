@@ -217,10 +217,15 @@ Rules for every task (same as Phase 1):
     The DNS case uses `sapl.marata.rs.leg.br` (the house found broken in the
     Phase 1 validation). Compat also checks update and option 3 on the
     Phase 1 project.
-- [ ] **T21 Docs** (NFR-4)
+- [x] **T21 Docs** (NFR-4)
   - README (install, `sapyl`, menu, logs, update with `Relevante`, authors
     and procedure), tech-stack (package, ruff), CLAUDE.md (local),
     ROADMAP ticks.
+  - *As built:* README install is `pip install .` (requirements files kept as
+    wrappers), tests section has the dev install and ruff. Tech-stack has the
+    package layout, endpoints, the 1 s margin and the planned specs in
+    ROADMAP order. The site text was re-checked against the finished menu.
+    Dead-code sweep: no unused public function, no stale names.
 - [x] **T21a Project site** (FR-13a, TR-8)
   - `docs/index.html`, `docs/estilo.css`, `docs/sapyl.js` (plan §6),
     `.github/workflows/pages.yml`.

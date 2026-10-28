@@ -6,6 +6,7 @@ antigas do SAPL, em `html.py`). As duas fontes produzem as mesmas colunas
 (`COLUNAS_DADOS`).
 """
 
+from collections.abc import Mapping
 from datetime import datetime
 from pathlib import Path
 
@@ -13,7 +14,7 @@ from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_LINKS, COLUNAS_MATERIAS, ETAPA_MATERIA, Linha
 from sapyl.estado import ArquivoCSV, Cache, Estado
-from sapyl.links import host
+from sapyl.links import base_da_casa, host, no_endereco
 from sapyl.materias.api import Consultas, extrair_api, url_api
 from sapyl.materias.html import extrair_html
 
@@ -41,10 +42,14 @@ class Fontes:
     Com um `Cache`, a fonte de cada casa fica gravada no projeto: na retomada,
     uma casa já conhecida como `html` não tem a API sondada de novo, e uma
     casa `api` já vale como confirmada.
+
+    `finais` ({host original: url_final}) diz para onde vão as requisições das
+    casas cujo site redireciona.
     """
 
-    def __init__(self, cache: Cache | None = None) -> None:
+    def __init__(self, cache: Cache | None = None, finais: Mapping[str, str] | None = None) -> None:
         self.cache = cache if cache is not None else Cache()
+        self.finais = dict(finais or {})
         self._por_host = {}
         self._consultas = {}
         self._api_confirmada = set()
@@ -53,6 +58,10 @@ class Fontes:
                 self._por_host[h] = 'html'
             elif fonte == 'api':
                 self._api_confirmada.add(h)
+
+    def base(self, casa_url: str) -> str:
+        """Endereço para as requisições da casa (o `url_final`, se ela redireciona)."""
+        return base_da_casa(casa_url, self.finais)
 
     def de(self, casa_url: str) -> str:
         """Fonte atual da casa: 'api' ou 'html'."""
@@ -89,7 +98,7 @@ class Fontes:
         """Consultas de nomes da casa (uma instância por casa, com cache)."""
         h = host(casa_url)
         if h not in self._consultas:
-            self._consultas[h] = Consultas(cliente, casa_url, self.cache)
+            self._consultas[h] = Consultas(cliente, self.base(casa_url), self.cache)
         return self._consultas[h]
 
 
@@ -113,18 +122,19 @@ def raspar_materia(link: Linha, cliente: ClienteSAPL, fontes: Fontes) -> Linha:
     lida como se fosse a matéria: a linha sai com `status = erro` e o motivo.
     """
     casa = link['Link Casa']
+    base = fontes.base(casa)
     linha = linha_vazia(link)
     linha['raspada_em'] = _agora()
 
     if fontes.de(casa) == 'api':
-        resposta = cliente.get(url_api(casa, link['sapl_id']))
+        resposta = cliente.get(url_api(base, link['sapl_id']))
         if resposta.ok:
             try:
                 dados = resposta.json()
             except ValueError:
                 dados = None
             if isinstance(dados, dict) and 'id' in dados:
-                linha.update(extrair_api(dados, casa, fontes.consultas(cliente, casa)))
+                linha.update(extrair_api(dados, base, fontes.consultas(cliente, casa)))
                 linha.update(fonte='api', status='ok')
                 fontes.confirmar_api(casa)
                 return linha
@@ -134,11 +144,11 @@ def raspar_materia(link: Linha, cliente: ClienteSAPL, fontes: Fontes) -> Linha:
             return linha
         # 404: pode ser casa sem API ou matéria apagada; o HTML decide
 
-    resposta = cliente.get(link['Link Materia'])
+    resposta = cliente.get(no_endereco(link['Link Materia'], casa, base))
     if not resposta.ok:
         linha.update(status='erro', erro=resposta.erro)
         return linha
-    campos = extrair_html(resposta.texto, casa)
+    campos = extrair_html(resposta.texto, base)
     if not campos['Titulo']:
         linha.update(status='erro', erro='página sem dados de matéria')
         return linha

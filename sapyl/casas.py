@@ -13,6 +13,7 @@ import pandas as pd
 from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_CASAS
+from sapyl.links import endereco_final, host
 
 # Estados usados quando a busca é restrita a Sul e Sudeste
 ESTADOS_SUL_SUDESTE = ['RJ', 'SP', 'RS', 'SC', 'MG', 'ES', 'PR']
@@ -51,16 +52,28 @@ def importar_casas(planilha: str | Path) -> pd.DataFrame:
 def testar_casas(casas: pd.DataFrame, cliente: ClienteSAPL) -> pd.DataFrame:
     """Testa se o site de cada casa responde. Nenhuma casa sai da lista.
 
-    Devolve as colunas `url, ativa, motivo, uf`; `motivo` explica por que a
-    casa está inativa (`HTTP 500`, `timeout`...).
+    Devolve COLUNAS_CASAS; `motivo` explica por que a casa está inativa
+    (`HTTP 500`, `timeout`...), e `url_final` guarda o endereço novo quando o
+    site redireciona para outro domínio.
     """
     linhas = []
     for i, casa in enumerate(casas.itertuples(index=False), start=1):
         log.info('Testando casa %d de %d: %s', i, len(casas), casa.url)
         resposta = cliente.get(casa.url, timeout=(5, 5), max_tentativas=2)
         resposta.fechar()
+        final = ''
+        if resposta.ok and resposta.bruta is not None:
+            final = endereco_final(getattr(resposta.bruta, 'url', ''), casa.url)
+        if final:
+            log.info('  %s redireciona para %s', casa.url, final)
         linhas.append(
-            {'url': casa.url, 'ativa': resposta.ok, 'motivo': resposta.erro, 'uf': casa.uf}
+            {
+                'url': casa.url,
+                'ativa': resposta.ok,
+                'motivo': resposta.erro,
+                'uf': casa.uf,
+                'url_final': final,
+            }
         )
     return pd.DataFrame(linhas, columns=COLUNAS_CASAS)
 
@@ -81,6 +94,8 @@ def ler_tabela_casas(caminho: str | Path, planilha: str | Path | None = None) ->
     df['ativa'] = [_para_bool(v) for v in df['ativa']]
     if 'motivo' not in df.columns:
         df['motivo'] = ''
+    if 'url_final' not in df.columns:
+        df['url_final'] = ''
     if 'uf' not in df.columns or (df['uf'] == '').any():
         ufs = {}
         if planilha is not None and os.path.exists(planilha):
@@ -90,9 +105,16 @@ def ler_tabela_casas(caminho: str | Path, planilha: str | Path | None = None) ->
     return df[COLUNAS_CASAS].reset_index(drop=True)
 
 
+def enderecos_finais(casas: pd.DataFrame) -> dict[str, str]:
+    """{host original: url_final} das casas que redirecionam."""
+    if 'url_final' not in casas.columns:
+        return {}
+    return {host(u): f for u, f in zip(casas['url'], casas['url_final'], strict=True) if f}
+
+
 def salvar_tabela_casas(casas: pd.DataFrame, caminho: str | Path) -> None:
     """Grava a tabela de casas (COLUNAS_CASAS), substituindo o arquivo."""
-    casas[COLUNAS_CASAS].to_csv(caminho, index=False)
+    casas.reindex(columns=COLUNAS_CASAS, fill_value='').to_csv(caminho, index=False)
 
 
 def filtrar_sul_sudeste(casas: pd.DataFrame) -> pd.DataFrame:

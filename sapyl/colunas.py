@@ -55,8 +55,9 @@ COLUNAS_PAGINAS = ['Casa', 'Palavra', 'Pagina', 'links', 'link']
 # com o HTML de cada página). Só é lido, para retomar projetos antigos.
 COLUNAS_CRU = ['Indice', 'Casa', 'Palavra', 'Pagina', 'html', 'link']
 
-# Tabela de casas testadas (`casas_resultado.csv`)
-COLUNAS_CASAS = ['url', 'ativa', 'motivo', 'uf']
+# Tabela de casas testadas (`casas_resultado.csv`). `url_final`: endereço para onde
+# o site da casa redireciona (vazio se não redireciona)
+COLUNAS_CASAS = ['url', 'ativa', 'motivo', 'uf', 'url_final']
 
 # Arquivo de estado (`<nome>_estado.csv`) e suas etapas
 CAMPOS_ESTADO = ['etapa', 'chave', 'status', 'erro', 'quando']

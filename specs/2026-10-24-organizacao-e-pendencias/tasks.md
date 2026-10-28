@@ -156,10 +156,16 @@ Rules for every task (same as Phase 1):
     row) to one line of links. Compat test: an old project with an
     incomplete search resumes, the old file stays byte-for-byte the same,
     and the redone search goes to `<nome>_paginas_busca.csv`.
-- [ ] **T15 Houses that redirect** (FR-27)
+- [x] **T15 Houses that redirect** (FR-27)
   - Tests: a redirect gives `url_final`, requests go to `url_final`, links on
     either host are accepted, keys stay on the original host, and an old
     table without `url_final` still works.
+  - *As built:* `Fontes` also knows where each house is (`Fontes.base()`,
+    from `casas.enderecos_finais`); search, matters (API and HTML) and name
+    lookups use it, and `texto_original` from the HTML resolves against the
+    new address. Update mode reads `url_final` from the project's house
+    table. Tests in `tests/test_redirecionamento.py`, including a full run
+    where the old address only gets the availability test.
 - [ ] **T16 Update mode keeps the researcher's columns** (FR-19, FR-20)
   - Tests: extra columns are carried over by key and in order, the
     `Relevante` prompt appears only when the column exists, the accepted

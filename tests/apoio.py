@@ -68,7 +68,8 @@ class SessaoFalsa:
 
     `responder(url, ...)` enfileira respostas para a URL; a última da fila se
     repete. `responder(url, erro=requests.Timeout())` faz a chamada lançar a
-    exceção. `rota(funcao)` cobre URLs não roteirizadas: `funcao(url)` devolve
+    exceção; `url_final=...` imita um redirecionamento (a resposta vem de outra
+    URL). `rota(funcao)` cobre URLs não roteirizadas: `funcao(url)` devolve
     uma `RespostaFalsa` ou None. URL sem roteiro faz o teste falhar.
     """
 
@@ -89,6 +90,7 @@ class SessaoFalsa:
         headers=None,
         erro=None,
         falhar_no_meio=False,
+        url_final=None,
     ):
         if fixture is not None:
             texto = ler_fixture(fixture)
@@ -97,7 +99,7 @@ class SessaoFalsa:
         item = (
             erro
             if erro is not None
-            else RespostaFalsa(status, texto, conteudo, headers, url, falhar_no_meio)
+            else RespostaFalsa(status, texto, conteudo, headers, url_final or url, falhar_no_meio)
         )
         self._filas.setdefault(url, []).append(item)
         return self

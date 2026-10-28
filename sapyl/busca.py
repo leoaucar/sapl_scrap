@@ -50,13 +50,23 @@ def buscas_pendentes(
 
 
 def buscar_palavra(
-    casa: str, palavra: str, cliente: ClienteSAPL, estado: Estado, paginas: ArquivoCSV
+    casa: str,
+    palavra: str,
+    cliente: ClienteSAPL,
+    estado: Estado,
+    paginas: ArquivoCSV,
+    base: str | None = None,
 ) -> int:
-    """Busca uma palavra numa casa, página a página. Devolve o nº de páginas gravadas."""
+    """Busca uma palavra numa casa, página a página. Devolve o nº de páginas gravadas.
+
+    `base`: endereço para as requisições, se o site da casa redireciona (veja
+    `url_final`). A casa continua identificada pelo endereço original.
+    """
     chave = chave_busca(casa, palavra)
+    base = base or casa
     pagina = 1
     while pagina <= MAX_PAGINAS:
-        url = url_busca(casa, palavra, pagina)
+        url = url_busca(base, palavra, pagina)
         resposta = cliente.get(url)
         if resposta.ok:
             paginas.anexar(
@@ -64,7 +74,7 @@ def buscar_palavra(
                     'Casa': casa,
                     'Palavra': palavra,
                     'Pagina': pagina,
-                    'links': ' '.join(links_da_pagina(resposta.texto, casa)),
+                    'links': ' '.join(links_da_pagina(resposta.texto, casa, [base])),
                     'link': url,
                 }
             )
@@ -92,7 +102,10 @@ def buscar(
     estado: Estado,
     arquivo_paginas: str | Path,
 ) -> None:
-    """Faz as buscas pendentes. `casas`: DataFrame com `url` e `ativa`."""
+    """Faz as buscas pendentes. `casas`: DataFrame com `url`, `ativa` e (opcional) `url_final`."""
+    finais = {}
+    if 'url_final' in casas.columns:
+        finais = {u: f for u, f in zip(casas['url'], casas['url_final'], strict=True) if f}
     pendentes = buscas_pendentes(casas, palavras, estado)
     total_casas = len({c for c, _ in pendentes})
     arquivo = ArquivoCSV(arquivo_paginas, COLUNAS_PAGINAS)
@@ -102,7 +115,7 @@ def buscar(
             if casa != casa_atual:
                 casa_atual, n_casa = casa, n_casa + 1
                 log.info('Busca na casa %d de %d: %s', n_casa, total_casas, casa)
-            paginas = buscar_palavra(casa, palavra, cliente, estado, arquivo)
+            paginas = buscar_palavra(casa, palavra, cliente, estado, arquivo, finais.get(casa))
             log.info('  %s: %d página(s)', palavra, paginas)
     finally:
         arquivo.fechar()

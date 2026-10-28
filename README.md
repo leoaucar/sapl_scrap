@@ -168,6 +168,11 @@ aparece no terminal e mais uma linha para cada requisição feita aos sites.
 Projetos criados antes da versão 0.2 também têm um `<nome>.log`, que fica
 como estava.
 
+Se o site de uma casa redireciona para outro domínio, o teste das casas grava
+o endereço novo em `url_final` (na tabela de casas) e todas as requisições
+vão direto para ele. A casa continua identificada pelo endereço original:
+`Link Casa`, `Link Materia` e as chaves não mudam.
+
 ## Resultados
 
 Tudo fica dentro da pasta `<nome>_proj/`:
@@ -175,7 +180,7 @@ Tudo fica dentro da pasta `<nome>_proj/`:
 | Arquivo                               | Conteúdo                                              |
 |---------------------------------------|-------------------------------------------------------|
 | **`<nome>_resultado_final.csv`**      | **Planilha final, uma linha por matéria — use esta**  |
-| `casas_resultado.csv`                 | Casas do projeto: `url, ativa, motivo, uf`            |
+| `casas_resultado.csv`                 | Casas: `url, ativa, motivo, uf, url_final`            |
 | `<nome>_paginas_busca.csv`            | Links de matérias de cada página de busca             |
 | `<nome>_links_totais.csv`             | Links únicos de matérias encontrados                  |
 | `<nome>_materias_legislativas.csv`    | Cada tentativa de raspagem (a mais recente vale)      |

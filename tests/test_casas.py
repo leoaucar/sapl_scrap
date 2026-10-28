@@ -58,7 +58,7 @@ def test_tabela_nova_ida_e_volta(tmp_path):
     cl.salvar_tabela_casas(casas, tmp_path / 't.csv')
     lida = cl.ler_tabela_casas(tmp_path / 't.csv')
     assert lida.to_dict('records') == [
-        {'url': 'https://a/', 'ativa': False, 'motivo': 'timeout', 'uf': 'RS'}
+        {'url': 'https://a/', 'ativa': False, 'motivo': 'timeout', 'uf': 'RS', 'url_final': ''}
     ]
 
 

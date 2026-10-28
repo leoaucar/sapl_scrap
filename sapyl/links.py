@@ -13,7 +13,7 @@ com o HTML de cada página; ele continua sendo lido.
 import csv
 import re
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
@@ -38,21 +38,48 @@ def chave(casa_url: str, sapl_id: str) -> str:
     return f'{host(casa_url)}/{sapl_id}'
 
 
-def normalizar_link(casa_url: str, href: object) -> tuple[str, str] | None:
+def normalizar_link(
+    casa_url: str, href: object, outros_enderecos: Iterable[str] = ()
+) -> tuple[str, str] | None:
     """Link canônico de uma matéria e seu id, ou None se não for página de matéria.
 
     Aceita links relativos e absolutos; remove `/ta` (texto articulado), barra
-    final, parâmetros e âncoras; usa o esquema (https) da casa.
+    final, parâmetros e âncoras; usa o esquema (https) da casa. Links em
+    `outros_enderecos` da mesma casa (o domínio para onde o site redireciona)
+    também valem, e o link canônico fica sempre no endereço original.
     """
     absoluto = urljoin(casa_url, str(href).strip())
     partes, casa = urlparse(absoluto), urlparse(casa_url)
-    if partes.hostname != casa.hostname:
+    aceitos = {casa.hostname} | {urlparse(o).hostname for o in outros_enderecos if o}
+    if partes.hostname not in aceitos:
         return None
     encontrado = _RE_MATERIA.match(partes.path)
     if not encontrado:
         return None
     sapl_id = encontrado.group(1)
     return f'{casa.scheme}://{casa.netloc}/materia/{sapl_id}', sapl_id
+
+
+def endereco_final(url_resposta: str, casa_url: str) -> str:
+    """`<esquema>://<host>/` de `url_resposta` se ela saiu da casa (redirecionamento), ou ''."""
+    final, casa = urlparse(url_resposta or ''), urlparse(casa_url)
+    if not final.hostname or (final.scheme, final.netloc) == (casa.scheme, casa.netloc):
+        return ''
+    return f'{final.scheme}://{final.netloc}/'
+
+
+def base_da_casa(casa_url: str, finais: Mapping[str, str] | None = None) -> str:
+    """Endereço para as requisições da casa: o `url_final` dela, se houver, ou o original."""
+    return (finais or {}).get(host(casa_url)) or casa_url
+
+
+def no_endereco(url: str, casa_url: str, base: str) -> str:
+    """Troca esquema e host de `url` pelos de `base` quando `url` está no endereço original."""
+    partes = urlparse(url)
+    if base == casa_url or partes.hostname != host(casa_url):
+        return url
+    novo = urlparse(base)
+    return partes._replace(scheme=novo.scheme, netloc=novo.netloc).geturl()
 
 
 def deduplicar_links(links: Iterable[Linha]) -> list[Linha]:
@@ -87,7 +114,7 @@ def deduplicar_links(links: Iterable[Linha]) -> list[Linha]:
     return list(unicos.values())
 
 
-def links_da_pagina(html: str, casa_url: str) -> list[str]:
+def links_da_pagina(html: str, casa_url: str, outros_enderecos: Iterable[str] = ()) -> list[str]:
     """Links de matérias de uma página de busca, em ordem, sem repetição.
 
     Ficam de fora a paginação, PDFs (`/media/`), documentos acessórios e
@@ -96,7 +123,7 @@ def links_da_pagina(html: str, casa_url: str) -> list[str]:
     soup = BeautifulSoup(html, 'html.parser')
     vistos, links = set(), []
     for a in soup.find_all('a', href=True):
-        normal = normalizar_link(casa_url, a['href'])
+        normal = normalizar_link(casa_url, a['href'], outros_enderecos)
         if normal and normal[0] not in vistos:
             vistos.add(normal[0])
             links.append(normal[0])

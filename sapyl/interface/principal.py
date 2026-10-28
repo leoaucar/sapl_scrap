@@ -157,7 +157,8 @@ def executar_projeto(
             log.info('Links de matérias: %d encontrados, %d únicos', len(brutos), len(links))
         else:
             links = ler_links(projeto.links)
-        raspar_todas(links, cliente, estado, projeto.materias, Fontes(Cache(projeto.cache)))
+        fontes = Fontes(Cache(projeto.cache), cl.enderecos_finais(casas))
+        raspar_todas(links, cliente, estado, projeto.materias, fontes)
         final = montar_final(projeto.materias, links)
         if config['downloads']:
             final = baixar_todos(final, str(projeto.downloads), cliente, estado)
@@ -195,8 +196,12 @@ def executar_atualizacao(
         tabela['Palavras'] = ''
     links = deduplicar_links(tabela[COLUNAS_ORIGEM].to_dict('records'))
     estado = Estado(projeto.estado)
+    # as casas do projeto dizem quais sites redirecionam
+    finais = (
+        cl.enderecos_finais(cl.ler_tabela_casas(projeto.casas)) if projeto.casas.exists() else {}
+    )
     try:
-        raspar_todas(links, cliente, estado, projeto.materias, Fontes(Cache(projeto.cache)))
+        raspar_todas(links, cliente, estado, projeto.materias, Fontes(Cache(projeto.cache), finais))
         final = montar_final(projeto.materias, links)
         if downloads:
             final = baixar_todos(final, str(projeto.downloads), cliente, estado)

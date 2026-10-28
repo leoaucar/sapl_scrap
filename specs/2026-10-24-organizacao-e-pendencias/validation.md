@@ -84,7 +84,9 @@ import collections, datetime as dt, pathlib, re, sys
 # uso: python limite.py <pasta do projeto>   (lê logs/*.log e o <nome>.log antigo, se houver)
 pasta = pathlib.Path(sys.argv[1])
 arquivos = sorted(pasta.glob('logs/*.log')) + sorted(pasta.glob('*.log'))
-pat = re.compile(r'^(\S+ \S+) DEBUG sapyl\.http (\S+) \| \S+ \| (\S+) \| tentativa.*?\| enviada (\S+)$')
+pat = re.compile(
+    r'^(\S+ \S+) DEBUG sapyl\.http (\S+) \| \S+ \| (\S+) \| tentativa.*?\| enviada (\S+)$'
+)
 por_host, status = collections.defaultdict(list), collections.Counter()
 for arquivo in arquivos:
     for linha in arquivo.read_text(encoding='utf-8').splitlines():
@@ -92,7 +94,9 @@ for arquivo in arquivos:
         if not m:
             continue
         resposta = dt.datetime.strptime(m.group(1), '%Y-%m-%d %H:%M:%S,%f')
-        enviada = dt.datetime.combine(resposta.date(), dt.datetime.strptime(m.group(4), '%H:%M:%S.%f').time())
+        enviada = dt.datetime.combine(
+            resposta.date(), dt.datetime.strptime(m.group(4), '%H:%M:%S.%f').time()
+        )
         if enviada > resposta:  # enviada antes da meia-noite, resposta depois
             enviada -= dt.timedelta(days=1)
         por_host[m.group(2)].append(enviada)

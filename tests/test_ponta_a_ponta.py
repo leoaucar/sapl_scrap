@@ -165,8 +165,10 @@ def test_retomada_so_pede_a_materia_que_falhou(execucao, projeto_tmp):
     pasta, sessao, _, _ = execucao
     sessao.pedidos.clear()
     assert programa.main(roteiro('2', 'p', '1'), sessao_cliente(sessao), projeto_tmp) == 0
-    # nova execução refaz as consultas de nomes (cache da execução), mas das
-    # matérias só pede a que falhou
+    # das matérias, só pede a que falhou; os nomes já consultados vêm do
+    # cache do projeto (FR-25), e a casa sem API não tem a API sondada de novo
+    assert not any('tipomateria' in u or 'regimetramitacao' in u for u in sessao.pedidos)
+    assert not any(u.startswith(CV + 'api/') for u in sessao.pedidos)
     materias_pedidas = [
         u
         for u in sessao.pedidos

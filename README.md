@@ -177,6 +177,7 @@ Tudo fica dentro da pasta `<nome>_proj/`:
 | `<nome>_estado.csv`                   | Progresso, usado para retomar                         |
 | `logs/`                               | Um log por execução (`<nome>_<data_hora>_<modo>.log`) |
 | `config.json`                         | Respostas dadas ao criar o projeto                    |
+| `cache.json`                          | Fonte de cada casa (API/HTML) e nomes já consultados  |
 | `downloads/`                          | Textos originais, como `<site>_<id>.pdf`              |
 
 ### Colunas da planilha final

@@ -12,7 +12,7 @@ from pathlib import Path
 from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_LINKS, COLUNAS_MATERIAS, ETAPA_MATERIA, Linha
-from sapyl.estado import ArquivoCSV, Estado
+from sapyl.estado import ArquivoCSV, Cache, Estado
 from sapyl.links import host
 from sapyl.materias.api import Consultas, extrair_api, url_api
 from sapyl.materias.html import extrair_html
@@ -37,12 +37,22 @@ class Fontes:
     Uma casa só passa para 'html' enquanto a API dela nunca funcionou nesta
     execução. Depois que a API devolveu uma matéria, um 404 isolado (falha
     pontual do site) só manda aquela matéria para o HTML.
+
+    Com um `Cache`, a fonte de cada casa fica gravada no projeto: na retomada,
+    uma casa já conhecida como `html` não tem a API sondada de novo, e uma
+    casa `api` já vale como confirmada.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, cache: Cache | None = None) -> None:
+        self.cache = cache if cache is not None else Cache()
         self._por_host = {}
         self._consultas = {}
         self._api_confirmada = set()
+        for h, fonte in self.cache.fontes().items():
+            if fonte == 'html':
+                self._por_host[h] = 'html'
+            elif fonte == 'api':
+                self._api_confirmada.add(h)
 
     def de(self, casa_url: str) -> str:
         """Fonte atual da casa: 'api' ou 'html'."""
@@ -50,7 +60,10 @@ class Fontes:
 
     def confirmar_api(self, casa_url: str) -> None:
         """Marca que a API da casa já devolveu uma matéria nesta execução."""
-        self._api_confirmada.add(host(casa_url))
+        h = host(casa_url)
+        if h not in self._api_confirmada:
+            self._api_confirmada.add(h)
+            self.cache.guardar_fonte(h, 'api')
 
     def api_confirmada(self, casa_url: str) -> bool:
         """Se a API da casa já funcionou nesta execução."""
@@ -70,12 +83,13 @@ class Fontes:
                 'Casa %s sem API de matérias (%s): usando as páginas HTML', host(casa_url), motivo
             )
         self._por_host[host(casa_url)] = 'html'
+        self.cache.guardar_fonte(host(casa_url), 'html')
 
     def consultas(self, cliente: ClienteSAPL, casa_url: str) -> Consultas:
         """Consultas de nomes da casa (uma instância por casa, com cache)."""
         h = host(casa_url)
         if h not in self._consultas:
-            self._consultas[h] = Consultas(cliente, casa_url)
+            self._consultas[h] = Consultas(cliente, casa_url, self.cache)
         return self._consultas[h]
 
 

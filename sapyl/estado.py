@@ -13,16 +13,23 @@ meio por uma queda do programa é ignorada.
 
 `ArquivoCSV` é o mesmo mecanismo (só acrescentar linhas, com cabeçalho) para
 os arquivos de dados do projeto.
+
+`Cache` guarda em `cache.json` o que não muda entre execuções: a fonte de
+cada casa (`api` ou `html`) e os nomes consultados na API (tipos, regimes...).
 """
 
 import csv
+import json
 import os
 from collections import Counter
 from collections.abc import Iterable, Mapping
 from datetime import datetime
 from pathlib import Path
 
+from sapyl import registro
 from sapyl.colunas import CAMPOS_ESTADO, Linha
+
+log = registro.logger('estado')
 
 
 def _agora() -> str:
@@ -124,3 +131,62 @@ class Estado:
     def fechar(self) -> None:
         """Fecha o arquivo de estado."""
         self._arquivo.fechar()
+
+
+class Cache:
+    """Fontes das casas e nomes consultados, guardados em JSON (`cache.json`).
+
+    Sem `caminho`, fica só na memória (uma execução). Cada entrada nova é
+    gravada na hora, num arquivo temporário renomeado por cima do antigo, para
+    uma queda nunca deixar o arquivo pela metade. Um arquivo ilegível é
+    ignorado com um aviso: a execução começa com o cache vazio.
+    """
+
+    def __init__(self, caminho: str | Path | None = None) -> None:
+        self.caminho = Path(caminho) if caminho is not None else None
+        self._dados: dict[str, dict[str, str]] = {'fontes': {}, 'nomes': {}}
+        if self.caminho is not None and self.caminho.exists():
+            self._carregar()
+
+    def _carregar(self) -> None:
+        try:
+            dados = json.loads(self.caminho.read_text(encoding='utf-8'))
+            for parte in ('fontes', 'nomes'):
+                valores = dados.get(parte, {})
+                if not isinstance(valores, dict):
+                    raise ValueError(f'"{parte}" não é um objeto')
+                self._dados[parte] = {str(k): str(v) for k, v in valores.items()}
+        except (OSError, ValueError, AttributeError) as erro:
+            log.warning('Cache ilegível em %s (%s): começando sem ele', self.caminho, erro)
+            self._dados = {'fontes': {}, 'nomes': {}}
+
+    def _salvar(self) -> None:
+        if self.caminho is None:
+            return
+        temporario = self.caminho.with_name(self.caminho.name + '.tmp')
+        temporario.write_text(json.dumps(self._dados, ensure_ascii=False, indent=1), 'utf-8')
+        os.replace(temporario, self.caminho)
+
+    def fontes(self) -> dict[str, str]:
+        """Cópia de {host: 'api' | 'html'}."""
+        return dict(self._dados['fontes'])
+
+    def fonte(self, host: str) -> str | None:
+        """Fonte guardada da casa, ou None se ainda não se sabe."""
+        return self._dados['fontes'].get(host)
+
+    def guardar_fonte(self, host: str, fonte: str) -> None:
+        """Grava a fonte da casa ('api' ou 'html')."""
+        if self._dados['fontes'].get(host) != fonte:
+            self._dados['fontes'][host] = fonte
+            self._salvar()
+
+    def nome(self, url: str) -> str | None:
+        """Nome guardado para a URL da API, ou None."""
+        return self._dados['nomes'].get(url)
+
+    def guardar_nome(self, url: str, nome: str) -> None:
+        """Grava um nome obtido (nunca um vazio: consultas que falharam não vão para o disco)."""
+        if nome and self._dados['nomes'].get(url) != nome:
+            self._dados['nomes'][url] = nome
+            self._salvar()

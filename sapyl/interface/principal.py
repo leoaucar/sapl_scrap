@@ -34,7 +34,7 @@ from sapyl.busca import buscar, buscas_pendentes, chave_busca
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_ORIGEM, ETAPA_BUSCA
 from sapyl.downloads import baixar_todos
-from sapyl.estado import Estado
+from sapyl.estado import Cache, Estado
 from sapyl.interface.entrada import (
     Leitor,
     abrir_ou_criar,
@@ -43,7 +43,7 @@ from sapyl.interface.entrada import (
     perguntar_sim_nao,
 )
 from sapyl.links import deduplicar_links, ler_links, raspar_resultados, salvar_links
-from sapyl.materias import raspar_todas
+from sapyl.materias import Fontes, raspar_todas
 from sapyl.palavras import importar_palavras, preparar_termos
 from sapyl.tabela import ler_final, montar_final, salvar_final
 
@@ -127,7 +127,7 @@ def executar_projeto(
             log.info('Links de matérias: %d encontrados, %d únicos', len(brutos), len(links))
         else:
             links = ler_links(projeto.links)
-        raspar_todas(links, cliente, estado, projeto.materias)
+        raspar_todas(links, cliente, estado, projeto.materias, Fontes(Cache(projeto.cache)))
         final = montar_final(projeto.materias, links)
         if config['downloads']:
             final = baixar_todos(final, str(projeto.downloads), cliente, estado)
@@ -166,7 +166,7 @@ def executar_atualizacao(
     links = deduplicar_links(tabela[COLUNAS_ORIGEM].to_dict('records'))
     estado = Estado(projeto.estado)
     try:
-        raspar_todas(links, cliente, estado, projeto.materias)
+        raspar_todas(links, cliente, estado, projeto.materias, Fontes(Cache(projeto.cache)))
         final = montar_final(projeto.materias, links)
         if downloads:
             final = baixar_todos(final, str(projeto.downloads), cliente, estado)

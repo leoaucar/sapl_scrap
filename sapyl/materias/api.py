@@ -5,6 +5,7 @@ from typing import Any
 from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import SEPARADOR, Linha
+from sapyl.estado import Cache
 from sapyl.materias.valores import data_br, data_hora_br, esquema_da_casa, limpar, sim_nao
 
 log = registro.logger('materias')
@@ -13,18 +14,24 @@ log = registro.logger('materias')
 class Consultas:
     """Nomes de tipo, regime e matérias anexadas, consultados na API da casa.
 
-    Cada id é consultado uma vez por execução (cache). Uma consulta que falha
-    deixa o campo vazio e gera um aviso; não derruba a matéria.
+    Cada id é consultado uma vez por execução. Os nomes obtidos vão para o
+    `Cache` do projeto e valem nas próximas execuções; uma consulta que falha
+    deixa o campo vazio, gera um aviso e não vai para o disco (é tentada de
+    novo na próxima execução). Não derruba a matéria.
     """
 
-    def __init__(self, cliente: ClienteSAPL, casa_url: str) -> None:
+    def __init__(self, cliente: ClienteSAPL, casa_url: str, cache: Cache | None = None) -> None:
         self.cliente = cliente
         self.base = casa_url.rstrip('/')
-        self._cache = {}
+        self.cache = cache if cache is not None else Cache()
+        self._falhas = set()
 
     def _nome(self, caminho: str, campo: str) -> str:
         url = f'{self.base}/api/{caminho}/'
-        if url not in self._cache:
+        guardado = self.cache.nome(url)
+        if guardado is not None:
+            return guardado
+        if url not in self._falhas:
             nome = ''
             resposta = self.cliente.get(url)
             if resposta.ok:
@@ -39,8 +46,11 @@ class Consultas:
                     url,
                     resposta.erro or 'resposta inesperada',
                 )
-            self._cache[url] = nome
-        return self._cache[url]
+            if nome:
+                self.cache.guardar_nome(url, nome)
+                return nome
+            self._falhas.add(url)
+        return ''
 
     def tipo(self, id_: int | None) -> str:
         """Nome do tipo de matéria (ex.: 'Projeto de Lei Ordinária')."""

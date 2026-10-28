@@ -58,6 +58,11 @@ class Projeto:
         return self._arquivo('resultado_final')
 
     @property
+    def cache(self) -> Path:
+        """Fontes das casas e nomes consultados (para a retomada não perguntar de novo)."""
+        return self.pasta / 'cache.json'
+
+    @property
     def config(self) -> Path:
         """Respostas dadas ao criar o projeto."""
         return self.pasta / 'config.json'

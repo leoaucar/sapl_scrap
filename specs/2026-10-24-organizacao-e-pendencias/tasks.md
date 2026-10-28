@@ -133,11 +133,16 @@ Rules for every task (same as Phase 1):
   - *As built:* two runs in the same second get `_2`, `_3`… so every run
     has its own file. The summary's last line is `Log desta execução: <path>`
     (from the last `configurar`, or passed in). README updated now.
-- [ ] **T12 Cache of sources and names** (FR-25)
+- [x] **T12 Cache of sources and names** (FR-25)
   - `estado.Cache`. `Fontes`/`Consultas` use it.
   - Tests: a resume makes no API probe and no lookup for known names, a
     failed lookup is not cached, a corrupt file gives a warning and an empty
     cache, and saving is atomic (the temp file is gone).
+  - *As built:* a failed lookup is still asked only once per run (kept in
+    memory), but never written, so the next run tries again. A house saved
+    as `api` starts as confirmed, so an isolated 404 can't switch it. Update
+    mode shares the project's cache. Tests in `tests/test_cache.py`, plus a
+    resume check in `test_ponta_a_ponta`.
 - [ ] **T13 Keywords warning on resume** (FR-23)
   - Tests: the warning lists added and removed terms, the saved terms are
     used, and no warning appears when the terms are equal or the file is

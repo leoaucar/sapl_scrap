@@ -142,7 +142,7 @@ a estrutura antes do paralelismo e fecha os bugs que ficaram de fora.
       rever `palavras_chave_res.csv` e `teste_raspagem.csv`
 - [x] Tirar do repositório dados de pesquisa que não são exemplo
       (`autoria_e_tramitacao/tabela_limpa_2.csv`)
-- [ ] Remover código morto e comentários desatualizados que sobrarem
+- [x] Remover código morto e comentários desatualizados que sobrarem
 
 **Nova identidade: SAPyL — Raspador do Sistema de Apoio Legislativo.**
 Projeto de código aberto que ajuda qualquer pessoa a acompanhar o que está
@@ -185,14 +185,13 @@ acontecendo em várias casas legislativas do Brasil ao mesmo tempo.
 - [x] **Casas que redirecionam para outro domínio:** links absolutos para o
       domínio novo são descartados. Tratar os dois domínios como a mesma casa
       (se a validação confirmar o caso).
-- [ ] **Achados da validação da Fase 1** (lista em
+- [x] **Achados da validação da Fase 1** (lista em
       `specs/2026-10-24-runtime-improvements/validation.md`, "Issues found").
 
 > **Situação (27/10/2026):** os itens marcados estão feitos no ramo da spec,
 > com testes, e passam pela validação contra os sites reais antes de entrar
-> no `main` (tarefa T23). Faltam: o achado V4 da validação da Fase 1 (margem
-> no limite de 35/min), a revisão final de código morto, a troca de nome do
-> repositório e a publicação da página.
+> no `main` (tarefa T23). Faltam a troca de nome do repositório e a
+> publicação da página, logo depois da validação.
 
 ### Fase 2: Velocidade (paralelismo)
 O limite é **por site**, então o ganho vem de **processar várias casas ao mesmo

@@ -56,8 +56,12 @@ cd sapl_scrap
 python3 -m venv .venv
 source .venv/bin/activate        # no Windows: .venv\Scripts\activate
 
-pip install -r requirements.txt
+pip install .
 ```
+
+Isso instala o comando `sapyl` no ambiente virtual (confira com
+`sapyl --version`). Quem já usava `pip install -r requirements.txt` pode
+continuar: o arquivo agora só instala o programa.
 
 ## Preparando os arquivos de entrada
 
@@ -266,12 +270,14 @@ Os testes rodam sem internet, com páginas reais do SAPL salvas em
 `tests/fixtures/` (veja o [README das fixtures](tests/fixtures/README.md)).
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -e ".[dev]"                  # o programa em modo editável, mais pytest e ruff
 pytest                                   # todos os testes, com cobertura
-pytest tests/test_cliente_http.py -k 429    # só alguns
+pytest tests/test_cliente_http.py -k 429 # só alguns
+ruff check . && ruff format --check .    # estilo e formatação
 ```
 
-Eles também rodam no GitHub Actions a cada push, em Python 3.10 e 3.12.
+Eles também rodam no GitHub Actions a cada push, em Python 3.10 e 3.12, junto
+com uma instalação limpa (`pip install .` e `sapyl --version`).
 
 ## Estrutura do código
 

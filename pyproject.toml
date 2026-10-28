@@ -34,7 +34,8 @@ dev = [
 sapyl = "sapyl.interface.principal:executar"
 
 [project.urls]
-Repositorio = "https://github.com/leoaucar/sapl_scrap"
+Repositorio = "https://github.com/leoaucar/sapyl"
+Pagina = "https://leoaucar.github.io/sapyl/"
 
 [tool.setuptools.dynamic]
 version = { attr = "sapyl.__version__" }

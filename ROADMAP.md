@@ -1,6 +1,6 @@
 # Roadmap
 
-Diagnóstico e plano de evolução do `sapl_scrap`, a partir da avaliação do
+Diagnóstico e plano de evolução do SAPyL (antes `sapl_scrap`), a partir da avaliação do
 código e de um teste real feito em 15/10/2026.
 
 ## 1. Teste realizado

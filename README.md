@@ -5,7 +5,7 @@
 Acompanhe, num só lugar, o que está tramitando em dezenas de câmaras e
 assembleias brasileiras que usam o SAPL. Software livre (AGPL-3.0).
 
-[![testes](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml/badge.svg)](https://github.com/leoaucar/sapl_scrap/actions/workflows/tests.yml)
+[![testes](https://github.com/leoaucar/sapyl/actions/workflows/tests.yml/badge.svg)](https://github.com/leoaucar/sapyl/actions/workflows/tests.yml)
 
 Página do projeto, com instalação e uso passo a passo:
 <https://leoaucar.github.io/sapyl/>
@@ -61,14 +61,18 @@ e próximos passos no [ROADMAP](ROADMAP.md).
 ## Instalação
 
 ```bash
-git clone https://github.com/leoaucar/sapl_scrap.git
-cd sapl_scrap
+git clone https://github.com/leoaucar/sapyl.git
+cd sapyl
 
 python3 -m venv .venv
 source .venv/bin/activate        # no Windows: .venv\Scripts\activate
 
 pip install .
 ```
+
+> O repositório se chamava `sapl_scrap`; os endereços antigos redirecionam
+> para o novo. Quem já tem uma cópia pode atualizar o endereço com
+> `git remote set-url origin https://github.com/leoaucar/sapyl.git`.
 
 Isso instala o comando `sapyl` no ambiente virtual (confira com
 `sapyl --version`). Quem já usava `pip install -r requirements.txt` pode

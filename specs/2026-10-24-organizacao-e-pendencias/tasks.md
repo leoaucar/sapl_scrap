@@ -244,7 +244,7 @@ Rules for every task (same as Phase 1):
 - [x] **T22 Update `validation.md`** to match what was built.
 - [x] **T23 Run validation**, record the results, fix what fails, then merge
   into `main`.
-- [ ] **T24 Rename the repository on GitHub to `sapyl`** (FR-12), **only
+- [x] **T24 Rename the repository on GitHub to `sapyl`** (FR-12), **only
   with the user's go-ahead at that moment**: `gh repo rename sapyl`,
   `git remote set-url`, and update the badge, clone URL and links on `main`.
   Check that the CI badge renders and that the old URL redirects.

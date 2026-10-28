@@ -147,17 +147,17 @@ a estrutura antes do paralelismo e fecha os bugs que ficaram de fora.
 **Nova identidade: SAPyL — Raspador do Sistema de Apoio Legislativo.**
 Projeto de código aberto que ajuda qualquer pessoa a acompanhar o que está
 acontecendo em várias casas legislativas do Brasil ao mesmo tempo.
-- [ ] Renomear o repositório no GitHub para `sapyl`, atualizando links e o
+- [x] Renomear o repositório no GitHub para `sapyl`, atualizando links e o
       badge do CI; pacote Python e comando também `sapyl`
 - [x] Identidade só em texto no README (nome, chamada curta, badges), sem
       logotipo
 - [x] Reescrever a descrição do README e os nomes no código e na
       documentação com a nova marca
-- [ ] Página do projeto no GitHub Pages (`docs/`, uma página estática em
+- [x] Página do projeto no GitHub Pages (`docs/`, uma página estática em
       português): o que é, para quem serve, o que produz, instalação e
       uso. Publicada por um workflow do GitHub Actions, depois da troca de
       nome do repositório (endereço `leoaucar.github.io/sapyl`).
-      *A página está pronta em `docs/`; falta publicar.*
+      Publicada em <https://leoaucar.github.io/sapyl/>.
 
 **Bugs e pendências que ficaram de fora da Fase 1**
 - [x] **Autoria e tramitação não retoma:** o script só grava no fim; uma
@@ -188,10 +188,9 @@ acontecendo em várias casas legislativas do Brasil ao mesmo tempo.
 - [x] **Achados da validação da Fase 1** (lista em
       `specs/2026-10-24-runtime-improvements/validation.md`, "Issues found").
 
-> **Situação (27/10/2026):** os itens marcados estão feitos no ramo da spec,
-> com testes, e passam pela validação contra os sites reais antes de entrar
-> no `main` (tarefa T23). Faltam a troca de nome do repositório e a
-> publicação da página, logo depois da validação.
+> **Situação:** Fase 1b concluída, validada contra os sites reais e no `main`
+> em 27/10/2026 (veja o `validation.md` da spec). O repositório agora é
+> `leoaucar/sapyl`.
 
 ### Fase 2: Velocidade (paralelismo)
 O limite é **por site**, então o ganho vem de **processar várias casas ao mesmo

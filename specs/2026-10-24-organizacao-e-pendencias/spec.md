@@ -1,6 +1,6 @@
 # Spec: Code organization, SAPyL identity and leftover issues
 
-- **Status:** Approved 2026-10-27 · amended 2026-10-27 (project site, FR-13a, at the user's request)
+- **Status:** Done (validated and merged 2026-10-27) · approved 2026-10-27 · amended 2026-10-27 (project site, FR-13a, at the user's request)
 - **Date:** 2026-10-24
 - **Covers:** ROADMAP Phase 1b (organization, new identity, leftover bugs)
 - **Depends on:** [2026-10-24-runtime-improvements](../2026-10-24-runtime-improvements/spec.md)

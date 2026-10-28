@@ -192,15 +192,15 @@ Only with the user's go-ahead.
 
 | Check | Expected | Result |
 |---|---|---|
-| `gh repo view leoaucar/sapyl` works | yes | |
-| Old URL `github.com/leoaucar/sapl_scrap` redirects | yes | |
-| `git remote -v` points to the new URL | yes | |
-| README badge renders and links to the new Actions page | yes | |
-| Clone URL in README works | yes | |
-| Pages switched on (GitHub Actions), `pages` workflow green | yes | |
-| `https://leoaucar.github.io/sapyl/` opens and matches `docs/` | yes | |
-| Install steps from the site work in a fresh virtual environment | yes | |
-| Repository homepage points to the site | yes | |
+| `gh repo view leoaucar/sapyl` works | yes | ✅ |
+| Old URL `github.com/leoaucar/sapl_scrap` redirects | yes | ✅ 301 → `github.com/leoaucar/sapyl` |
+| `git remote -v` points to the new URL | yes | ✅ |
+| README badge renders and links to the new Actions page | yes | ✅ badge 200 |
+| Clone URL in README works | yes | ✅ |
+| Pages switched on (GitHub Actions), `pages` workflow green | yes | ✅ `pagina` run green (the run from the merge push failed before Pages was on, as expected) |
+| `https://leoaucar.github.io/sapyl/` opens and matches `docs/` | yes | ✅ 200; page identical to `docs/index.html`; CSS and JS 200 |
+| Install steps from the site work in a fresh virtual environment | yes | ✅ clone + `pip install .` + `sapyl --version` = 0.2.0 (venv made with `uv`, since `python3-venv` is not installed on this machine) |
+| Repository homepage points to the site | yes | ✅ |
 
 ## 10. Result
 
@@ -214,8 +214,8 @@ Only with the user's go-ahead.
 | 6. Update keeps columns, filter works | 6 | ✅ |
 | 7. Search file ≥ 10× smaller | 4 | ✅ 69× |
 | 8. DNS failure after one attempt | 7 | ✅ |
-| 9. Repository renamed, links updated | 9 | after the merge |
-| 10. Project site online, install steps work | 8, 9 | after the merge |
+| 9. Repository renamed, links updated | 9 | ✅ |
+| 10. Project site online, install steps work | 8, 9 | ✅ |
 
 **Issues found** (each becomes a task in `tasks.md`):
 

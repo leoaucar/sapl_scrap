@@ -300,11 +300,14 @@ aprende com as matérias já coletadas no banco.
 - [ ] Fixar versões testadas (`requirements.lock`)
 - [x] CI no GitHub Actions (testes, `ruff` e instalação limpa)
 
-### Fase 6: Busca nos resultados
-Depois de coletar, a pessoa precisa achar o que interessa dentro do que veio:
-uma busca que filtra o banco de um projeto (Fase 3) por palavras, por
-qualquer campo ou pelo conteúdo do texto das matérias. Tudo local, sem
-nenhuma requisição aos sites do SAPL.
+### Fase 6: Busca nos resultados e mais critérios de busca
+Duas partes. A primeira: depois de coletar, a pessoa precisa achar o que
+interessa dentro do que veio, com uma busca que filtra o banco de um projeto
+(Fase 3) por palavras, por qualquer campo ou pelo conteúdo do texto das
+matérias, tudo local, sem nenhuma requisição aos sites do SAPL. A segunda:
+coletar também por outros critérios além das palavras-chave, como a autoria.
+
+**Busca nos resultados (local)**
 
 - [ ] **Palavras em qualquer campo ou num campo escolhido:** título, ementa,
       indexação, tipo, número, ano, data, casa, UF, palavras da busca,

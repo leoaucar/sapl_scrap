@@ -413,3 +413,38 @@ def test_resumo_mostra_limite_reduzido(projeto_tmp, sessao, relogio, sapl, caplo
     resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
     assert 'Servidor srv (3 casas): limite reduzido de 120 para 60' in resumo
     assert any('Servidor srv sobrecarregado' in r.getMessage() for r in caplog.records)
+
+
+def test_erro_inesperado_numa_casa_nao_perde_as_outras(
+    projeto_tmp, cliente, sessao, sapl, capsys, caplog, monkeypatch
+):
+    from sapyl import materias
+
+    original = materias.raspar_materia
+
+    def quebrar_uma_casa(link, *args):
+        if link['chave'].startswith('sapl.a.ac.leg.br/'):
+            raise OSError('disco cheio')
+        return original(link, *args)
+
+    monkeypatch.setattr(materias, 'raspar_materia', quebrar_uma_casa)
+    with caplog.at_level(logging.ERROR, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 1
+    assert 'escolha "retomar"' in capsys.readouterr().out
+    assert any('1 casa(s) pararam' in r.getMessage() for r in caplog.records)
+    assert any(r.exc_info for r in caplog.records)  # o traceback vai para o log
+    estado = Estado(projeto_tmp / 'teste_proj' / 'teste_estado.csv')
+    assert estado.contagens('busca') == {'completa': 4}  # as buscas das duas casas
+    estado.fechar()
+    monkeypatch.setattr(materias, 'raspar_materia', original)
+    assert programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp) == 0
+    final = ler_final(projeto_tmp / 'teste_proj' / 'teste_resultado_final.csv')
+    assert final['sapl_id'].tolist() == ['38415', '43301', '43300', '42263']
+
+
+def test_texto_do_progresso(tmp_path):
+    estado = Estado(tmp_path / 'e.csv')
+    estado.registrar('materia', 'h/1', 'ok')
+    estado.registrar('materia', 'h/2', 'erro', 'x')
+    assert programa.progresso_das_materias(estado) == 'matérias: 1 raspadas, 1 com erro'
+    estado.fechar()

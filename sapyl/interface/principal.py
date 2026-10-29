@@ -459,8 +459,9 @@ def main(
 ) -> int:
     """Pergunta o modo e roda: projeto novo ou retomado, atualização, ou autoria e tramitação.
 
-    Devolve o código de saída: 0; 1 se a execução foi interrompida; 2 se o
-    `paralelo` do config.json do projeto tem um valor inválido.
+    Devolve o código de saída: 0; 1 se a execução foi interrompida (ou uma
+    casa parou por um erro inesperado); 2 se o `paralelo` do config.json do
+    projeto tem um valor inválido.
     """
     raiz = Path(raiz)
     # O servidor (IP) de cada site, para o limite por servidor (veja cliente_http)
@@ -494,6 +495,11 @@ def main(
     except padroes.ConfiguracaoInvalida as erro:
         print(MENSAGEM_CONFIG_INVALIDA.format(erro=erro))
         return 2
+    except execucao.FalhaNasCasas as erro:
+        # As outras casas terminaram e estão no estado; a retomada refaz só estas
+        log.error(str(erro))
+        print(MENSAGEM_INTERROMPIDO_AUTORIA if modo == '3' else MENSAGEM_INTERROMPIDO)
+        return 1
     log.info(texto)
     return 0
 

@@ -15,7 +15,10 @@ Por servidor (o endereço IP do site, `servidor_de`): quase todas as casas
 ficam no mesmo servidor do Interlegis, então cada requisição também conta na
 janela do servidor, com no máximo `limite_por_servidor` requisições em
 qualquer janela de 60 s (+ a margem), somando todas as casas dele. Uma
-requisição espera até o site **e** o servidor terem vaga.
+requisição espera até o site **e** o servidor terem vaga. Se sites
+diferentes do mesmo servidor recebem 429 em menos de 10 minutos, o teto desse
+servidor cai pela metade até o fim da execução (nunca abaixo de 35); cada
+redução vai para o log e para `reducoes`.
 
 Com `historico` (um arquivo JSON), os horários das requisições recentes de
 cada site e de cada servidor são guardados no disco a cada requisição e lidos quando o cliente
@@ -54,7 +57,14 @@ import requests
 from urllib3.exceptions import NameResolutionError
 
 from sapyl import __version__, registro
-from sapyl.padroes import JANELA_SEGUNDOS, LIMITE_POR_SERVIDOR, LIMITE_POR_SITE, MARGEM_SEGUNDOS
+from sapyl.padroes import (
+    JANELA_LENTIDAO,
+    JANELA_SEGUNDOS,
+    LIMITE_POR_SERVIDOR,
+    LIMITE_POR_SITE,
+    MARGEM_SEGUNDOS,
+    PISO_POR_SERVIDOR,
+)
 
 # Nomes antigos (os valores ficam em `sapyl.padroes`). Com a margem, a 1ª e a
 # 36ª requisição a um site saem sempre a pelo menos 61 s uma da outra.
@@ -227,6 +237,9 @@ class ClienteSAPL:
         self._janelas_srv = defaultdict(deque)  # servidor -> horários
         self._parede_srv = defaultdict(deque)
         self._teto: dict[str, int] = {}  # servidor -> teto atual (se mudou)
+        self._429s = defaultdict(list)  # servidor -> [(horário, host)] dos 429 recentes
+        self._ultima_reducao: dict[str, float] = {}
+        self.reducoes: list[tuple[str, int, int]] = []  # (servidor, teto antigo, novo)
         self.total_requisicoes = 0
         if historico:
             self._carregar_historico()
@@ -255,6 +268,35 @@ class ClienteSAPL:
     def teto(self, servidor: str) -> int:
         """Requisições por minuto permitidas agora no servidor."""
         return self._teto.get(servidor, self.limite_por_servidor)
+
+    def _anotar_429(self, host: str, servidor: str | None) -> None:
+        """Reduz o teto do servidor se sites diferentes dele receberam 429 (sob a trava)."""
+        if servidor is None:
+            return
+        agora = self.relogio()
+        recentes = [(t, h) for t, h in self._429s[servidor] if agora - t < JANELA_LENTIDAO]
+        recentes.append((agora, host))
+        self._429s[servidor] = recentes
+        if len({h for _, h in recentes}) < 2:
+            return
+        ultima = self._ultima_reducao.get(servidor)
+        if ultima is not None and agora - ultima < JANELA_LENTIDAO:
+            return
+        antigo = self.teto(servidor)
+        novo = max(PISO_POR_SERVIDOR, antigo // 2)
+        self._429s[servidor] = []  # a mesma leva de 429 não conta duas vezes
+        self._ultima_reducao[servidor] = agora
+        if novo < antigo:
+            self._teto[servidor] = novo
+            self.reducoes.append((servidor, antigo, novo))
+            log.warning(
+                'Servidor %s sobrecarregado (429 de %d casas): limite reduzido de %d para '
+                '%d requisições por minuto até o fim da execução',
+                servidor,
+                len({h for _, h in recentes}),
+                antigo,
+                novo,
+            )
 
     def definir_limite_por_servidor(self, limite: int) -> None:
         """Troca o teto inicial dos servidores (o `paralelo` do config.json)."""
@@ -416,6 +458,8 @@ class ClienteSAPL:
 
             ultima = tentativa == tentativas
             if status == 429:
+                with self._trava:
+                    self._anotar_429(host, servidor)
                 espera = ler_retry_after(bruta.headers.get('Retry-After'))
             else:
                 espera = ESPERAS_ERRO[min(tentativa - 1, len(ESPERAS_ERRO) - 1)]

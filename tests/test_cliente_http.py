@@ -629,3 +629,64 @@ def test_historico_sem_servidores_ainda_e_lido(sessao, relogio, tmp_path):
     inicio = relogio.agora()
     cliente.get(A)
     assert relogio.agora() == pytest.approx(inicio + 61)
+
+
+# --- Redução do teto com 429 (FR-8, TR-3) ------------------------------------
+
+
+def _com_429(sessao, *urls):
+    for url in urls:
+        sessao.responder(url, status=429, headers={'Retry-After': '1'}).responder(url, texto='ok')
+
+
+def test_429_de_dois_sites_do_servidor_reduz_o_teto_uma_vez(sessao, relogio, caplog):
+    _com_429(sessao, A, B, C)
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=120)
+    with caplog.at_level(logging.WARNING, logger='sapyl'):
+        cliente.get(A)
+        assert cliente.teto('10.0.0.1') == 120
+        cliente.get(B)
+        assert cliente.teto('10.0.0.1') == 60
+        cliente.get(C)  # mesma leva (menos de 10 min): não reduz de novo
+    assert cliente.teto('10.0.0.1') == 60
+    assert cliente.reducoes == [('10.0.0.1', 120, 60)]
+    avisos = [r.getMessage() for r in caplog.records if 'reduzido' in r.getMessage()]
+    assert len(avisos) == 1 and 'de 120 para 60' in avisos[0]
+
+
+def test_429_de_um_site_so_nao_reduz(sessao, relogio):
+    sessao.responder(A, status=429, headers={'Retry-After': '1'})
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=120, max_tentativas=4)
+    cliente.get(A)
+    assert len(sessao.pedidos) == 4 and cliente.teto('10.0.0.1') == 120
+    assert cliente.reducoes == []
+
+
+def test_429_espalhados_mais_de_10_min_nao_reduzem(sessao, relogio):
+    _com_429(sessao, A, B)
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=120)
+    cliente.get(A)
+    relogio.t += 601
+    cliente.get(B)
+    assert cliente.reducoes == []
+
+
+def test_nova_leva_depois_de_10_min_reduz_de_novo_ate_o_piso(sessao, relogio):
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=150)
+    tetos = []
+    for _ in range(4):
+        sessao.limpar(A).limpar(B)
+        _com_429(sessao, A, B)
+        cliente.get(A)
+        cliente.get(B)
+        tetos.append(cliente.teto('10.0.0.1'))
+        relogio.t += 601
+    assert tetos == [75, 37, 35, 35]
+    assert [n for _, _, n in cliente.reducoes] == [75, 37, 35]
+
+
+def test_429_em_site_sem_servidor_nao_reduz_nada(sessao, relogio):
+    _com_429(sessao, SEM_DNS)
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=120)
+    cliente.get(SEM_DNS)
+    assert cliente.reducoes == []

@@ -43,7 +43,7 @@ Rules for every task (same as spec 2):
     request in a window waits; hosts without a server have only the site
     limit; history round trip; an old history file without `servidores`
     loads; `resolver_servidor` caches and maps a DNS failure to `None`.
-- [ ] **T05 Adaptive slow-down** (FR-8, TR-3)
+- [x] **T05 Adaptive slow-down** (FR-8, TR-3)
   - Tests: 429 from 2 hosts of one server within 10 min halves the ceiling
     once and logs it; 429s from 1 host do not; the floor is 35; `reducoes`
     lists the change.

@@ -212,6 +212,19 @@ tempo**, nunca de acelerar dentro da mesma casa.
 Estimativa com 20 casas em paralelo: a execução completa passa a ser limitada
 pela casa com mais matérias, algo como **30–60 min**, em vez de 10–20 h.
 
+### Fase 2b: Melhorar a usabilidade
+Revisão básica da interface de linha de comando e do fluxo de trabalho do
+projeto, do ponto de vista de quem pesquisa: as perguntas, as mensagens, os
+arquivos que aparecem na pasta do projeto e os passos para criar, retomar e
+atualizar um projeto.
+
+- [ ] Revisar as perguntas e mensagens do terminal (clareza, ordem, o que
+      acontece com respostas inválidas)
+- [ ] Revisar o fluxo de trabalho (novo, retomar, atualizar, autoria e
+      tramitação) e os arquivos gerados em cada um
+- [ ] Listar o que melhorar e decidir o que entra nesta fase e o que vai para
+      a Fase 7 (configuração e linha de comando)
+
 ### Fase 3: Saída em banco SQL e armazenamento de documentos
 - [ ] Gravar os resultados em **SQLite** (padrão, um arquivo `.db` por projeto)
       ou **PostgreSQL** (configurável), usando SQLAlchemy

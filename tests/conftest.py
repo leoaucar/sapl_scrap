@@ -20,6 +20,7 @@ def bloquear_rede(monkeypatch):
     monkeypatch.setattr(socket.socket, 'connect', _rede_bloqueada)
     monkeypatch.setattr(socket.socket, 'connect_ex', _rede_bloqueada)
     monkeypatch.setattr(socket, 'create_connection', _rede_bloqueada)
+    monkeypatch.setattr(socket, 'gethostbyname', _rede_bloqueada)
 
 
 @pytest.fixture(autouse=True)

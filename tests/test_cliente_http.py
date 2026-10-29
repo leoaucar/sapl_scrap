@@ -486,3 +486,146 @@ def test_janela_e_margem_configuraveis_e_ao_reservar(sessao, relogio):
     assert [t for _, _, t in reservas] == [1000.0, 1000.0, pytest.approx(1000.25)]
     assert {h for h, _, _ in reservas} == {'sapl.a.leg.br'}
     assert cliente.total_requisicoes == 3
+
+
+# --- Limite por servidor (FR-6, FR-7, TR-1) ----------------------------------
+
+C = 'https://sapl.c.leg.br/'
+SEM_DNS = 'https://sapl.sumiu.leg.br/'
+
+
+def _servidor_de(host):
+    return None if 'sumiu' in host else '10.0.0.1'
+
+
+def _cliente_servidor(sessao, relogio, teto=70, **kw):
+    reservas = []
+    cliente = ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=relogio.dormir,
+        servidor_de=_servidor_de,
+        limite_por_servidor=teto,
+        ao_reservar=lambda h, s, t: reservas.append((h, s, t)),
+        **kw,
+    )
+    return cliente, reservas
+
+
+def test_teto_do_servidor_soma_os_sites(sessao, relogio):
+    for url in (A, B, C):
+        sessao.responder(url, texto='ok')
+    cliente, reservas = _cliente_servidor(sessao, relogio)
+    inicio = relogio.agora()
+    for _ in range(23):
+        for url in (A, B, C):
+            cliente.get(url)
+    cliente.get(A)  # 70ª: ainda cabe (A tem 24 de 35)
+    assert relogio.agora() == inicio
+    cliente.get(B)  # 71ª no servidor: espera, embora o site B tenha vaga
+    assert relogio.agora() == pytest.approx(inicio + 61)
+    assert {s for _, s, _ in reservas} == {'10.0.0.1'}
+
+
+def test_vale_o_mais_estrito_dos_dois(sessao, relogio):
+    sessao.responder(A, texto='ok')
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=200)
+    for _ in range(35):
+        cliente.get(A)
+    inicio = relogio.agora()
+    cliente.get(A)  # o servidor tem vaga, o site não
+    assert relogio.agora() == pytest.approx(inicio + 61)
+
+
+def test_site_sem_servidor_so_tem_o_limite_do_site(sessao, relogio):
+    sessao.responder(A, texto='ok').responder(SEM_DNS, texto='ok')
+    cliente, reservas = _cliente_servidor(sessao, relogio, teto=35)
+    for _ in range(35):
+        cliente.get(A)
+    inicio = relogio.agora()
+    for _ in range(35):
+        cliente.get(SEM_DNS)
+    assert relogio.agora() == inicio
+    assert reservas[-1][1] is None
+    assert cliente.servidores() == {'10.0.0.1': ['sapl.a.leg.br']}
+
+
+def test_sem_servidor_de_nao_ha_teto(sessao, relogio, cliente):
+    for url in (A, B, C):
+        sessao.responder(url, texto='ok')
+    for _ in range(35):
+        for url in (A, B, C):
+            cliente.get(url)
+    assert relogio.esperas == [] and cliente.servidores() == {}
+
+
+def test_servidor_consultado_uma_vez_por_site(sessao, relogio):
+    consultas = []
+
+    def servidor_de(host):
+        consultas.append(host)
+        return '10.0.0.1'
+
+    sessao.responder(A, texto='ok').responder(B, texto='ok')
+    cliente = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir, servidor_de=servidor_de
+    )
+    for _ in range(3):
+        cliente.get(A)
+        cliente.get(B)
+    assert consultas == ['sapl.a.leg.br', 'sapl.b.leg.br']
+    assert cliente.servidores() == {'10.0.0.1': ['sapl.a.leg.br', 'sapl.b.leg.br']}
+
+
+def test_definir_limite_por_servidor(sessao, relogio):
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=70)
+    cliente.definir_limite_por_servidor(50)
+    assert cliente.teto('10.0.0.1') == 50 == cliente.limite_por_servidor
+
+
+def test_resolver_servidor(monkeypatch):
+    import socket
+
+    def falso(host):
+        if host == 'sapl.sumiu.leg.br':
+            raise socket.gaierror(-2, 'Name or service not known')
+        return '201.54.51.178'
+
+    monkeypatch.setattr(socket, 'gethostbyname', falso)
+    assert http_sapl.resolver_servidor('sapl.a.leg.br') == '201.54.51.178'
+    assert http_sapl.resolver_servidor('sapl.sumiu.leg.br') is None
+
+
+def test_historico_guarda_as_janelas_dos_servidores(sessao, relogio, tmp_path):
+    import json
+
+    for url in (A, B, C):
+        sessao.responder(url, texto='ok')
+    kw = {'historico': str(tmp_path / 'h.json'), 'relogio_parede': relogio.agora}
+    primeira, _ = _cliente_servidor(sessao, relogio, teto=40, **kw)
+    inicio = relogio.agora()
+    for _ in range(20):
+        primeira.get(A)
+        primeira.get(B)
+    dados = json.loads((tmp_path / 'h.json').read_text(encoding='utf-8'))
+    assert len(dados['servidores']['10.0.0.1']) == 40
+    # outra execução logo depois: o servidor ainda está cheio
+    segunda, _ = _cliente_servidor(sessao, relogio, teto=40, **kw)
+    segunda.get(C)
+    assert relogio.agora() == pytest.approx(inicio + 61)
+
+
+def test_historico_sem_servidores_ainda_e_lido(sessao, relogio, tmp_path):
+    import json
+
+    caminho = tmp_path / 'h.json'
+    caminho.write_text(
+        json.dumps({'requisicoes': {'sapl.a.leg.br': [relogio.agora()] * 35}, 'bloqueios': {}})
+    )
+    sessao.responder(A, texto='ok')
+    cliente, _ = _cliente_servidor(
+        sessao, relogio, historico=str(caminho), relogio_parede=relogio.agora
+    )
+    inicio = relogio.agora()
+    cliente.get(A)
+    assert relogio.agora() == pytest.approx(inicio + 61)

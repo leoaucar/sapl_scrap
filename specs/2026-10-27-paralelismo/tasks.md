@@ -36,7 +36,7 @@ Rules for every task (same as spec 2):
 
 ## Phase B: Server ceiling
 
-- [ ] **T04 Server windows and history** (FR-6, FR-7, TR-1)
+- [x] **T04 Server windows and history** (FR-6, FR-7, TR-1)
   - `servidor_de` argument, `resolver_servidor()`, per-server window with the
     stricter-of-two rule, `servidores` in the history file.
   - Tests (fake clock): 3 hosts on one server with ceiling 70: the 71st

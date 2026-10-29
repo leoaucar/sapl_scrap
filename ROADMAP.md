@@ -29,8 +29,16 @@ Rio Branco foram buscadas em ~2 min, e a paginação terminou normalmente com
 
 ## 2. Estimativa de tempo de uma execução completa
 
-A tabela tem **~840 casas**. Os resultados se concentram nas casas grandes
-(assembleias e capitais). No teste, 2 das 10 casas deram 100% das matérias.
+A tabela tem **1 404 casas** (não ~840, como se estimava antes); numa amostra
+de 60, um terço não existe mais no DNS. Os resultados se concentram nas casas
+grandes (assembleias e capitais). No teste, 2 das 10 casas deram 100% das
+matérias.
+
+**Achado de 27/10/2026 (só consultas de DNS):** quase todas as casas que
+funcionam ficam no **mesmo servidor** do Interlegis. As 10 casas do Acre e 37
+de 60 casas sorteadas apontam para `201.54.51.178` (3 para `.179`). Por isso
+o paralelismo (Fase 2) tem, além do limite de 35 por site, um limite por
+servidor (120 por minuto no começo).
 
 - **Teste das URLs** (quando a tabela é refeita): até 5 s por casa, ou seja,
   **até ~70 min**.
@@ -43,8 +51,11 @@ A tabela tem **~840 casas**. Os resultados se concentram nas casas grandes
 - **Downloads:** ~10 MB por PDF em média, o que pode passar de **100 GB** numa
   execução completa.
 
-Hoje a execução parece mais rápida que isso só porque as requisições
-bloqueadas falham na hora e viram linhas vazias.
+Com a Fase 2 (até 8 casas ao mesmo tempo, 120 requisições por minuto no
+servidor compartilhado), a raspagem fica cerca de **3,4 vezes mais rápida**
+que uma casa por vez: algo como **3 a 6 h** para a execução completa, e o
+teste das URLs cai para uns **15 min**. O limite do servidor é o que manda, não
+o número de casas; a validação da Fase 2 mede se ele pode subir.
 
 ## 3. Bugs e riscos conhecidos
 
@@ -196,21 +207,28 @@ acontecendo em várias casas legislativas do Brasil ao mesmo tempo.
 O limite é **por site**, então o ganho vem de **processar várias casas ao mesmo
 tempo**, nunca de acelerar dentro da mesma casa.
 
-- [ ] **Busca e raspagem com `ThreadPoolExecutor`**: um worker por casa
-      (10 a 30 threads). Cada casa tem o seu limitador e a sua fila. É um
-      trabalho de rede, então threads bastam (o GIL não atrapalha).
-- [ ] **Pipeline em vez de etapas em lote:** cada casa faz busca, links,
+- [x] **Busca e raspagem com `ThreadPoolExecutor`**: um worker por casa (8
+      por padrão, `paralelo` no `config.json`). Limite de 35/min por site e,
+      como as casas dividem o mesmo servidor, também um limite por servidor
+      (120/min, que cai pela metade se casas diferentes receberem 429).
+- [x] **Pipeline em vez de etapas em lote:** cada casa faz busca, links,
       matérias e PDFs em sequência, assim as casas pequenas terminam cedo e
-      não esperam as grandes.
-- [ ] **Teste das URLs em paralelo** (de ~70 min para ~1–2 min com 50 threads).
-- [ ] **Downloads em paralelo**, com streaming direto para o arquivo
-      (`stream=True`) e opção de baixar só as matérias marcadas como relevantes.
-- [ ] Evolução opcional: `asyncio` + `httpx`/`aiohttp` para milhares de
-      conexões simultâneas.
+      não esperam as grandes. A planilha final sai igual à de uma casa por vez.
+- [x] **Teste das URLs em paralelo** (limitado pelo servidor, não pelo número
+      de threads).
+- [x] **Downloads em paralelo** (cada casa baixa os seus), com streaming direto
+      para o arquivo (`stream=True`). Baixar só as relevantes: modo
+      atualização com a coluna `Relevante` e downloads.
+- [ ] Evolução opcional: `asyncio` + `httpx`/`aiohttp`. Não é necessária
+      enquanto o limite do servidor for o gargalo.
 - (Não guardar o HTML bruto da busca: passou para a Fase 1b.)
 
-Estimativa com 20 casas em paralelo: a execução completa passa a ser limitada
-pela casa com mais matérias, algo como **30–60 min**, em vez de 10–20 h.
+Estimativa: a execução completa passa a ser limitada pelo servidor
+compartilhado, não pela casa com mais matérias: **3 a 6 h** com 120
+requisições por minuto, em vez de 10–20 h (veja a seção 2).
+
+> Implementada na spec [`specs/2026-10-27-paralelismo/`](specs/2026-10-27-paralelismo/);
+> a validação contra os sites reais (`validation.md`) define os valores padrão finais.
 
 ### Fase 2b: Melhorar a usabilidade
 Revisão básica da interface de linha de comando e do fluxo de trabalho do

@@ -41,17 +41,22 @@ O que ele garante:
 - **Nenhuma matéria vazia em silêncio.** Toda linha tem `status` (`ok` ou
   `erro`) e, quando falha, o motivo na coluna `erro`.
 - **Respeito aos servidores.** No máximo 35 requisições por minuto em cada
-  site (o limite do SAPL); quando o site pede para esperar (`HTTP 429`), o
+  site (o limite do SAPL), e no máximo 120 por minuto somando todas as casas
+  que ficam no mesmo servidor; quando o site pede para esperar (`HTTP 429`), o
   programa espera e tenta de novo.
+- **Várias casas ao mesmo tempo.** Até 8 casas são processadas em paralelo,
+  com o mesmo resultado de uma casa por vez.
 - **Retomada.** Se a execução parar no meio (Ctrl+C, queda de energia ou de
   internet), basta rodar de novo e escolher "retomar": o que já foi feito não
   é refeito, e o que falhou é tentado outra vez.
 - **Sem duplicatas.** Uma matéria encontrada por várias palavras aparece uma
   vez só, com todas as palavras na coluna `Palavras`.
 
-Uma execução completa é demorada justamente por respeitar o limite de cada
-site: uma casa com 1 000 matérias leva cerca de 30 minutos. Veja estimativas
-e próximos passos no [ROADMAP](ROADMAP.md).
+Uma execução completa é demorada justamente por respeitar os limites: uma
+casa com 1 000 matérias leva cerca de 30 minutos, e as casas que ficam no
+mesmo servidor dividem o limite dele (veja
+[Várias casas ao mesmo tempo](#várias-casas-ao-mesmo-tempo)). Veja
+estimativas e próximos passos no [ROADMAP](ROADMAP.md).
 
 ## Requisitos
 
@@ -177,12 +182,53 @@ arquivo de palavras mudou desde então, o programa avisa quais palavras são
 novas e quais saíram, e continua com as salvas. Para buscar palavras novas,
 crie um projeto novo.
 
+### Várias casas ao mesmo tempo
+
+O limite de 35 requisições por minuto é **por site**, então o programa ganha
+tempo processando várias casas em paralelo, nunca acelerando uma casa. Cada
+casa faz, em sequência, as suas buscas, os links, as matérias e (se pedido)
+os PDFs; as casas pequenas terminam cedo e não esperam as grandes. O teste
+dos sites, o modo atualização e a autoria e tramitação também rodam assim.
+A planilha final sai igual à de uma casa por vez (na ordem da tabela de
+casas).
+
+Quase todas as casas ficam no **mesmo servidor** do Interlegis (o mesmo
+endereço IP). Por isso, além do limite de cada site, há um limite por
+servidor: no máximo 120 requisições por minuto, somando todas as casas dele.
+Se casas diferentes do mesmo servidor começam a receber `HTTP 429`, o
+programa avisa no log e reduz esse limite pela metade até o fim da execução
+(nunca abaixo de 35). Nada se perde: as requisições esperam e são feitas de
+novo.
+
+Os valores ficam no `config.json` do projeto, na chave `paralelo`:
+
+```json
+"paralelo": {"casas_ao_mesmo_tempo": 8, "limite_por_servidor": 120}
+```
+
+Só mude se tiver um motivo (por exemplo, um aviso do Interlegis). Para mudar,
+edite o arquivo antes de retomar o projeto. `casas_ao_mesmo_tempo` tem de ser
+um número inteiro de pelo menos 1 (com 1, uma casa por vez), e
+`limite_por_servidor` de pelo menos 35. Um valor inválido para o programa
+antes de qualquer requisição, com uma mensagem dizendo o que corrigir.
+Projetos criados por versões anteriores não têm essa chave e usam os valores
+padrão.
+
+Com Ctrl+C, todas as casas param em poucos segundos (no máximo o tempo de uma
+requisição em andamento), e a retomada continua de onde parou.
+
 ### Resumo e log
 
 No fim de cada execução aparece um resumo: casas pesquisadas, buscas
-incompletas, matérias encontradas, únicas, raspadas e com erro, downloads e o
+incompletas, matérias encontradas, únicas, raspadas e com erro, downloads, o
+tempo da execução, o limite usado em cada servidor (e se foi reduzido) e o
 caminho do resultado. Se houve falhas, ele lembra de retomar o projeto. A
 última linha mostra o log desta execução.
+
+Durante a execução, cada linha começa com a casa a que se refere
+(`[sapl.x.leg.br] Matéria 3 de 120: …`), e a cada minuto aparece uma linha
+de progresso geral (casas concluídas, em andamento e na fila; matérias
+raspadas e com erro).
 
 Cada execução (novo projeto, retomada, atualização) tem o seu próprio log em
 `<nome>_proj/logs/<nome>_<aaaa-mm-dd_hhmmss>_<modo>.log`, com tudo o que
@@ -303,7 +349,9 @@ O código fica no pacote `sapyl/`. `programa.py`, na raiz, é só um atalho.
 | `sapyl/interface/principal.py` | Comando `sapyl`; etapas: novo/retomar/atualizar        |
 | `sapyl/interface/entrada.py`   | Perguntas com validação, escolha do projeto            |
 | `sapyl/colunas.py`      | Nomes das colunas e das etapas (lista única)                  |
-| `sapyl/cliente_http.py` | Cliente HTTP único: limite por site, 429, retentativas, log   |
+| `sapyl/padroes.py`      | Limites e valores padrão; confere o `paralelo` do config.json |
+| `sapyl/cliente_http.py` | Cliente HTTP único: limite por site e por servidor, 429, retentativas, log |
+| `sapyl/execucao.py`     | Várias casas ao mesmo tempo (threads), Ctrl+C e progresso     |
 | `sapyl/casas.py`        | Lista de casas, teste dos sites, UF, filtros                  |
 | `sapyl/palavras.py`     | Lê e formata as palavras-chave para a busca                   |
 | `sapyl/busca.py`        | Busca página a página em cada casa                            |

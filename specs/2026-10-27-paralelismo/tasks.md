@@ -78,7 +78,7 @@ Rules for every task (same as spec 2):
     and no server above its ceiling in any window.
   - `test_ponta_a_ponta.py` with 8 workers: limits per site and per server,
     interruption in the middle and resume.
-- [ ] **T12 Docs** (NFR-4)
+- [x] **T12 Docs** (NFR-4)
   - README (parallel run, `paralelo` in `config.json`, server ceiling and
     why), tech-stack, ROADMAP (Phase 2 ticks, new time estimate, the 1 404
     houses / shared servers finding), project site "Quanto tempo leva?".

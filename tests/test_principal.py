@@ -381,3 +381,35 @@ def test_valor_invalido_para_antes_de_qualquer_requisicao(
     saida = capsys.readouterr().out
     assert 'config.json' in saida and '"paralelo.limite_por_servidor" = 10' in saida
     assert 'no mínimo 35' in saida
+
+
+# --- Resumo com tempo e servidores (FR-14) ------------------------------------
+
+
+def test_resumo_mostra_tempo_casas_e_servidores(projeto_tmp, sessao, relogio, sapl, caplog):
+    cliente = ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=relogio.dormir,
+        servidor_de=lambda host: '10.0.0.1',
+        limite_por_servidor=999,
+    )
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
+    assert '(até 8 casas ao mesmo tempo)' in resumo and 'Tempo: ' in resumo
+    # o limite do config.json (120) vale, não o do cliente criado
+    assert 'Servidor 10.0.0.1 (3 casas): até 120 requisições por minuto' in resumo
+
+
+def test_resumo_mostra_limite_reduzido(projeto_tmp, sessao, relogio, sapl, caplog):
+    for casa in (A, 'https://sapl.b.pr.leg.br/'):
+        sapl.falhar(f'{casa}sistema/search/?page=1&q={P}', 429)
+    cliente = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir, servidor_de=lambda h: 'srv'
+    )
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
+    assert 'Servidor srv (3 casas): limite reduzido de 120 para 60' in resumo
+    assert any('Servidor srv sobrecarregado' in r.getMessage() for r in caplog.records)

@@ -21,6 +21,7 @@ raspadas de novo, com saída em arquivos `_ATUALIZADO_<data>`.
 """
 
 import sys
+import time
 from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
@@ -32,7 +33,7 @@ from sapyl import __version__, autoria, execucao, padroes, registro
 from sapyl import casas as cl
 from sapyl import projeto as gp
 from sapyl.busca import buscar_casa, buscas_pendentes, chave_busca, enderecos_de_busca
-from sapyl.cliente_http import ClienteSAPL
+from sapyl.cliente_http import ClienteSAPL, resolver_servidor
 from sapyl.colunas import (
     COLUNAS_MATERIAS,
     COLUNAS_ORIGEM,
@@ -176,6 +177,23 @@ def avisar_palavras_mudadas(raiz: str | Path, salvas: list[str]) -> list[str]:
     return linhas
 
 
+def preparar_cliente(cliente: ClienteSAPL, paralelo: dict[str, int]) -> float:
+    """Aplica o `paralelo` do projeto ao cliente. Devolve o horário de início."""
+    cliente.definir_limite_por_servidor(paralelo['limite_por_servidor'])
+    return time.monotonic()
+
+
+def sobre_a_execucao(cliente: ClienteSAPL, paralelo: dict[str, int], inicio: float) -> list[str]:
+    """Linhas do resumo: tempo, casas ao mesmo tempo e o limite de cada servidor."""
+    servidores = [
+        (servidor, len(hosts), cliente.limite_por_servidor, cliente.teto(servidor))
+        for servidor, hosts in sorted(cliente.servidores().items())
+    ]
+    return registro.linhas_da_execucao(
+        time.monotonic() - inicio, paralelo['casas_ao_mesmo_tempo'], servidores
+    )
+
+
 def mapeador(
     cliente: ClienteSAPL, paralelo: dict[str, int], progresso: Callable[[], str] | None = None
 ) -> padroes.Mapear:
@@ -279,6 +297,7 @@ def executar_projeto(
     iguais às de uma casa por vez.
     """
     paralelo = ler_paralelo(projeto, config)
+    inicio = preparar_cliente(cliente, paralelo)
     estado = Estado(projeto.estado)
     try:
         casas = preparar_casas(projeto, config, cliente, raiz, mapeador(cliente, paralelo))
@@ -343,6 +362,7 @@ def executar_projeto(
             buscas=buscas,
             casas_inativas=int((~casas['ativa']).sum()),
             downloads=config['downloads'],
+            execucao=sobre_a_execucao(cliente, paralelo, inicio),
         )
     finally:
         estado.fechar()
@@ -364,6 +384,7 @@ def executar_atualizacao(
         PERGUNTA_RELEVANTES, entrada
     )
     downloads = perguntar_sim_nao(PERGUNTA_DOWNLOAD, entrada)
+    inicio = preparar_cliente(cliente, paralelo)
     hoje = hoje or datetime.now().strftime('%d_%m_%Y')
     projeto = gp.Projeto(raiz, base.nome, data=hoje)
     registro.configurar(projeto.pasta, projeto.nome, 'atualizacao')
@@ -398,7 +419,13 @@ def executar_atualizacao(
         if downloads:
             final = preencher_downloads(final, estado, str(projeto.downloads))
         salvar_final(juntar_colunas_extras(final, tabela), projeto.final)
-        return registro.resumo(estado, links, projeto.final, downloads=downloads)
+        return registro.resumo(
+            estado,
+            links,
+            projeto.final,
+            downloads=downloads,
+            execucao=sobre_a_execucao(cliente, paralelo, inicio),
+        )
     finally:
         estado.fechar()
 
@@ -411,6 +438,7 @@ def executar_autoria(raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = i
     """
     planilha, projeto = escolher_entrada_autoria(raiz, entrada)
     paralelo = ler_paralelo(projeto)
+    inicio = preparar_cliente(cliente, paralelo)
     if projeto is not None:
         registro.configurar(projeto.pasta, projeto.nome, 'autoria')
         casas = cl.ler_tabela_casas(projeto.casas) if projeto.casas.exists() else None
@@ -421,7 +449,9 @@ def executar_autoria(raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = i
         fontes = Fontes()
     log.info('Autoria e tramitação de %s', planilha)
     saida, contagens = autoria.processar(planilha, cliente, fontes, mapeador(cliente, paralelo))
-    return registro.resumo_autoria(contagens, saida)
+    return registro.resumo_autoria(
+        contagens, saida, execucao=sobre_a_execucao(cliente, paralelo, inicio)
+    )
 
 
 def main(
@@ -433,7 +463,10 @@ def main(
     `paralelo` do config.json do projeto tem um valor inválido.
     """
     raiz = Path(raiz)
-    cliente = cliente or ClienteSAPL(historico=str(raiz / ARQUIVO_HISTORICO))
+    # O servidor (IP) de cada site, para o limite por servidor (veja cliente_http)
+    cliente = cliente or ClienteSAPL(
+        historico=str(raiz / ARQUIVO_HISTORICO), servidor_de=resolver_servidor
+    )
     print(BOAS_VINDAS)
     modo = None
     try:

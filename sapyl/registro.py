@@ -123,16 +123,58 @@ def logger(nome: str | None = None) -> logging.Logger:
     return logging.getLogger(LOGGER if not nome else f'{LOGGER}.{nome}')
 
 
+def formatar_duracao(segundos: float) -> str:
+    """`3725.4` -> `1 h 02 min 05 s`; `65` -> `1 min 05 s`; `7` -> `7 s`."""
+    total = int(round(segundos))
+    horas, resto = divmod(total, 3600)
+    minutos, seg = divmod(resto, 60)
+    if horas:
+        return f'{horas} h {minutos:02d} min {seg:02d} s'
+    if minutos:
+        return f'{minutos} min {seg:02d} s'
+    return f'{seg} s'
+
+
+def linhas_da_execucao(
+    duracao: float,
+    casas_ao_mesmo_tempo: int,
+    servidores: Iterable[tuple[str, int, int, int]] = (),
+) -> list[str]:
+    """Linhas do resumo sobre a execução: tempo, casas ao mesmo tempo e servidores.
+
+    `servidores`: (servidor, nº de casas, limite inicial, limite no fim), por
+    requisições por minuto.
+    """
+    linhas = [
+        f'Tempo: {formatar_duracao(duracao)} (até {casas_ao_mesmo_tempo} casas ao mesmo tempo)'
+    ]
+    for servidor, casas, inicial, final in servidores:
+        texto = f'Servidor {servidor} ({casas} casa{"s" if casas != 1 else ""}): '
+        if final < inicial:
+            texto += (
+                f'limite reduzido de {inicial} para {final} requisições por minuto '
+                '(429 de mais de uma casa)'
+            )
+        else:
+            texto += f'até {inicial} requisições por minuto'
+        linhas.append(texto)
+    return linhas
+
+
 def resumo_autoria(
-    contagens: Counter[str], saida: str | Path, caminho_log: str | None = None
+    contagens: Counter[str],
+    saida: str | Path,
+    caminho_log: str | None = None,
+    execucao: list[str] | None = None,
 ) -> str:
-    """Texto do resumo da autoria e tramitação."""
+    """Texto do resumo da autoria e tramitação (`execucao`: veja `linhas_da_execucao`)."""
     total = sum(contagens.values())
     linhas = [
         '',
         f'===== Resumo (SAPyL {__version__}) =====',
         f'Autoria e tramitação: {total} matérias, {contagens.get("ok", 0)} ok, '
         f'{contagens.get("erro", 0)} com erro',
+        *(execucao or []),
         f'Resultado: {saida}',
     ]
     if contagens.get('erro', 0):
@@ -154,6 +196,7 @@ def resumo(
     casas_inativas: int = 0,
     downloads: bool = False,
     caminho_log: str | None = None,
+    execucao: list[str] | None = None,
 ) -> str:
     """Texto do resumo do fim da execução, contado a partir do estado do projeto.
 
@@ -161,6 +204,7 @@ def resumo(
     atualização, que não faz buscas). Como tudo vem do estado, o resumo é o
     do projeto inteiro, também depois de uma retomada. A última linha mostra
     o log desta execução (`caminho_log`, ou o da última `configurar`).
+    `execucao`: linhas sobre tempo e servidores (veja `linhas_da_execucao`).
     """
     chaves = {link['chave'] for link in links}
     linhas = ['', f'===== Resumo (SAPyL {__version__}) =====']
@@ -190,6 +234,7 @@ def resumo(
             f'{pdfs.get("sem_pdf", 0)} sem texto original'
         )
         falhas = falhas or pdfs.get('erro', 0) > 0
+    linhas += execucao or []
     linhas.append(f'Resultado: {caminho_final}')
     if falhas:
         linhas.append(

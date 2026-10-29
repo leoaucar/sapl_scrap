@@ -67,7 +67,7 @@ Rules for every task (same as spec 2):
 - [x] **T09 Update mode and authors/procedure on the pool** (FR-4)
   - Tests: 1 vs 8 workers equivalence for both; resume of option 3 under
     workers.
-- [ ] **T10 Summary additions** (FR-14)
+- [x] **T10 Summary additions** (FR-14)
   - Elapsed time, workers, per-server ceiling and reductions.
 
 ## Phase D: Concurrency proof, end-to-end, docs

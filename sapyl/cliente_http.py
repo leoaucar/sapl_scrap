@@ -10,6 +10,8 @@ Garante, para cada site (host):
   motivo (`HTTP 429`, `HTTP 503`, `timeout`, `conexao`);
 - erros que não passam sozinhos voltam na hora, numa tentativa só:
   certificado inválido (`ssl`) e nome que não existe mais no DNS (`dns`).
+  Exceção: se o site já respondeu nesta execução, uma falha de DNS é da
+  nossa rede (internet caiu), não do site: vira `conexao` e é tentada de novo.
 
 Por servidor (o endereço IP do site, `servidor_de`): quase todas as casas
 ficam no mesmo servidor do Interlegis, então cada requisição também conta na
@@ -241,6 +243,7 @@ class ClienteSAPL:
         self._ultima_reducao: dict[str, float] = {}
         self.reducoes: list[tuple[str, int, int]] = []  # (servidor, teto antigo, novo)
         self.total_requisicoes = 0
+        self._responderam: set[str] = set()  # sites que já responderam nesta execução
         if historico:
             self._carregar_historico()
 
@@ -440,6 +443,9 @@ class ClienteSAPL:
                 status, erro = None, 'timeout'
             except requests.RequestException as falha:
                 status, erro = None, motivo_permanente(falha) or 'conexao'
+                if erro == 'dns' and host in self._responderam:
+                    # o nome existia há pouco: é a nossa rede (achado V1 da validação)
+                    erro = 'conexao'
                 if erro != 'conexao':
                     # certificado inválido ou nome inexistente: tentar de novo não resolve
                     self._registrar(host, url, erro, tentativa, 0, enviada)
@@ -447,6 +453,7 @@ class ClienteSAPL:
                     return Resposta(url, False, None, erro, tentativa, None)
             else:
                 status = bruta.status_code
+                self._responderam.add(host)
                 if status == 200:
                     self._registrar(host, url, status, tentativa, 0, enviada)
                     return Resposta(url, True, status, '', tentativa, bruta)

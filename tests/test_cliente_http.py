@@ -690,3 +690,22 @@ def test_429_em_site_sem_servidor_nao_reduz_nada(sessao, relogio):
     cliente, _ = _cliente_servidor(sessao, relogio, teto=120)
     cliente.get(SEM_DNS)
     assert cliente.reducoes == []
+
+
+def test_dns_de_site_que_ja_respondeu_e_tentado_de_novo(cliente, sessao, relogio):
+    """Achado V1: a internet caiu no meio da execução; o nome do site existe."""
+    url = A + 'materia/1'
+    sessao.responder(A, texto='ok')
+    sessao.responder(url, erro=_erro_dns()).responder(url, erro=_erro_dns())
+    sessao.responder(url, texto='voltou')
+    assert cliente.get(A).ok
+    r = cliente.get(url)
+    assert r.ok and r.tentativas == 3 and relogio.esperas[:2] == [5, 15]
+
+
+def test_dns_de_site_que_nunca_respondeu_continua_sem_nova_tentativa(cliente, sessao):
+    sessao.responder(A, erro=_erro_dns())
+    sessao.responder(B, texto='ok')
+    cliente.get(B)  # outro site respondeu: não muda nada para este
+    r = cliente.get(A)
+    assert not r.ok and r.erro == 'dns' and r.tentativas == 1

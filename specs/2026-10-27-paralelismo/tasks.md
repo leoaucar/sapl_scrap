@@ -89,6 +89,18 @@ Rules for every task (same as spec 2):
 - [ ] **T14 Run validation** (including the ramp), set the final defaults from
   its numbers, record the results, fix what fails, then merge into `main`.
 
+## Issues found in validation
+
+- [x] **T15 DNS failure of a site that already answered is retried** (V1)
+  - In `par_seq` (2026-10-29 18:41) this machine lost DNS for a minute: every
+    request after it failed at once with `dns`, which is never retried, and
+    the rest of the run (9 houses) was lost in one second. Now a `dns` error
+    from a site that already answered in this run counts as `conexao`
+    (retried with 5/15/45 s waits). A site that never answered keeps one
+    attempt.
+  - Tests: `test_cliente_http.py` (retried after an earlier answer; unchanged
+    for a site that never answered).
+
 ## Traceability
 
 | Requirement | Tasks | Tests |

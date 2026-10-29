@@ -72,7 +72,7 @@ Rules for every task (same as spec 2):
 
 ## Phase D: Concurrency proof, end-to-end, docs
 
-- [ ] **T11 Limits under threads and end-to-end** (TR-2, TR-5, TR-8)
+- [x] **T11 Limits under threads and end-to-end** (TR-2, TR-5, TR-8)
   - `test_concorrencia.py` (second part): real threads, 0.2 s window, several
     hosts on one server; from `ao_reservar` times, no host above its limit
     and no server above its ceiling in any window.

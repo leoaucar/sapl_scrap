@@ -20,14 +20,14 @@ raspadas de novo, com saída em arquivos `_ATUALIZADO_<data>`.
 """
 
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from sapyl import __version__, autoria, padroes, registro
+from sapyl import __version__, autoria, execucao, padroes, registro
 from sapyl import casas as cl
 from sapyl import projeto as gp
 from sapyl.busca import buscar, buscas_pendentes, chave_busca
@@ -159,10 +159,30 @@ def avisar_palavras_mudadas(raiz: str | Path, salvas: list[str]) -> list[str]:
     return linhas
 
 
+def mapeador(
+    cliente: ClienteSAPL, paralelo: dict[str, int], progresso: Callable[[], str] | None = None
+) -> padroes.Mapear:
+    """`mapear(tarefa, casas)` que roda até `casas_ao_mesmo_tempo` casas ao mesmo tempo."""
+
+    def mapear(tarefa: Callable[[str], Any], casas: Sequence[str]) -> list[Any]:
+        return execucao.por_casa(
+            casas, tarefa, paralelo['casas_ao_mesmo_tempo'], cliente.parar, progresso
+        )
+
+    return mapear
+
+
 def preparar_casas(
-    projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
+    projeto: gp.Projeto,
+    config: dict[str, Any],
+    cliente: ClienteSAPL,
+    raiz: str | Path,
+    mapear: padroes.Mapear = padroes.em_sequencia,
 ) -> pd.DataFrame:
-    """Tabela de casas do projeto. Na retomada, usa a que já foi salva no projeto."""
+    """Tabela de casas do projeto. Na retomada, usa a que já foi salva no projeto.
+
+    As casas são testadas com `mapear` (várias ao mesmo tempo, no programa).
+    """
     planilha = _pasta_csv(raiz) / 'casas_legislativas.xlsx'
     if projeto.casas.exists():
         return cl.ler_tabela_casas(projeto.casas, planilha)
@@ -177,7 +197,7 @@ def preparar_casas(
     casas = cl.limitar_casas(casas, config['limite'])
     if not testadas:
         log.info('Testando %d casas legislativas', len(casas))
-        casas = cl.testar_casas(casas, cliente)
+        casas = cl.testar_casas(casas, cliente, mapear)
         # A tabela geral só é trocada quando todas as casas foram testadas
         if not config['sul_sudeste'] and config['limite'] == '1':
             cl.salvar_tabela_casas(casas, tabela_global)
@@ -190,10 +210,10 @@ def executar_projeto(
     projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
 ) -> str:
     """Executa (ou retoma) um projeto do começo ao fim. Devolve o texto do resumo."""
-    ler_paralelo(projeto, config)
+    paralelo = ler_paralelo(projeto, config)
     estado = Estado(projeto.estado)
     try:
-        casas = preparar_casas(projeto, config, cliente, raiz)
+        casas = preparar_casas(projeto, config, cliente, raiz, mapeador(cliente, paralelo))
         palavras = config['palavras']
         if buscas_pendentes(casas, palavras, estado) or not projeto.links.exists():
             buscar(casas, palavras, cliente, estado, projeto.paginas)

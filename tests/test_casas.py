@@ -88,3 +88,32 @@ def test_pergunta_de_limite_lista_as_quatro_opcoes():
     for opcao in ('1-', '2-', '3-', '4-'):
         assert opcao in cl.PERGUNTA_LIMITE
     assert '5-' not in cl.PERGUNTA_LIMITE
+
+
+def test_teste_em_paralelo_da_a_mesma_tabela_na_ordem(cliente, sessao):
+    """FR-3: várias casas ao mesmo tempo, o mesmo resultado de uma por vez."""
+    from sapyl import execucao
+    from tests.test_cliente_http import _erro_dns
+
+    urls = [f'https://sapl.c{i}.leg.br/' for i in range(20)]
+    for i, url in enumerate(urls):
+        if i % 5 == 1:
+            sessao.responder(url, erro=_erro_dns())
+        elif i % 5 == 3:
+            sessao.responder(url, status=503)
+        else:
+            sessao.responder(url, texto='ok', url_final=url if i % 7 else f'https://novo{i}.br/')
+    casas = pd.DataFrame({'url': urls, 'uf': ['AC'] * 20})
+    sequencial = cl.testar_casas(casas, cliente)
+    pedidos = len(sessao.pedidos)
+
+    def mapear(tarefa, itens):
+        return execucao.por_casa(itens, tarefa, 8, cliente.parar)
+
+    paralelo = cl.testar_casas(casas, cliente, mapear)
+    assert paralelo.equals(sequencial)
+    assert list(paralelo['url']) == urls
+    assert paralelo.at[1, 'motivo'] == 'dns' and paralelo.at[3, 'motivo'] == 'HTTP 503'
+    assert paralelo.at[0, 'url_final'] == 'https://novo0.br/'
+    assert len(sessao.pedidos) - pedidos == pedidos  # mesmas requisições
+    assert sessao.contar(urls[1]) == 2  # nome inexistente: uma tentativa em cada teste

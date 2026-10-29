@@ -5,12 +5,19 @@ Todas as mensagens passam pelo logger `sapyl`:
 - num arquivo por execução, `<pasta>/logs/<nome>_<aaaa-mm-dd_hhmmss>_<modo>.log`,
   nível DEBUG (inclui uma linha por requisição HTTP, usada para conferir o
   limite de requisições). O `<nome>.log` de projetos antigos fica como está.
+
+Com várias casas ao mesmo tempo, cada linha escrita durante o trabalho de uma
+casa começa com `[<host>] ` (veja `casa_atual`). As linhas de requisição
+(`sapyl.http`) não ganham o prefixo: já começam pelo host, e o formato delas é
+o que os scripts de validação leem.
 """
 
 import logging
 import os
+import threading
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Protocol
@@ -20,7 +27,11 @@ from sapyl.colunas import ETAPA_MATERIA, ETAPA_PDF, SEPARADOR, Linha
 
 LOGGER = 'sapyl'
 NOME = 'SAPyL: Raspador do Sistema de Apoio Legislativo'
-FORMATO_ARQUIVO = '%(asctime)s %(levelname)s %(name)s %(message)s'
+FORMATO_ARQUIVO = '%(asctime)s %(levelname)s %(name)s %(casa)s%(message)s'
+FORMATO_TERMINAL = '%(casa)s%(message)s'
+
+# Casa em que a thread atual está trabalhando (para o prefixo das linhas)
+_contexto = threading.local()
 
 # Marca os handlers criados aqui, para `configurar` poder ser chamada de novo
 _MARCA = '_sapyl'
@@ -36,6 +47,27 @@ class _Contagens(Protocol):
     """O que o resumo usa do estado do projeto (`sapyl.estado.Estado`)."""
 
     def contagens(self, etapa: str, chaves: Iterable[str] | None = None) -> Counter[str]: ...
+
+
+@contextmanager
+def casa_atual(host: str) -> Iterator[None]:
+    """Durante o bloco, as linhas do log desta thread começam com `[<host>] `."""
+    anterior = getattr(_contexto, 'casa', '')
+    _contexto.casa = host
+    try:
+        yield
+    finally:
+        _contexto.casa = anterior
+
+
+class _PrefixoCasa(logging.Filter):
+    """Preenche `%(casa)s` com `[<host>] ` (ou vazio) para os formatos daqui."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        casa = getattr(_contexto, 'casa', '')
+        http = record.name == f'{LOGGER}.http'
+        record.casa = f'[{casa}] ' if casa and not http else ''
+        return True
 
 
 def caminho_do_log(pasta: str | Path, nome: str, modo: str, agora: datetime | None = None) -> Path:
@@ -68,7 +100,7 @@ def configurar(
 
     terminal = logging.StreamHandler()
     terminal.setLevel(logging.INFO)
-    terminal.setFormatter(logging.Formatter('%(message)s'))
+    terminal.setFormatter(logging.Formatter(FORMATO_TERMINAL))
 
     caminho = str(caminho_do_log(pasta, nome, modo, agora))
     os.makedirs(os.path.dirname(caminho), exist_ok=True)
@@ -78,6 +110,7 @@ def configurar(
 
     for handler in (terminal, arquivo):
         setattr(handler, _MARCA, True)
+        handler.addFilter(_PrefixoCasa())
         logger.addHandler(handler)
     # Cabeçalho, só no arquivo: cada execução começa com o nome e a versão
     logger.debug('%s %s: início da execução (%s)', NOME, __version__, modo)

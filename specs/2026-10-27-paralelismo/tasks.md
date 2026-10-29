@@ -50,7 +50,7 @@ Rules for every task (same as spec 2):
 
 ## Phase C: The pool and the flows
 
-- [ ] **T06 `execucao.por_casa`** (FR-1, FR-2, FR-12, FR-13)
+- [x] **T06 `execucao.por_casa`** (FR-1, FR-2, FR-12, FR-13)
   - Pool, input-order results, per-house errors reported at the end, Ctrl+C
     handling, `[host]` log prefix, periodic progress line. Add `execucao` to
     layer 6.

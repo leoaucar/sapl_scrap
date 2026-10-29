@@ -45,6 +45,7 @@ def baixar_arquivo(link: str, destino: str, cliente: ClienteSAPL) -> str:
     try:
         with open(parcial, 'wb') as arquivo:
             for pedaco in resposta.iter_content(TAMANHO_PEDACO):
+                cliente.verificar_parada()  # Ctrl+C não espera o arquivo inteiro
                 if pedaco:
                     arquivo.write(pedaco)
         os.replace(parcial, destino)

@@ -27,7 +27,7 @@ Rules for every task (same as spec 2):
   - `test_concorrencia.py` (first part): 16 threads appending to one
     `ArquivoCSV`, registering in one `Estado` and saving to one `Cache`; every
     row read back intact, none lost.
-- [ ] **T03 Client ready for threads** (plan §4)
+- [x] **T03 Client ready for threads** (plan §4)
   - Lock around windows, blocks and history; per-thread sessions when none is
     injected; `parar` event, interruptible waits and `Interrompido`;
     `janela_segundos` / `margem_segundos` arguments; `ao_reservar` hook.

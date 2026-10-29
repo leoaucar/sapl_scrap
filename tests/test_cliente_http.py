@@ -386,3 +386,103 @@ def test_requisicoes_1_e_36_saem_a_pelo_menos_61_segundos(cliente, sessao, relog
     for i in range(len(horarios) - 35):
         assert horarios[i + 35] - horarios[i] >= 61 - 1e-9
     assert http_sapl.MARGEM_SEGUNDOS == 1.0
+
+
+# --- Pronto para threads (plano §4, T03) -------------------------------------
+
+
+def test_parar_durante_a_espera_lanca_interrompido_na_hora(sessao):
+    import threading
+    import time
+
+    sessao.responder(A, texto='ok')
+    cliente = http_sapl.ClienteSAPL(sessao=sessao, limite_por_minuto=1)
+    cliente.get(A)  # a próxima espera ~61 s, com o relógio de verdade
+    resultado = []
+
+    def segunda():
+        try:
+            cliente.get(A)
+        except http_sapl.Interrompido as erro:
+            resultado.append(erro)
+
+    thread = threading.Thread(target=segunda)
+    inicio = time.monotonic()
+    thread.start()
+    time.sleep(0.05)
+    cliente.parar.set()
+    thread.join(timeout=5)
+    assert not thread.is_alive() and time.monotonic() - inicio < 2
+    assert len(resultado) == 1 and isinstance(resultado[0], KeyboardInterrupt)
+    assert len(sessao.pedidos) == 1
+
+
+def test_parado_nao_faz_requisicao(cliente, sessao):
+    sessao.responder(A, texto='ok')
+    cliente.parar.set()
+    with pytest.raises(http_sapl.Interrompido):
+        cliente.get(A)
+    assert sessao.pedidos == []
+
+
+def test_parar_depois_da_espera_de_erro(sessao, relogio):
+    import requests
+
+    cliente = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=lambda s: cliente.parar.set()
+    )
+    sessao.responder(A, erro=requests.ConnectionError('caiu'))
+    with pytest.raises(http_sapl.Interrompido):
+        cliente.get(A)
+    assert len(sessao.pedidos) == 1
+
+
+def test_evento_parar_compartilhado():
+    import threading
+
+    evento = threading.Event()
+    assert http_sapl.ClienteSAPL(sessao=object(), parar=evento).parar is evento
+
+
+def test_uma_sessao_por_thread_sem_sessao_dada():
+    import threading
+
+    cliente = http_sapl.ClienteSAPL()
+    sessoes = []
+    threads = [threading.Thread(target=lambda: sessoes.append(cliente.sessao)) for _ in range(3)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len({id(s) for s in sessoes}) == 3
+    assert cliente.sessao is cliente.sessao  # a mesma na mesma thread
+    assert cliente.sessao.headers['User-Agent'] == http_sapl.USER_AGENT
+
+
+def test_sessao_dada_vale_para_todas_as_threads(cliente, sessao):
+    import threading
+
+    vistas = []
+    thread = threading.Thread(target=lambda: vistas.append(cliente.sessao))
+    thread.start()
+    thread.join()
+    assert vistas == [sessao] and cliente.sessao is sessao
+
+
+def test_janela_e_margem_configuraveis_e_ao_reservar(sessao, relogio):
+    reservas = []
+    cliente = ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=relogio.dormir,
+        limite_por_minuto=2,
+        janela_segundos=0.2,
+        margem_segundos=0.05,
+        ao_reservar=lambda h, s, t: reservas.append((h, s, t)),
+    )
+    sessao.responder(A, texto='ok')
+    for _ in range(3):
+        cliente.get(A)
+    assert [t for _, _, t in reservas] == [1000.0, 1000.0, pytest.approx(1000.25)]
+    assert {h for h, _, _ in reservas} == {'sapl.a.leg.br'}
+    assert cliente.total_requisicoes == 3

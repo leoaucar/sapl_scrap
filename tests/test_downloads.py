@@ -108,3 +108,23 @@ def test_pasta_existente_nao_quebra(tmp_path, cliente, sessao):
     (tmp_path / 'dl').mkdir()
     estado = Estado(tmp_path / 'e.csv')
     d.baixar_todos(_final(('1', 'ok', '')), str(tmp_path / 'dl'), cliente, estado)
+
+
+def test_ctrl_c_no_meio_do_download_apaga_o_parcial(tmp_path, cliente, sessao):
+    from sapyl.cliente_http import Interrompido
+
+    sessao.responder(PDF1, conteudo=b'%PDF-' + b'x' * 300_000)
+    original = cliente.verificar_parada
+    chamadas = []
+
+    def parar_no_segundo_pedaco():
+        chamadas.append(1)
+        if len(chamadas) == 3:  # 1ª: antes da requisição; 2ª e 3ª: pedaços
+            cliente.parar.set()
+        original()
+
+    cliente.verificar_parada = parar_no_segundo_pedaco
+    destino = tmp_path / 'a.pdf'
+    with pytest.raises(Interrompido):
+        d.baixar_arquivo(PDF1, str(destino), cliente)
+    assert not destino.exists() and not (tmp_path / 'a.pdf.part').exists()

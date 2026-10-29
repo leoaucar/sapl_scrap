@@ -1,8 +1,8 @@
 # Validation: Parallel runs (several houses at once)
 
 - **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Tasks:** [tasks.md](tasks.md)
-- **Status:** Not run
-- **Run by / date:** _fill in_
+- **Status:** In progress
+- **Run by / date:** Claude Code with the user, 2026-10-29
 
 Checks on the implementation branch after T01–T13, against the real sites.
 They cover the acceptance criteria in spec §8. Only **one program** runs at a
@@ -72,11 +72,11 @@ for ip, ts in sorted(envios.items(), key=str):
 
 | # | Check | Result |
 |---|---|---|
-| 0.1 | Tasks T01–T13 ticked | |
-| 0.2 | CI green on the branch | |
-| 0.3 | `pytest` offline < 60 s; coverage ≥ 95 % (AC 1) | time: ___ s · coverage: ___ % |
-| 0.4 | No new dependency in `pyproject.toml` (NFR-1) | |
-| 0.5 | A hand-edited invalid `paralelo` (e.g. `limite_por_servidor: 10`) stops before any request with exit code 2 and a message naming the key | |
+| 0.1 | Tasks T01–T13 ticked | ✅ (plus T15 from finding V1) |
+| 0.2 | CI green on the branch | ✅ run 40958816934 (`testes`, 3.10 + 3.12) |
+| 0.3 | `pytest` offline < 60 s; coverage ≥ 95 % (AC 1) | ✅ time: 35 s · coverage: 99 % (349 tests; also 3.10 + pandas 2 locally) |
+| 0.4 | No new dependency in `pyproject.toml` (NFR-1) | ✅ `pyproject.toml` unchanged |
+| 0.5 | A hand-edited invalid `paralelo` (e.g. `limite_por_servidor: 10`) stops before any request with exit code 2 and a message naming the key | ✅ on a copy of `par_seq`: exit 2, `"paralelo.limite_por_servidor" = 10: … no mínimo 35`, 0 request lines in the new log. Cosmetic: "Buscando os termos" prints before the error (note for Phase 2b) |
 
 ## 1. Sequential reference — for AC 3
 
@@ -86,8 +86,9 @@ above); check `config.json` shows `"casas_ao_mesmo_tempo": 1`.
 
 | Check | Expected | Result |
 |---|---|---|
-| Finishes; 0 matters with error, or each error with a reason | yes | |
-| Elapsed time (summary) | recorded | ___ min |
+| Finishes; 0 matters with error, or each error with a reason | yes | ✅ after one resume (finding V1): 1 301 found, 1 190 unique, 1 190 `ok`, 0 errors, 30/30 searches complete |
+| Elapsed time (summary) | recorded | first run 6 min 42 s (cut short by V1) + resume 46 min 04 s (18:44–19:30) |
+| Limits | ≤ 35 per host | ✅ max 35/60 s (Rio Branco, 1 586 requests in the resume; shortest 36-span 60.997 s); server max 95/60 s with one house at a time (consecutive small houses) |
 
 ## 2. Parallel run — AC 2, AC 3
 
@@ -95,15 +96,15 @@ Project `par_8`, same inputs, defaults (`8` houses, `120`/min per server).
 
 | Check | Expected | Result |
 |---|---|---|
-| Max requests per host per 60 s (spec 2 script) | ≤ 35 | |
-| Max requests per server per 60 s (script above) | ≤ 120 | |
-| `HTTP 429` lines | 0, or a logged slow-down and no data lost | |
-| Same keys and statuses as `par_seq` (differences explained by site changes) | yes | |
-| Final table order: houses in table order | yes | |
-| Terminal: `[host]` prefix on lines, overall progress line every minute | yes | |
-| Summary: elapsed time, "até 8 casas ao mesmo tempo", one line per server with its limit | yes | |
-| `config.json` has `paralelo` with the defaults | yes | |
-| Elapsed time vs `par_seq` | shorter; recorded | ___ min vs ___ min |
+| Max requests per host per 60 s (spec 2 script) | ≤ 35 | ✅ 35 (Rio Branco 1 587 requests, AL 220); shortest 36-span 60.999 s (RB), 60.979 s (AL): logged send time is a few ms after the reservation |
+| Max requests per server per 60 s (script above) | ≤ 120 | ✅ exactly 120 (1 865 requests, all 10 hosts on `201.54.51.178`): the ceiling was reached and held |
+| `HTTP 429` lines | 0, or a logged slow-down and no data lost | ✅ 0 (1 835 × 200, 30 × 404) |
+| Same keys and statuses as `par_seq` (differences explained by site changes) | yes | ✅ 1 190 = 1 190 keys, all `ok`; every column identical except `raspada_em` |
+| Final table order: houses in table order | yes | ✅ identical row order to `par_seq` |
+| Terminal: `[host]` prefix on lines, overall progress line every minute | yes | ✅ `[sapl.al.ac.leg.br] Testando casa 1 de 10…`; 45 progress lines ("8 de 10 casas concluídas, 2 em andamento, 0 na fila; matérias: …") |
+| Summary: elapsed time, "até 8 casas ao mesmo tempo", one line per server with its limit | yes | ✅ "Tempo: 45 min 59 s (até 8 casas ao mesmo tempo)", "Servidor 201.54.51.178 (10 casas): até 120 requisições por minuto" |
+| `config.json` has `paralelo` with the defaults | yes | ✅ |
+| Elapsed time vs `par_seq` | shorter; recorded | ⚠️ 46 min vs 46 min (resume of `par_seq`): no gain on this set. Rio Branco alone has 1 587 requests, ≈ 45 min at 35/min; the other 9 houses finish in the first minutes. The speed-up needs many houses with work at once (full runs), not this set. |
 
 ## 3. Ramp — AC 4
 
@@ -113,10 +114,18 @@ full speed), `casas_ao_mesmo_tempo` = `8` (command above with
 
 | Check | Expected | Result |
 |---|---|---|
-| Max per server per 60 s | ≤ 175 | |
-| 429 count, median response time vs `par_8` | recorded | |
-| Slow-down triggered? | recorded | |
-| **Final defaults chosen** (and why, with the numbers above) | written here and in `padroes.py` | |
+| Max per server per 60 s | ≤ 175 | ⏭️ not run |
+| 429 count, median response time vs `par_8` | recorded | ⏭️ not run |
+| Slow-down triggered? | recorded | ⏭️ not run |
+| **Final defaults chosen** (and why, with the numbers above) | written here and in `padroes.py` | ✅ **8 houses, 120 per server** (unchanged) |
+
+> **Skipped on 2026-10-29, at the user's request.** On these 10 houses only
+> Rio Branco and AL have real work, so the server never needs more than
+> ~120/min (`par_8` reached 120 only in the first minutes, while all houses
+> searched) and a ceiling of 175 could not be exercised. The defaults stay at
+> the conservative starting values, which `par_8` showed to be safe (0 × 429
+> at the 120 ceiling). Raising them needs evidence from a run where several
+> large houses work at once; that is left for a later full run.
 
 ## 4. Interruption — AC 5
 
@@ -146,14 +155,58 @@ On `par_8`: update mode (no `Relevante`), then option 3.
 | ROADMAP Phase 2 ticked, time estimate updated | yes | |
 | Project site "Quanto tempo leva?" updated | yes | |
 
-## 7. Result
+## 7. Larger ramp — is a higher server ceiling worth it, and safe?
+
+Added on 2026-10-29 at the user's request, because §3 could not exercise the
+ceiling on the 10 Acre houses. Run last, after §1–§6.
+
+**Inputs.** The first 50 houses of the list (option `2`: AC, AL, AM, AP, with
+capitals and state assemblies), the education keyword list
+(`exemplo_palavras_chave_educacao.csv` copied to `palavras_chave.csv`, 23
+searches per house, so most houses are busy at the same time), no downloads,
+`casas_ao_mesmo_tempo` = 8.
+
+**Runs.** Two projects, same day, one after the other with at least 5 minutes
+between them, each stopped with Ctrl+C after **30 minutes** (the ramp measures
+load, not completion; the Ctrl+C is also a second check of §4):
+
+1. `ramp_120`: `limite_por_servidor` = 120 (default).
+2. `ramp_175`: `limite_por_servidor` = 175 (command at the top with
+   `p.LIMITE_POR_SERVIDOR = 175`).
+
+**Measures** (from the logs, per server and per minute): requests, `HTTP 429`
+(and from how many hosts), slow-downs logged, response time (log line time
+minus send time) median and 95th percentile, timeouts and 5xx; requests to
+search pages and matters done in the 30 minutes.
+
+| Check | `ramp_120` | `ramp_175` |
+|---|---|---|
+| Max requests per server per 60 s | | |
+| Minutes at the ceiling (≥ 95 % of it) | | |
+| `HTTP 429` (hosts) / slow-downs | | |
+| Response time median / p95 (s) | | |
+| Timeouts / 5xx | | |
+| Requests in 30 min | | |
+| Exit after Ctrl+C (s) | | |
+
+**Decision rule.** Raise the default to 175 only if, in `ramp_175`: the
+ceiling was actually reached for several minutes (otherwise inconclusive), 0 ×
+429 and no slow-down, no rise in timeouts/5xx, and the median and p95 response
+times are at most 1.5× those of `ramp_120`. Otherwise keep 120. Record the
+decision here, in `padroes.py` and in the README/ROADMAP if it changes.
+
+| Decision | Why (numbers) |
+|---|---|
+| | |
+
+## 8. Result
 
 | Acceptance criterion (spec §8) | Section | Result |
 |---|---|---|
 | 1. Offline suite, CI, coverage | 0 | |
 | 2. Limits per site and per server | 2 | |
 | 3. Same keys as sequential | 1, 2 | |
-| 4. Ramp and final defaults | 3 | |
+| 4. Ramp and final defaults | 3, 7 | |
 | 5. Ctrl+C and resume | 4 | |
 | 6. Update and option 3 in parallel | 5 | |
 

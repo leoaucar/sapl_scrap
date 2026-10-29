@@ -27,7 +27,7 @@ from typing import Any
 
 import pandas as pd
 
-from sapyl import __version__, autoria, registro
+from sapyl import __version__, autoria, padroes, registro
 from sapyl import casas as cl
 from sapyl import projeto as gp
 from sapyl.busca import buscar, buscas_pendentes, chave_busca
@@ -81,6 +81,11 @@ MENSAGEM_INTERROMPIDO = (
     'de novo, digite o mesmo nome de projeto e escolha "retomar".'
 )
 
+MENSAGEM_CONFIG_INVALIDA = (
+    '\nConfiguração inválida em {erro}\n'
+    'Corrija o valor (ou apague a chave "paralelo" para usar os padrões) e rode de novo.'
+)
+
 log = registro.logger()
 
 
@@ -102,7 +107,26 @@ def perguntar_configuracao(raiz: str | Path, entrada: Leitor = input) -> dict[st
         'sul_sudeste': sul_sudeste,
         'limite': limite,
         'downloads': downloads,
+        padroes.CHAVE_PARALELO: padroes.padroes_paralelo(),
     }
+
+
+def ler_paralelo(
+    projeto: gp.Projeto | None, config: dict[str, Any] | None = None
+) -> dict[str, int]:
+    """`paralelo` do config.json do projeto, conferido e completado com os padrões.
+
+    Projeto de versão antiga (sem `paralelo` ou sem config.json) usa os
+    padrões. Um valor inválido lança `padroes.ConfiguracaoInvalida`, com o
+    caminho do arquivo na mensagem, antes de qualquer requisição.
+    """
+    if config is None and projeto is not None:
+        config = gp.carregar_config(projeto)
+    try:
+        return padroes.validar_paralelo((config or {}).get(padroes.CHAVE_PARALELO))
+    except padroes.ConfiguracaoInvalida as erro:
+        onde = projeto.config if projeto is not None else 'config.json'
+        raise padroes.ConfiguracaoInvalida(f'{onde}: {erro}') from erro
 
 
 def avisar_palavras_mudadas(raiz: str | Path, salvas: list[str]) -> list[str]:
@@ -166,6 +190,7 @@ def executar_projeto(
     projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
 ) -> str:
     """Executa (ou retoma) um projeto do começo ao fim. Devolve o texto do resumo."""
+    ler_paralelo(projeto, config)
     estado = Estado(projeto.estado)
     try:
         casas = preparar_casas(projeto, config, cliente, raiz)
@@ -212,6 +237,7 @@ def executar_atualizacao(
     para atualizar só as matérias marcadas.
     """
     base = escolher_projeto_existente(raiz, entrada)
+    ler_paralelo(base)
     tabela = ler_final(base.final)
     so_relevantes = COLUNA_RELEVANTE in tabela.columns and perguntar_sim_nao(
         PERGUNTA_RELEVANTES, entrada
@@ -254,6 +280,7 @@ def executar_autoria(raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = i
     projeto, para um projeto). Devolve o texto do resumo.
     """
     planilha, projeto = escolher_entrada_autoria(raiz, entrada)
+    ler_paralelo(projeto)
     if projeto is not None:
         registro.configurar(projeto.pasta, projeto.nome, 'autoria')
         casas = cl.ler_tabela_casas(projeto.casas) if projeto.casas.exists() else None
@@ -272,7 +299,8 @@ def main(
 ) -> int:
     """Pergunta o modo e roda: projeto novo ou retomado, atualização, ou autoria e tramitação.
 
-    Devolve o código de saída: 0, ou 1 se a execução foi interrompida.
+    Devolve o código de saída: 0; 1 se a execução foi interrompida; 2 se o
+    `paralelo` do config.json do projeto tem um valor inválido.
     """
     raiz = Path(raiz)
     cliente = cliente or ClienteSAPL(historico=str(raiz / ARQUIVO_HISTORICO))
@@ -300,6 +328,9 @@ def main(
         # Ctrl+C a qualquer momento, ou Ctrl+D / fim da entrada numa pergunta
         print(MENSAGEM_INTERROMPIDO_AUTORIA if modo == '3' else MENSAGEM_INTERROMPIDO)
         return 1
+    except padroes.ConfiguracaoInvalida as erro:
+        print(MENSAGEM_CONFIG_INVALIDA.format(erro=erro))
+        return 2
     log.info(texto)
     return 0
 

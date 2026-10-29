@@ -13,7 +13,7 @@ Rules for every task (same as spec 2):
 
 ## Phase A: Foundations (no behaviour change)
 
-- [ ] **T01 Defaults and settings** (FR-15, FR-16, TR-7)
+- [x] **T01 Defaults and settings** (FR-15, FR-16, TR-7)
   - `sapyl/padroes.py` with every limit and default; `cliente_http` imports
     from it and keeps its old names as aliases. Add `padroes` to layer 1 in
     `test_camadas.py`.

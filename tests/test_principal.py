@@ -336,3 +336,48 @@ def test_ctrl_c_na_autoria_explica_como_retomar(projeto_tmp, cliente, capsys):
 
     assert programa.main(ler, cliente, projeto_tmp) == 1
     assert 'escolha 3 e digite a mesma entrada' in capsys.readouterr().out
+
+
+# --- `paralelo` no config.json (TR-7) -----------------------------------------
+
+
+def test_projeto_novo_grava_os_padroes_de_paralelo(projeto_tmp, cliente, sessao, sapl):
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    config = json.loads((projeto_tmp / 'teste_proj' / 'config.json').read_text(encoding='utf-8'))
+    assert config['paralelo'] == {'casas_ao_mesmo_tempo': 8, 'limite_por_servidor': 120}
+
+
+def test_projeto_antigo_sem_paralelo_usa_os_padroes(projeto_tmp, cliente, sessao, sapl):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    arquivo = projeto_tmp / 'teste_proj' / 'config.json'
+    config = json.loads(arquivo.read_text(encoding='utf-8'))
+    del config['paralelo']
+    arquivo.write_text(json.dumps(config), encoding='utf-8')
+    assert programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp) == 0
+    assert 'paralelo' not in json.loads(arquivo.read_text(encoding='utf-8'))
+
+
+def _estragar_paralelo(pasta, valor):
+    arquivo = pasta / 'config.json'
+    config = json.loads(arquivo.read_text(encoding='utf-8'))
+    config['paralelo'] = valor
+    arquivo.write_text(json.dumps(config), encoding='utf-8')
+
+
+@pytest.mark.parametrize(
+    'respostas',
+    [('1', 'teste', '1'), ('2', 'teste', '2'), ('3', 'teste')],
+    ids=['retomada', 'atualizacao', 'autoria'],
+)
+def test_valor_invalido_para_antes_de_qualquer_requisicao(
+    projeto_tmp, cliente, sessao, sapl, capsys, respostas
+):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    _estragar_paralelo(projeto_tmp / 'teste_proj', {'limite_por_servidor': 10})
+    sessao.pedidos.clear()
+    capsys.readouterr()
+    assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 2
+    assert sessao.pedidos == []
+    saida = capsys.readouterr().out
+    assert 'config.json' in saida and '"paralelo.limite_por_servidor" = 10' in saida
+    assert 'no mínimo 35' in saida

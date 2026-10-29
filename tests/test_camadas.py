@@ -7,12 +7,12 @@ PACOTE = Path(__file__).resolve().parent.parent / 'sapyl'
 
 # De baixo para cima. Um módulo importa do próprio grupo e dos grupos anteriores.
 CAMADAS = [
-    {'registro', 'colunas'},
+    {'registro', 'colunas', 'padroes'},
     {'cliente_http', 'estado'},
     {'casas', 'palavras', 'links'},
     {'busca', 'materias', 'autoria'},
     {'tabela', 'downloads'},
-    {'projeto'},
+    {'projeto', 'execucao'},
     {'interface'},
 ]
 EXCECOES: set[tuple[str, str]] = set()

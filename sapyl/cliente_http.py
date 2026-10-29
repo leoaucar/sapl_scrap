@@ -41,14 +41,11 @@ import requests
 from urllib3.exceptions import NameResolutionError
 
 from sapyl import __version__, registro
+from sapyl.padroes import JANELA_SEGUNDOS, LIMITE_POR_SITE, MARGEM_SEGUNDOS
 
-# Limite observado nos servidores do SAPL (teste de 15/10/2026)
-LIMITE_POR_MINUTO = 35
-JANELA_SEGUNDOS = 60.0
-# Folga além da janela (achado V4): com atraso de rede, requisições enviadas a
-# 60,0 s uma da outra podem chegar ao servidor a menos de 60 s. Assim, a 1ª e a
+# Nomes antigos (os valores ficam em `sapyl.padroes`). Com a margem, a 1ª e a
 # 36ª requisição a um site saem sempre a pelo menos 61 s uma da outra.
-MARGEM_SEGUNDOS = 1.0
+LIMITE_POR_MINUTO = LIMITE_POR_SITE
 JANELA_COM_MARGEM = JANELA_SEGUNDOS + MARGEM_SEGUNDOS
 MAX_TENTATIVAS = 4
 ESPERAS_ERRO = (5, 15, 45)  # segundos, para erro de rede/timeout/5xx

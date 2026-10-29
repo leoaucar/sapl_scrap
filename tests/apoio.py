@@ -6,6 +6,7 @@ HTTP são roteiros definidos em cada teste com `SessaoFalsa.responder`.
 
 import json
 import pathlib
+import threading
 
 import requests
 
@@ -18,18 +19,23 @@ def ler_fixture(caminho):
 
 
 class RelogioFalso:
-    """Relógio que só anda quando alguém "dorme". Nada espera de verdade."""
+    """Relógio que só anda quando alguém "dorme". Nada espera de verdade.
+
+    Com várias threads, o tempo é um só: cada "sono" de qualquer uma o faz andar.
+    """
 
     def __init__(self, inicio=1000.0):
         self.t = inicio
         self.esperas = []
+        self._trava = threading.Lock()
 
     def agora(self):
         return self.t
 
     def dormir(self, segundos):
-        self.esperas.append(segundos)
-        self.t += max(0, segundos)
+        with self._trava:
+            self.esperas.append(segundos)
+            self.t += max(0, segundos)
 
 
 class RespostaFalsa:
@@ -70,10 +76,12 @@ class SessaoFalsa:
     repete. `responder(url, erro=requests.Timeout())` faz a chamada lançar a
     exceção; `url_final=...` imita um redirecionamento (a resposta vem de outra
     URL). `rota(funcao)` cobre URLs não roteirizadas: `funcao(url)` devolve
-    uma `RespostaFalsa` ou None. URL sem roteiro faz o teste falhar.
+    uma `RespostaFalsa` ou None. URL sem roteiro faz o teste falhar. Pode ser
+    usada por várias threads ao mesmo tempo.
     """
 
     def __init__(self):
+        self._trava = threading.RLock()
         self._filas = {}
         self._rotas = []
         self.pedidos = []  # URLs, na ordem
@@ -114,11 +122,12 @@ class SessaoFalsa:
         return self
 
     def get(self, url, **kwargs):
-        self.pedidos.append(url)
-        self.chamadas.append((url, kwargs))
-        fila = self._filas.get(url)
-        if fila:
-            item = fila.pop(0) if len(fila) > 1 else fila[0]
+        with self._trava:
+            self.pedidos.append(url)
+            self.chamadas.append((url, kwargs))
+            fila = self._filas.get(url)
+            item = (fila.pop(0) if len(fila) > 1 else fila[0]) if fila else None
+        if item is not None:
             if isinstance(item, BaseException):
                 raise item
             return item
@@ -164,6 +173,7 @@ class SaplFalso:
     def __init__(self):
         self._casas = {}
         self._falhas = {}
+        self._trava = threading.Lock()
 
     def casa(
         self,
@@ -217,8 +227,9 @@ class SaplFalso:
         casa = self._casas.get(partes.hostname)
         if casa is None:
             return None
-        if self._falhas.get(url):
-            status = self._falhas[url].pop(0)
+        with self._trava:
+            status = self._falhas[url].pop(0) if self._falhas.get(url) else None
+        if status is not None:
             return RespostaFalsa(status, '', headers={'Retry-After': '60'} if status == 429 else {})
         caminho = partes.path
         if caminho == '/':

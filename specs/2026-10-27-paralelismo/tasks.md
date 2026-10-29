@@ -21,7 +21,7 @@ Rules for every task (same as spec 2):
     `main` validates it on every run and exits with code 2 on a bad value.
   - Tests: `test_padroes.py`; new project saves the defaults; an old project
     without `paralelo` runs with them; a bad value stops before any request.
-- [ ] **T02 Thread-safe files and test helpers** (FR-10, TR-6)
+- [x] **T02 Thread-safe files and test helpers** (FR-10, TR-6)
   - Locks in `ArquivoCSV`, `Estado`, `Cache`; `SessaoFalsa` and
     `RelogioFalso` get locks.
   - `test_concorrencia.py` (first part): 16 threads appending to one

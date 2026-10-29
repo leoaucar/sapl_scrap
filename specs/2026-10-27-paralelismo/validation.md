@@ -9,7 +9,22 @@ They cover the acceptance criteria in spec §8. Only **one program** runs at a
 time (two processes would each have their own limiter).
 
 The request counts come from the DEBUG lines of the client in `logs/*.log`
-(the spec 2 validation script), plus a DNS lookup to group hosts by server:
+(the spec 2 validation script), plus a DNS lookup to group hosts by server.
+The request lines keep their spec 2 format: the `[host]` prefix of T06 is not
+added to `sapyl.http` lines, so both scripts read them unchanged.
+
+Projects with non-default `paralelo` values are created with the defaults
+changed for that one run, so `config.json` gets them before any request:
+
+```bash
+.venv/bin/python -c "import sapyl.padroes as p; p.CASAS_AO_MESMO_TEMPO = 1; \
+from sapyl.interface.principal import executar; executar()"
+```
+
+(`p.LIMITE_POR_SERVIDOR = 175` for §3.) A resume reads the saved values, so
+later runs of the same project use plain `sapyl`.
+
+Server script:
 
 ```python
 # limite_servidor.py <pasta do projeto>: requisições por servidor (IP) em 60 s
@@ -61,13 +76,13 @@ for ip, ts in sorted(envios.items(), key=str):
 | 0.2 | CI green on the branch | |
 | 0.3 | `pytest` offline < 60 s; coverage ≥ 95 % (AC 1) | time: ___ s · coverage: ___ % |
 | 0.4 | No new dependency in `pyproject.toml` (NFR-1) | |
+| 0.5 | A hand-edited invalid `paralelo` (e.g. `limite_por_servidor: 10`) stops before any request with exit code 2 and a message naming the key | |
 
 ## 1. Sequential reference — for AC 3
 
 Project `par_seq`: the 10 Acre houses, the 3 keywords of the spec 2
-validation, no downloads, with `paralelo.casas_ao_mesmo_tempo` set to `1` in
-`config.json` before the first run (create the project, stop at the first
-question after the name, edit, resume).
+validation, no downloads, created with `CASAS_AO_MESMO_TEMPO = 1` (command
+above); check `config.json` shows `"casas_ao_mesmo_tempo": 1`.
 
 | Check | Expected | Result |
 |---|---|---|
@@ -86,12 +101,15 @@ Project `par_8`, same inputs, defaults (`8` houses, `120`/min per server).
 | Same keys and statuses as `par_seq` (differences explained by site changes) | yes | |
 | Final table order: houses in table order | yes | |
 | Terminal: `[host]` prefix on lines, overall progress line every minute | yes | |
+| Summary: elapsed time, "até 8 casas ao mesmo tempo", one line per server with its limit | yes | |
+| `config.json` has `paralelo` with the defaults | yes | |
 | Elapsed time vs `par_seq` | shorter; recorded | ___ min vs ___ min |
 
 ## 3. Ramp — AC 4
 
 Project `par_175`: same inputs, `limite_por_servidor` = `175` (5 houses at
-full speed), `casas_ao_mesmo_tempo` = `8`.
+full speed), `casas_ao_mesmo_tempo` = `8` (command above with
+`p.LIMITE_POR_SERVIDOR = 175`). Wait at least 2 minutes after `par_8` ends.
 
 | Check | Expected | Result |
 |---|---|---|

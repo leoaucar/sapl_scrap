@@ -85,7 +85,7 @@ Rules for every task (same as spec 2):
 
 ## Phase E: Validation and merge
 
-- [ ] **T13 Update `validation.md`** to match what was built.
+- [x] **T13 Update `validation.md`** to match what was built.
 - [ ] **T14 Run validation** (including the ramp), set the final defaults from
   its numbers, record the results, fix what fails, then merge into `main`.
 

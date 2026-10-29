@@ -64,7 +64,7 @@ Rules for every task (same as spec 2):
   - Tests: 1 vs 8 workers give identical final tables (except `raspada_em`),
     same state contents, same downloads (TR-4); resume after a partial run;
     spec 2 project resumes.
-- [ ] **T09 Update mode and authors/procedure on the pool** (FR-4)
+- [x] **T09 Update mode and authors/procedure on the pool** (FR-4)
   - Tests: 1 vs 8 workers equivalence for both; resume of option 3 under
     workers.
 - [ ] **T10 Summary additions** (FR-14)

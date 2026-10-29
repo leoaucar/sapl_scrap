@@ -330,10 +330,15 @@ def test_autoria_interrompida_e_retomada(projeto_tmp, monkeypatch):
     assert programa.main(roteiro('3', 'p'), cliente, projeto_tmp) == 1
     monkeypatch.setattr(autoria, 'raspar_autoria', original)
 
+    # as que terminaram antes do Ctrl+C (com várias casas ao mesmo tempo, a que
+    # estava em andamento na outra casa pode não ter terminado: é refeita)
+    estado = Estado(projeto_tmp / 'p_proj' / 'p_resultado_final_autoria_tramitacao_estado.csv')
+    feitas = estado.chaves('autoria', 'ok')
+    estado.fechar()
+    assert 1 <= len(feitas) <= 2
     sessao.pedidos.clear()
     assert programa.main(roteiro('3', 'p'), cliente, projeto_tmp) == 0
-    feitas = [lk for lk in chamadas[:2]]
-    assert not any(f'materia={lk.rsplit("/", 1)[1]}' in u for lk in feitas for u in sessao.pedidos)
+    assert not any(f'materia={k.rsplit("/", 1)[1]}' in u for k in feitas for u in sessao.pedidos)
 
     saida = ler_final(projeto_tmp / 'p_proj' / 'p_resultado_final_autoria_tramitacao.csv')
     assert len(saida) == 8

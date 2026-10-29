@@ -358,7 +358,7 @@ def executar_atualizacao(
     para atualizar só as matérias marcadas.
     """
     base = escolher_projeto_existente(raiz, entrada)
-    ler_paralelo(base)
+    paralelo = ler_paralelo(base)
     tabela = ler_final(base.final)
     so_relevantes = COLUNA_RELEVANTE in tabela.columns and perguntar_sim_nao(
         PERGUNTA_RELEVANTES, entrada
@@ -387,8 +387,11 @@ def executar_atualizacao(
         fontes = Fontes(Cache(projeto.cache), finais)
         pasta = str(projeto.downloads) if downloads else None
         raspagem = Raspagem(cliente, estado, projeto.materias, fontes, pasta)
+        grupos = agrupar_por_casa(links)
+        fila = [g[0]['Link Casa'] for g in grupos.values()]
+        mapear = mapeador(cliente, paralelo, lambda: progresso_das_materias(estado))
         try:
-            raspagem.da_casa(links)
+            mapear(lambda casa: raspagem.da_casa(grupos[host(casa)]), fila)
         finally:
             raspagem.fechar()
         final = montar_final(projeto.materias, links)
@@ -407,7 +410,7 @@ def executar_autoria(raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = i
     projeto, para um projeto). Devolve o texto do resumo.
     """
     planilha, projeto = escolher_entrada_autoria(raiz, entrada)
-    ler_paralelo(projeto)
+    paralelo = ler_paralelo(projeto)
     if projeto is not None:
         registro.configurar(projeto.pasta, projeto.nome, 'autoria')
         casas = cl.ler_tabela_casas(projeto.casas) if projeto.casas.exists() else None
@@ -417,7 +420,7 @@ def executar_autoria(raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = i
         registro.configurar(planilha.parent, planilha.stem, 'autoria')
         fontes = Fontes()
     log.info('Autoria e tramitação de %s', planilha)
-    saida, contagens = autoria.processar(planilha, cliente, fontes)
+    saida, contagens = autoria.processar(planilha, cliente, fontes, mapeador(cliente, paralelo))
     return registro.resumo_autoria(contagens, saida)
 
 

@@ -178,3 +178,62 @@ def test_interrompida_com_oito_e_retomada_da_o_mesmo_resultado(raiz, monkeypatch
     for chave in ok_antes:
         casa, sapl_id = chave.split('/')
         assert materias.url_api(f'https://{casa}/', sapl_id) not in pedidas
+
+
+def _mais_recente(pasta, padrao):
+    [arquivo] = pasta.glob(padrao)
+    return arquivo
+
+
+def test_atualizacao_e_autoria_com_uma_e_oito_casas(raiz, monkeypatch):
+    """FR-4: o modo atualização e a autoria e tramitação usam o mesmo grupo de casas."""
+    for nome, n in (('um', 1), ('oito', 8)):
+        assert _rodar(raiz, nome, n, monkeypatch)[0] == 0
+        assert _rodar(raiz, nome, n, monkeypatch, ('2', nome, '1'))[0] == 0
+        codigo, _, threads = _rodar(raiz, nome, n, monkeypatch, ('3', nome))
+        assert codigo == 0
+        casas_threads = len({t for t in threads if t.startswith('casa')})
+        assert casas_threads == 1 if n == 1 else casas_threads > 1
+    um, oito = raiz / 'um_proj', raiz / 'oito_proj'
+
+    atualizado = 'resultado_final_ATUALIZADO_*[0-9].csv'
+    a = ler_final(_mais_recente(um, f'um_{atualizado}')).drop(columns=['raspada_em'])
+    b = ler_final(_mais_recente(oito, f'oito_{atualizado}')).drop(columns=['raspada_em'])
+    assert a.equals(b) and len(a) == 48
+    assert set(a['download_status']) == {'ok', 'erro', 'sem_pdf', ''}
+
+    autoria = '*_autoria_tramitacao.csv'
+    a = ler_final(_mais_recente(um, autoria)).drop(columns=['raspada_em'])
+    b = ler_final(_mais_recente(oito, autoria)).drop(columns=['raspada_em'])
+    assert a.equals(b) and len(a) == 48
+    assert (a['status_autoria'] == 'ok').sum() > 40
+
+
+def test_autoria_interrompida_com_oito_e_retomada(raiz, monkeypatch):
+    from sapyl import autoria
+
+    assert _rodar(raiz, 'p', 8, monkeypatch)[0] == 0
+    assert _rodar(raiz, 'p', 8, monkeypatch, ('3', 'p'))[0] == 0
+    saida = raiz / 'p_proj' / 'p_resultado_final_autoria_tramitacao.csv'
+    inteira = ler_final(saida)
+    for arquivo in (raiz / 'p_proj').glob('p_resultado_final_autoria_tramitacao*'):
+        arquivo.unlink()
+
+    original, chamadas, trava = autoria.raspar_autoria, [], threading.Lock()
+
+    def cair(link, *args):
+        with trava:
+            chamadas.append(link)
+            cair_agora = len(chamadas) == 12
+        if cair_agora:
+            raise KeyboardInterrupt
+        return original(link, *args)
+
+    monkeypatch.setattr(autoria, 'raspar_autoria', cair)
+    assert _rodar(raiz, 'p', 8, monkeypatch, ('3', 'p'))[0] == 1
+    monkeypatch.setattr(autoria, 'raspar_autoria', original)
+    codigo, sessao, _ = _rodar(raiz, 'p', 8, monkeypatch, ('3', 'p'))
+    assert codigo == 0
+    assert ler_final(saida).equals(inteira)
+    feitas = len([u for u in sessao.pedidos if '/api/materia/autoria/' in u or '/autoria' in u])
+    assert feitas < 48  # só o que faltava

@@ -26,6 +26,7 @@ from typing import TypeVar
 from urllib.parse import urlparse
 
 from sapyl import registro
+from sapyl.cliente_http import Interrompido
 from sapyl.padroes import PROGRESSO_A_CADA
 
 T = TypeVar('T')
@@ -71,6 +72,8 @@ def por_casa(
     trava, ativas = threading.Lock(), [0]
 
     def rodar(casa: str) -> T:
+        if parar.is_set():  # nenhuma casa começa depois de um Ctrl+C
+            raise Interrompido
         with trava:
             ativas[0] += 1
         try:
@@ -111,6 +114,7 @@ def por_casa(
                 proximo = time.monotonic() + a_cada
                 log.info(_linha_de_progresso(futuros, progresso))
     except KeyboardInterrupt:
+        executor.shutdown(wait=False, cancel_futures=True)  # descarta a fila
         with trava:
             rodando = ativas[0]
         parar.set()
@@ -118,7 +122,7 @@ def por_casa(
             log.warning(
                 'Parando: esperando %d casa(s) terminarem a requisição em andamento', rodando
             )
-        executor.shutdown(wait=True, cancel_futures=True)
+        executor.shutdown(wait=True)
         raise
     executor.shutdown(wait=True)
     if falhas:

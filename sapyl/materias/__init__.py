@@ -25,6 +25,7 @@ __all__ = [
     'extrair_html',
     'linha_vazia',
     'raspar_materia',
+    'raspar_pendentes',
     'raspar_todas',
     'url_api',
 ]
@@ -159,6 +160,33 @@ def raspar_materia(link: Linha, cliente: ClienteSAPL, fontes: Fontes) -> Linha:
     return linha
 
 
+def raspar_pendentes(
+    links: list[Linha],
+    cliente: ClienteSAPL,
+    estado: Estado,
+    arquivo: ArquivoCSV,
+    fontes: Fontes,
+) -> list[Linha]:
+    """Raspa as matérias de `links` que ainda não estão `ok`. Devolve as linhas novas.
+
+    Cada matéria é gravada em `arquivo` **antes** de o estado ser atualizado:
+    se o programa cair entre as duas gravações, a matéria só é raspada de novo
+    (a linha mais recente vale na tabela final). `arquivo` pode ser o mesmo
+    para várias casas ao mesmo tempo.
+    """
+    pendentes = [item for item in links if estado.status(ETAPA_MATERIA, item['chave']) != 'ok']
+    log.info('Matérias: %d a raspar, %d já raspadas', len(pendentes), len(links) - len(pendentes))
+    novas = []
+    for i, link in enumerate(pendentes, start=1):
+        linha = raspar_materia(link, cliente, fontes)
+        arquivo.anexar(linha)
+        estado.registrar(ETAPA_MATERIA, link['chave'], linha['status'], linha['erro'])
+        novas.append(linha)
+        detalhe = linha['Titulo'] if linha['status'] == 'ok' else f'ERRO: {linha["erro"]}'
+        log.info('Matéria %d de %d (%s): %s', i, len(pendentes), link['chave'], detalhe)
+    return novas
+
+
 def raspar_todas(
     links: list[Linha],
     cliente: ClienteSAPL,
@@ -166,23 +194,11 @@ def raspar_todas(
     arquivo_materias: str | Path,
     fontes: Fontes | None = None,
 ) -> Fontes:
-    """Raspa as matérias que ainda não estão `ok` no estado.
-
-    Cada matéria é gravada em `arquivo_materias` **antes** de o estado ser
-    atualizado: se o programa cair entre as duas gravações, a matéria só é
-    raspada de novo (a linha mais recente vale na tabela final).
-    """
+    """Raspa as matérias que ainda não estão `ok` no estado (veja `raspar_pendentes`)."""
     fontes = fontes or Fontes()
-    pendentes = [item for item in links if estado.status(ETAPA_MATERIA, item['chave']) != 'ok']
-    log.info('Matérias: %d a raspar, %d já raspadas', len(pendentes), len(links) - len(pendentes))
     arquivo = ArquivoCSV(arquivo_materias, COLUNAS_MATERIAS)
     try:
-        for i, link in enumerate(pendentes, start=1):
-            linha = raspar_materia(link, cliente, fontes)
-            arquivo.anexar(linha)
-            estado.registrar(ETAPA_MATERIA, link['chave'], linha['status'], linha['erro'])
-            detalhe = linha['Titulo'] if linha['status'] == 'ok' else f'ERRO: {linha["erro"]}'
-            log.info('Matéria %d de %d (%s): %s', i, len(pendentes), link['chave'], detalhe)
+        raspar_pendentes(links, cliente, estado, arquivo, fontes)
     finally:
         arquivo.fechar()
     return fontes

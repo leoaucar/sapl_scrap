@@ -58,7 +58,7 @@ Rules for every task (same as spec 2):
 - [x] **T07 Availability test in parallel** (FR-3)
   - Tests: same table as sequential, in table order; DNS-failing house still
     one attempt.
-- [ ] **T08 New/resume pipeline per house** (FR-1, FR-9, FR-11)
+- [x] **T08 New/resume pipeline per house** (FR-1, FR-9, FR-11)
   - `busca.buscar_casa`, links grouped per house, matters and downloads per
     house, links file rebuilt at the end, `downloads.preencher_downloads`.
   - Tests: 1 vs 8 workers give identical final tables (except `raspada_em`),

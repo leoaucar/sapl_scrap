@@ -37,11 +37,7 @@
         <p class="chamada">Acompanhe, num só lugar, o que está tramitando nas centenas de câmaras
           e assembleias brasileiras que usam o SAPL.</p>
         <div class="acoes">
-          <a class="botao botao--principal" href="https://github.com/leoaucar/sapyl/archive/refs/heads/main.zip">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Baixar o SAPyL (ZIP)
-          </a>
-          <a class="botao" href="https://github.com/leoaucar/sapyl">
+          <a class="botao botao--principal" href="https://github.com/leoaucar/sapyl">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5Z"/></svg>
             Ver no GitHub
           </a>
@@ -268,13 +264,6 @@
           <code>python3-venv</code>.</li>
         <li>Abra o terminal: no Windows, o <strong>PowerShell</strong> (menu Iniciar); no macOS,
           o app <strong>Terminal</strong>; no Linux, o <strong>Terminal</strong>.</li>
-        <li>Baixe o SAPyL:
-          <p><a class="botao botao--principal" href="https://github.com/leoaucar/sapyl/archive/refs/heads/main.zip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Baixar o SAPyL (ZIP)</a></p>
-          Descompacte o arquivo <code>sapyl-main.zip</code> onde quiser guardar o programa (no
-          Windows, botão direito → <em>Extrair tudo</em>) e, nos comandos abaixo, entre na
-          pasta <code>sapyl-main</code> e pule a linha do <code>git clone</code>. Quem usa o git
-          pode clonar o repositório: o <code>git clone</code> abaixo cria a pasta
-          <code>sapyl</code> e facilita atualizar.</li>
         <li>Copie os comandos do seu sistema:</li>
       </ol>
 
@@ -307,11 +296,10 @@ pip install .</code></pre>
       </div>
       <p>Pronto. O <strong>ambiente</strong> (<code>.venv</code>) é a pasta onde ficam o programa
         e as bibliotecas dele. Ele foi criado uma vez só, mas precisa ser
-        <strong>ativado toda vez</strong> que você abrir um terminal novo (veja abaixo). Sem
-        o git, baixe o ZIP no GitHub (<em>Code → Download ZIP</em>), descompacte e pule o
-        <code>git clone</code>. Para atualizar: <code>git pull</code> e <code>pip install .</code>
-        de novo (ou um ZIP novo, copiando as suas pastas <code>&lt;nome&gt;_proj</code> e
-        <code>arquivos_csv</code>).</p>
+        <strong>ativado toda vez</strong> que você abrir um terminal novo (veja abaixo). O
+        <code>git clone</code> cria a pasta <code>sapyl</code> dentro da pasta em que o terminal
+        está. Para atualizar: <code>git pull</code> e <code>pip install .</code> de novo, na
+        pasta do SAPyL.</p>
     </section>
 
     <section class="secao" id="usar" aria-labelledby="titulo-usar">

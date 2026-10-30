@@ -95,7 +95,7 @@ apertar `Enter`. Uma versão para baixar e abrir com dois cliques está no
   Se você rodou o `python3 -m venv .venv` antes de instalar esse pacote, ele
   deixou uma pasta `.venv` pela metade: apague-a (`rm -rf .venv`) e rode o
   comando de novo.
-- **git** (opcional, facilita atualizar): <https://git-scm.com/downloads>.
+- **git:** <https://git-scm.com/downloads>.
 
 **2. Abra o terminal**
 
@@ -103,27 +103,11 @@ apertar `Enter`. Uma versão para baixar e abrir com dois cliques está no
 - **macOS:** abra o aplicativo **Terminal** (em Aplicativos → Utilitários).
 - **Linux:** abra o **Terminal** (no Ubuntu, `Ctrl+Alt+T`).
 
-**3. Baixe o SAPyL do GitHub**
+**3. Baixe e instale o SAPyL**
 
-O código fica em <https://github.com/leoaucar/sapyl>. Há dois jeitos de
-baixar:
-
-- **Sem o git (mais simples):** baixe o ZIP pelo link
-  <https://github.com/leoaucar/sapyl/archive/refs/heads/main.zip> (o mesmo do
-  botão **Baixar** da [página do projeto](https://leoaucar.github.io/sapyl/),
-  ou, no GitHub, botão verde **`<> Code`** → **Download ZIP**). Descompacte o arquivo
-  `sapyl-main.zip` onde quiser guardar o programa (no Windows: botão direito
-  → *Extrair tudo*). A pasta criada se chama **`sapyl-main`**: use esse nome
-  no lugar de `sapyl` nos comandos abaixo e pule a linha do `git clone`.
-- **Com o git:** o comando `git clone` abaixo cria a pasta **`sapyl`** dentro
-  da pasta em que o terminal está (ao abrir, é a sua pasta pessoal).
-
-Não baixe arquivos soltos (como só o `README.md`): o programa precisa da
-pasta inteira.
-
-**4. Instale o SAPyL**
-
-No terminal, entre na pasta do programa e rode os comandos.
+O `git clone` baixa o código do [GitHub](https://github.com/leoaucar/sapyl)
+para a pasta **`sapyl`**, dentro da pasta em que o terminal está (ao abrir,
+é a sua pasta pessoal).
 
 Linux e macOS:
 
@@ -163,11 +147,8 @@ a instalação: `sapyl --version`.
 Seus projetos (`<nome>_proj/`) e as suas palavras-chave (`arquivos_csv/`)
 ficam na pasta do SAPyL e não se perdem numa atualização.
 
-- **Com o git:** na pasta do SAPyL, com o ambiente ativado, rode `git pull` e
-  depois `pip install .`.
-- **Com o ZIP:** baixe o ZIP novo, descompacte numa pasta nova, copie para
-  ela as suas pastas `<nome>_proj/` e o seu `arquivos_csv/palavras_chave.csv`,
-  e faça a instalação (passo 4) de novo na pasta nova.
+Na pasta do SAPyL, com o ambiente ativado, rode `git pull` e depois
+`pip install .`.
 
 Para saber a versão instalada: `sapyl --version`.
 
@@ -231,8 +212,8 @@ Lista das casas que usam o SAPL. O programa usa as colunas **`UF`** e
 
 **Toda vez que for usar**, abra o terminal e:
 
-1. **Entre na pasta do SAPyL** (`sapyl`, ou `sapyl-main` se você baixou o
-   ZIP). Por exemplo, se ela está na sua pasta pessoal: `cd sapyl` (Windows:
+1. **Entre na pasta do SAPyL** (a que o `git clone` criou). Por exemplo, se
+   ela está na sua pasta pessoal: `cd sapyl` (Windows:
    `cd $HOME\sapyl`). Dica: digite `cd ` e arraste a pasta para a janela do
    terminal, que o caminho aparece sozinho.
 2. **Ative o ambiente:**

@@ -52,3 +52,6 @@ CLAUDE.local.md
 # Exceção: pasta de projeto de exemplo usada nos testes de compatibilidade
 # (vem por último para valer também contra *_proj/, *.pdf e *.log)
 !tests/fixtures/projeto_fase1/**
+
+# Logotipos de parceiros: fora do git até o ok de cada organização (veja Visual_Identity/README.md)
+Visual_Identity/parceiros/

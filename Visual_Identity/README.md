@@ -5,7 +5,8 @@ da página e os logotipos das organizações parceiras.
 
 ## `parceiros/`
 
-> **Ainda não usar na página nem no README.** Os logotipos só entram no site
+> **Fora do git e ainda sem uso.** A pasta `parceiros/` está no `.gitignore`: os
+> arquivos ficam só nesta cópia local. **Não usar na página nem no README.** Os logotipos só entram no site
 > depois do ok de cada organização (Ação Educativa e Fundo Malala), por
 > escrito, de preferência com a versão oficial do arquivo que elas indicarem.
 

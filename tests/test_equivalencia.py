@@ -171,8 +171,8 @@ def test_interrompida_com_oito_e_retomada_da_o_mesmo_resultado(raiz, monkeypatch
     assert ok_antes
     assert not (pasta / 'partes_links_totais.csv').exists()  # refeita na retomada
     monkeypatch.setattr(materias, 'raspar_materia', original)
-    # a lista de projetos: inteira, partes
-    codigo, sessao, _ = _rodar(raiz, 'partes', 8, monkeypatch, respostas_retomar('2'))
+    # a lista de projetos, do mais recente: partes (o interrompido), inteira
+    codigo, sessao, _ = _rodar(raiz, 'partes', 8, monkeypatch, respostas_retomar('1'))
     assert codigo == 0
 
     inteira = raiz / 'inteira_proj'
@@ -194,7 +194,7 @@ def test_atualizacao_e_autoria_com_uma_e_oito_casas(raiz, monkeypatch):
     """FR-4: o modo atualização e a autoria e tramitação usam o mesmo grupo de casas."""
     for nome, n in (('um', 1), ('oito', 8)):
         assert _rodar(raiz, nome, n, monkeypatch)[0] == 0
-        # a lista em ordem alfabética: "oito" antes de "um", sempre na posição 1
+        # a lista, do mais recente: o projeto que acabou de rodar está na posição 1
         assert _rodar(raiz, nome, n, monkeypatch, respostas_atualizar('s'))[0] == 0
         codigo, _, threads = _rodar(raiz, nome, n, monkeypatch, respostas_autoria())
         assert codigo == 0

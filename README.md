@@ -218,8 +218,9 @@ as perguntas numeradas.
 ### Retomar um projeto
 
 Rode `sapyl`, escolha **Retomar um projeto** e o projeto na lista. A lista
-mostra a situação de cada um (*concluído*, *concluído com falhas*,
-*interrompido* ou *não iniciado*), a data da última execução e o número de
+mostra os projetos do atualizado mais recentemente para o mais antigo, com a
+situação de cada um (*concluído*, *concluído com falhas*, *interrompido* ou
+*não iniciado*), a data de criação, a da última atualização e o número de
 matérias no resultado. Depois de um resumo, escolha *Continuar*. O programa:
 
 - não refaz as buscas que terminaram (e refaz as que ficaram incompletas);

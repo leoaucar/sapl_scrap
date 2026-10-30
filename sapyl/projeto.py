@@ -130,32 +130,82 @@ _FALHAS = {ETAPA_BUSCA: {'incompleta'}, ETAPA_MATERIA: {'erro'}, ETAPA_PDF: {'er
 _LOG_DE_EXECUCAO = re.compile(r'_(\d{4}-\d{2}-\d{2}_\d{6})_(novo|retomada)(?:_\d+)?\.log$')
 
 
+# Data e hora no nome dos logs de execução (qualquer modo)
+_LOG_COM_DATA = re.compile(r'_(\d{4}-\d{2}-\d{2}_\d{6})_[a-z]+(?:_\d+)?\.log$')
+
+
 @dataclass(frozen=True)
 class Situacao:
-    """Como um projeto está: `rotulo`, data da última execução e matérias no resultado."""
+    """Como um projeto está: `rotulo`, quando foi criado e atualizado, matérias no resultado.
+
+    `ultima_execucao`: início da última execução que produz o resultado
+    (novo ou retomada), usado para saber se ela terminou.
+    """
 
     rotulo: str
-    ultima_execucao: datetime | None
+    criado: datetime | None
+    atualizado: datetime | None
     materias: int | None
+    ultima_execucao: datetime | None = None
 
     def texto(self) -> str:
-        """`concluído com falhas · 28/10/2026 · 1.189 matérias` (`?` quando não se sabe)."""
-        data = self.ultima_execucao.strftime('%d/%m/%Y') if self.ultima_execucao else '?'
+        """`concluído · criado em 28/10/2026 · atualizado em 30/10/2026 14:05 · 1.189 matérias`."""
+        criado = self.criado.strftime('%d/%m/%Y') if self.criado else '?'
+        atualizado = self.atualizado.strftime('%d/%m/%Y %H:%M') if self.atualizado else '?'
         if self.materias is None:
             materias = '? matérias'
         else:
             numero = f'{self.materias:,}'.replace(',', '.')
             materias = f'{numero} matéria{"s" if self.materias != 1 else ""}'
-        return f'{self.rotulo} · {data} · {materias}'
+        return f'{self.rotulo} · criado em {criado} · atualizado em {atualizado} · {materias}'
+
+
+def _datas_dos_logs(projeto: Projeto, so_execucoes: bool = False) -> list[datetime]:
+    padrao = _LOG_DE_EXECUCAO if so_execucoes else _LOG_COM_DATA
+    datas = []
+    for log in (projeto.pasta / 'logs').glob(f'{projeto.nome}_*.log'):
+        achado = padrao.search(log.name)
+        if achado:
+            datas.append(datetime.strptime(achado.group(1), '%Y-%m-%d_%H%M%S'))
+    return datas
 
 
 def _inicio_da_ultima_execucao(projeto: Projeto) -> datetime | None:
-    inicios = []
-    for log in (projeto.pasta / 'logs').glob(f'{projeto.nome}_*.log'):
-        achado = _LOG_DE_EXECUCAO.search(log.name)
-        if achado:
-            inicios.append(datetime.strptime(achado.group(1), '%Y-%m-%d_%H%M%S'))
-    return max(inicios, default=None)
+    return max(_datas_dos_logs(projeto, so_execucoes=True), default=None)
+
+
+def _primeira_linha_do_estado(caminho: Path) -> datetime | None:
+    try:
+        with open(caminho, newline='', encoding='utf-8') as arquivo:
+            leitor = csv.reader(arquivo)
+            next(leitor, None)
+            primeira = next(leitor, None)
+        if primeira and len(primeira) == len(CAMPOS_ESTADO):
+            return datetime.strptime(primeira[-1], '%d/%m/%Y %H:%M:%S')
+    except (OSError, UnicodeDecodeError, csv.Error, ValueError):
+        pass
+    return None
+
+
+def criado_em(projeto: Projeto) -> datetime | None:
+    """Quando o projeto foi criado: o log mais antigo, a 1ª linha do estado ou o config.json."""
+    datas = _datas_dos_logs(projeto)
+    if datas:
+        return min(datas)
+    if projeto.estado.is_file():
+        primeira = _primeira_linha_do_estado(projeto.estado)
+        if primeira is not None:
+            return primeira
+    if projeto.config.is_file():
+        return datetime.fromtimestamp(projeto.config.stat().st_mtime)
+    return None
+
+
+def atualizado_em(projeto: Projeto) -> datetime | None:
+    """A última mudança em qualquer arquivo do projeto (resultados, estado, logs, config)."""
+    arquivos = [*projeto.pasta.glob('*'), *(projeto.pasta / 'logs').glob('*')]
+    datas = [a.stat().st_mtime for a in arquivos if a.is_file()]
+    return datetime.fromtimestamp(max(datas)) if datas else None
 
 
 def _tem_falhas(caminho: Path) -> bool:
@@ -192,8 +242,9 @@ def situacao(projeto: Projeto) -> Situacao:
     final = projeto.final
     materias = _linhas_do_resultado(final) if final.is_file() else None
     inicio = _inicio_da_ultima_execucao(projeto)
+    datas = (criado_em(projeto), atualizado_em(projeto))
     if not projeto.estado.is_file():
-        return Situacao(NAO_INICIADO, inicio, materias)
+        return Situacao(NAO_INICIADO, *datas, materias, inicio)
     mudou_estado = projeto.estado.stat().st_mtime
     if inicio is None:
         referencia = mudou_estado
@@ -201,6 +252,6 @@ def situacao(projeto: Projeto) -> Situacao:
     else:
         referencia, ultima = inicio.timestamp(), inicio
     if not final.is_file() or final.stat().st_mtime < referencia:
-        return Situacao(INTERROMPIDO, ultima, materias)
+        return Situacao(INTERROMPIDO, *datas, materias, ultima)
     rotulo = CONCLUIDO_COM_FALHAS if _tem_falhas(projeto.estado) else CONCLUIDO
-    return Situacao(rotulo, ultima, materias)
+    return Situacao(rotulo, *datas, materias, ultima)

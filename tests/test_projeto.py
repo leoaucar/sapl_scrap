@@ -70,7 +70,7 @@ def test_criar_so_quando_pedido(tmp_path):
 def test_nao_iniciado(tmp_path):
     s = gp.situacao(_projeto(tmp_path))
     assert (s.rotulo, s.materias) == (gp.NAO_INICIADO, None)
-    assert s.texto() == 'não iniciado · ? · ? matérias'
+    assert s.texto() == 'não iniciado · criado em ? · atualizado em ? · ? matérias'
 
 
 def test_concluido_conta_as_materias_mesmo_com_quebra_de_linha(tmp_path):
@@ -83,7 +83,10 @@ def test_concluido_conta_as_materias_mesmo_com_quebra_de_linha(tmp_path):
     _final(projeto, ['a,"uma\nementa"\n', 'b,c\n'], '2026-10-28_120000')
     s = gp.situacao(projeto)
     assert (s.rotulo, s.materias) == (gp.CONCLUIDO, 2)
-    assert s.texto() == 'concluído · 28/10/2026 · 2 matérias'
+    assert s.criado == datetime(2026, 10, 28, 10, 0)  # o log mais antigo, de qualquer modo
+    assert s.atualizado > s.criado  # os logs foram escritos agora
+    assert s.texto().startswith('concluído · criado em 28/10/2026 · atualizado em ')
+    assert s.texto().endswith(' · 2 matérias')
 
 
 def test_concluido_com_falhas(tmp_path):
@@ -131,6 +134,29 @@ def test_ler_a_situacao_nao_muda_o_estado(tmp_path):
 
 
 def test_milhar_com_ponto():
-    s = gp.Situacao(gp.CONCLUIDO, datetime(2026, 10, 28), 1189)
-    assert s.texto() == 'concluído · 28/10/2026 · 1.189 matérias'
-    assert gp.Situacao(gp.CONCLUIDO, None, 1).texto().endswith('1 matéria')
+    s = gp.Situacao(gp.CONCLUIDO, datetime(2026, 10, 28), datetime(2026, 10, 30, 14, 5), 1189)
+    assert s.texto() == (
+        'concluído · criado em 28/10/2026 · atualizado em 30/10/2026 14:05 · 1.189 matérias'
+    )
+    assert gp.Situacao(gp.CONCLUIDO, None, None, 1).texto().endswith('1 matéria')
+
+
+def test_criado_pela_primeira_linha_do_estado_ou_pelo_config(tmp_path):
+    projeto = _projeto(tmp_path)
+    projeto.config.write_text('{}', encoding='utf-8')
+    _datar(projeto.config, '2026-10-01_080000')
+    assert gp.criado_em(projeto) == datetime(2026, 10, 1, 8, 0)  # só o config.json
+    projeto.estado.write_text(CABECALHO + 'materia,h/1,ok,,05/10/2026 09:30:00\n', encoding='utf-8')
+    assert gp.criado_em(projeto) == datetime(2026, 10, 5, 9, 30)  # a 1ª linha do estado
+    _log(projeto, '2026-10-04_070000', 'novo')
+    assert gp.criado_em(projeto) == datetime(2026, 10, 4, 7, 0)  # o log mais antigo
+
+
+def test_atualizado_conta_qualquer_arquivo_e_os_logs(tmp_path):
+    projeto = _projeto(tmp_path)
+    assert gp.atualizado_em(projeto) is None
+    projeto.estado.write_text(CABECALHO, encoding='utf-8')
+    _datar(projeto.estado, '2026-10-20_100000')
+    log = _log(projeto, '2026-10-21_100000', 'autoria')
+    _datar(log, '2026-10-22_110000')
+    assert gp.atualizado_em(projeto) == datetime(2026, 10, 22, 11, 0)

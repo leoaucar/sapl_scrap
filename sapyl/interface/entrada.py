@@ -6,10 +6,11 @@ criado quando a pessoa confirma (veja `principal`).
 """
 
 from collections.abc import Callable, Sequence
+from datetime import datetime
 from pathlib import Path
 
 from sapyl.interface.perguntas import Opcao, Perguntas, Voltar
-from sapyl.projeto import Projeto, nome_limpo, projetos_existentes, situacao
+from sapyl.projeto import Projeto, Situacao, nome_limpo, projetos_existentes, situacao
 
 OUTRO_CSV = '__outro_csv__'
 
@@ -80,9 +81,20 @@ def resultado_mais_recente(projeto: Projeto) -> Path | None:
     return max(existentes, key=lambda c: c.stat().st_mtime) if existentes else None
 
 
-def rotulo_do_projeto(projeto: Projeto) -> str:
-    """`nome — concluído · 28/10/2026 · 1.189 matérias`."""
-    return f'{projeto.nome} — {situacao(projeto).texto()}'
+def rotulo_do_projeto(projeto: Projeto, sit: Situacao | None = None) -> str:
+    """`nome — concluído · criado em 28/10/2026 · atualizado em 30/10/2026 14:05 · …`."""
+    return f'{projeto.nome} — {(sit or situacao(projeto)).texto()}'
+
+
+def mais_recentes_primeiro(projetos: Sequence[Projeto]) -> list[tuple[Projeto, Situacao]]:
+    """(projeto, situação), do atualizado mais recentemente para o mais antigo (FR-25).
+
+    Projetos sem data vão para o fim; empates, em ordem alfabética.
+    """
+    pares = [(p, situacao(p)) for p in projetos]
+    pares.sort(key=lambda par: par[0].nome)
+    pares.sort(key=lambda par: par[1].atualizado or datetime.min, reverse=True)
+    return pares
 
 
 def escolher_projeto(
@@ -99,7 +111,9 @@ def escolher_projeto(
         tipo = 'com resultado final ' if so_com_resultado else ''
         perguntas.mostrar(f'Nenhum projeto {tipo}nesta pasta ({Path(raiz).resolve()}).')
         return None
-    opcoes = [Opcao(rotulo_do_projeto(p), p.nome) for p in projetos]
+    opcoes = [
+        Opcao(rotulo_do_projeto(p, sit), p.nome) for p, sit in mais_recentes_primeiro(projetos)
+    ]
     try:
         return Projeto(raiz, perguntas.escolher(texto, opcoes, voltar=True))
     except Voltar:
@@ -141,7 +155,9 @@ def escolher_entrada_autoria(
             return perguntar_csv(raiz, perguntas, voltar=True), None
         except Voltar:
             return None
-    opcoes = [Opcao(rotulo_do_projeto(p), p.nome) for p in projetos]
+    opcoes = [
+        Opcao(rotulo_do_projeto(p, sit), p.nome) for p, sit in mais_recentes_primeiro(projetos)
+    ]
     opcoes.append(Opcao('Outro arquivo CSV…', OUTRO_CSV))
     while True:
         try:

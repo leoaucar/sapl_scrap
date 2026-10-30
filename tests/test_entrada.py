@@ -1,5 +1,7 @@
 """Escolha do projeto ou do arquivo em cada opção do menu (FR-4, FR-5)."""
 
+from datetime import datetime
+
 from sapyl import projeto as gp
 from sapyl.interface import entrada
 from sapyl.interface.perguntas import PerguntasTexto
@@ -58,8 +60,13 @@ def test_lista_de_projetos_com_situacao_e_voltar(tmp_path):
     gp.Projeto(tmp_path, 'vazio').criar()
     perguntas, ler = _p('2')
     assert entrada.escolher_projeto(tmp_path, perguntas, 'Qual?').nome == 'vazio'
-    assert '1- bom — não iniciado · ? · 1 matéria\n' in ler.perguntas[0]
-    assert '2- vazio — não iniciado · ? · ? matérias\n3- ← Voltar\n' in ler.perguntas[0]
+    hoje = datetime.now().strftime('%d/%m/%Y')
+    assert f'1- bom — não iniciado · criado em ? · atualizado em {hoje} ' in ler.perguntas[0]
+    assert (
+        '2- vazio — não iniciado · criado em ? · atualizado em ? · ? matérias\n'
+        in (ler.perguntas[0])
+    )
+    assert ler.perguntas[0].endswith('3- ← Voltar\n')
     perguntas, _ = _p('3')
     assert entrada.escolher_projeto(tmp_path, perguntas, 'Qual?') is None
 
@@ -108,3 +115,19 @@ def test_autoria_sem_projetos_pergunta_o_csv(tmp_path):
     perguntas, ler = _p(str(tmp_path / 'minha.csv'))  # caminho absoluto
     assert entrada.escolher_entrada_autoria(tmp_path, perguntas) == (tmp_path / 'minha.csv', None)
     assert len(ler.perguntas) == 1 and 'Caminho do arquivo CSV' in ler.perguntas[0]
+
+
+def test_lista_do_mais_recente_para_o_mais_antigo(tmp_path):
+    import os
+
+    for nome, quando in (
+        ('antigo', 1_700_000_000),
+        ('novo', 1_800_000_000),
+        ('meio', 1_750_000_000),
+    ):
+        projeto = _com_final(tmp_path, nome)
+        os.utime(projeto.final, (quando, quando))
+    perguntas, ler = _p('1')
+    assert entrada.escolher_projeto(tmp_path, perguntas, 'Qual?').nome == 'novo'
+    ordem = [linha.split(' — ')[0][3:] for linha in ler.perguntas[0].splitlines()[1:4]]
+    assert ordem == ['novo', 'meio', 'antigo']

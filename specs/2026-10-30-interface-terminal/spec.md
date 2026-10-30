@@ -285,6 +285,17 @@ Asked by the user after running the branch, decided with them the same day.
   - *texto* mode: the minute line becomes a two-line block (houses and time;
     then searches, matters, PDFs and time left).
 
+- **FR-25 Project lists, newest first.** The lists of FR-4 and FR-5 are
+  sorted by last update, most recent at the top, and each entry shows its
+  creation date and last-update date: `nome — concluído · criado em
+  28/10/2026 · atualizado em 30/10/2026 14:05 · 1.189 matérias`.
+  - *created*: the earliest run log (`logs/<nome>_<data_hora>_<modo>.log`),
+    else the first row of the state file, else `config.json`'s date;
+  - *last update*: the newest modification among the project's files
+    (results, state, matters, logs, config), so update and authors runs
+    count too;
+  - unknown dates show `?`. Read-only, no request (as FR-4a).
+
 ## 6. Non-functional requirements
 
 - **NFR-1** New dependencies: `questionary` (menus; MIT, with

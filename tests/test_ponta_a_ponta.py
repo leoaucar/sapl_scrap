@@ -286,8 +286,8 @@ def test_interrompida_e_retomada_da_o_mesmo_resultado(projeto_tmp, monkeypatch):
         == 1
     )
     monkeypatch.setattr(materias, 'raspar_materia', original)
-    # a lista de projetos: a, b
-    assert programa.main(roteiro(*respostas_retomar('2')), cliente, projeto_tmp) == 0
+    # a lista de projetos, do mais recente: b (o interrompido), a
+    assert programa.main(roteiro(*respostas_retomar('1')), cliente, projeto_tmp) == 0
 
     a = ler_final(projeto_tmp / 'a_proj' / 'a_resultado_final.csv').drop(columns=['raspada_em'])
     b = ler_final(projeto_tmp / 'b_proj' / 'b_resultado_final.csv').drop(columns=['raspada_em'])

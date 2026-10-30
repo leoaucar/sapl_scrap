@@ -85,6 +85,10 @@ Rules for every task (same as earlier specs):
     sections; two-line texto block; structured counters.
   - Tests: recording console render of every section; texto block; terminal
     lines of a full run.
+- [x] **T13 Project lists newest first, with dates** (FR-25)
+  - `Situacao` gains created and last-update dates; lists sorted by last
+    update.
+  - Tests: dates from logs, from the state file, from config; order.
 - [x] **T12b Docs** for T11–T12 (README, page).
 
 ## Phase D: Docs and validation

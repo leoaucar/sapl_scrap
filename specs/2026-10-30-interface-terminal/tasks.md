@@ -85,7 +85,7 @@ Rules for every task (same as earlier specs):
     sections; two-line texto block; structured counters.
   - Tests: recording console render of every section; texto block; terminal
     lines of a full run.
-- [ ] **T12b Docs** for T11–T12 (README, page).
+- [x] **T12b Docs** for T11–T12 (README, page).
 
 ## Phase D: Docs and validation
 

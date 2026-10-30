@@ -34,7 +34,7 @@
         <p class="selo">Dados públicos · Software livre</p>
         <h1>SAPyL</h1>
         <p class="subtitulo">Raspador do Sistema de Apoio Legislativo</p>
-        <p class="chamada">Acompanhe, num só lugar, o que está tramitando em dezenas de câmaras
+        <p class="chamada">Acompanhe, num só lugar, o que está tramitando nas centenas de câmaras
           e assembleias brasileiras que usam o SAPL.</p>
         <div class="acoes">
           <a class="botao botao--principal" href="https://github.com/leoaucar/sapyl">
@@ -159,10 +159,16 @@
 
     <section class="secao" id="o-que-e" aria-labelledby="titulo-o-que-e">
       <h2 id="titulo-o-que-e">O que é</h2>
-      <p class="lead">Muitas Câmaras Municipais e Assembleias Legislativas publicam seus projetos
-        de lei, requerimentos e outras matérias no <strong>SAPL</strong> (Sistema de Apoio ao
-        Processo Legislativo, do Interlegis). Cada casa tem o seu site, e não há uma busca que
-        junte todas. O SAPyL faz essa busca por você e entrega o resultado numa planilha.</p>
+      <p class="lead">Mais de mil casas legislativas (câmaras municipais e algumas assembleias
+        estaduais) estão na lista das que publicam seus projetos de lei, requerimentos e outras
+        matérias no <strong>SAPL</strong> (Sistema de Apoio ao Processo Legislativo), desenvolvido
+        pelo programa <a href="https://www12.senado.leg.br/interlegis">Interlegis</a> do Senado
+        Federal. Cada casa tem o seu site, e não há uma busca que junte todas. O SAPyL faz essa
+        busca unificada e entrega o resultado numa planilha.</p>
+      <p>Dá para pesquisar a produção legislativa sobre qualquer assunto: educação, saúde,
+        segurança pública, assistência social… Os resultados podem e devem servir de base para
+        pesquisas acadêmicas e para o trabalho de movimentos sociais em prol da mudança social.
+        O SAPyL é software livre e de código aberto: use e ajude a melhorar.</p>
 
       <div class="cartoes">
         <article class="cartao cartao--dados">
@@ -180,18 +186,30 @@
         <article class="cartao cartao--casas">
           <svg class="cartao__icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10m4 11V10m6 11V10m4 11V10M2 10l10-6 10 6z"/></svg>
           <h3>Casas legislativas</h3>
-          <p>Uma tabela com centenas de câmaras e assembleias que usam o SAPL. Você escolhe
-            todas, as de Sul e Sudeste ou só algumas para testar.</p>
+          <p>Uma tabela com as câmaras e assembleias que usam o SAPL. Você escolhe os estados
+            e se quer todas as casas ou um teste com 10.</p>
         </article>
       </div>
 
       <h3 class="subsecao">Para quem</h3>
       <ul class="publico">
         <li>Pesquisadoras e pesquisadores</li>
-        <li>Jornalistas</li>
+        <li>Movimentos sociais</li>
         <li>Organizações da sociedade civil</li>
+        <li>Jornalistas</li>
         <li>Quem quer saber o que está sendo proposto sobre um tema em muitas casas ao mesmo tempo</li>
       </ul>
+
+      <h3 class="subsecao" id="origem">Origem</h3>
+      <p>O SAPyL foi criado para apoiar o mapeamento da atuação do ultraconservadorismo e da
+        extrema direita nos legislativos em pautas educacionais. Essa pesquisa foi uma das
+        frentes do projeto <strong>Gênero e Políticas Educacionais</strong>, realizado entre 2023
+        e 2025 numa parceria entre <a href="https://acaoeducativa.org.br/">Ação Educativa</a>,
+        <a href="https://www.fe.usp.br/">Faculdade de Educação da Universidade de São Paulo
+        (FE-USP)</a>, <a href="https://www.fcc.org.br/">Fundação Carlos Chagas (FCC)</a>,
+        <a href="https://www.geledes.org.br/">Geledés – Instituto da Mulher Negra</a> e
+        <a href="https://profscontraoesp.org/">Coletivo Professor@s contra o Escola sem
+        Partido</a>, com apoio do <a href="https://malala.org/">Fundo Malala</a>.</p>
     </section>
 
     <section class="secao" id="como-funciona" aria-labelledby="titulo-como-funciona">
@@ -302,9 +320,10 @@ saneamento basico</code></pre>
             <li>Ajuda e Sair</li>
           </ul>
           <p>Num projeto novo, ele mostra as suas palavras-chave, pede um nome, os estados
-            (marcados numa lista) e se é para baixar os PDFs. Antes de começar, um resumo do que
-            vai ser feito: dá para mudar as respostas ou cancelar. Durante a execução, uma barra
-            mostra as casas concluídas e o tempo restante.</p>
+            (marcados numa lista) e se é para baixar os PDFs. Toda pergunta tem
+            <em>← Voltar</em>, que volta uma pergunta sem perder as respostas. Antes de começar,
+            um resumo do que vai ser feito: começar, voltar ou cancelar. Durante a execução, um
+            painel mostra as casas concluídas, as buscas, as matérias e o tempo restante.</p>
         </li>
         <li>
           <h3>Abra o resultado</h3>
@@ -339,6 +358,11 @@ saneamento basico</code></pre>
         <p>AUCAR, Leonardo Nogueira; AQUINO, Renata; MOURA, Fernanda. <em>SAPyL: Raspador do
           Sistema de Apoio Legislativo</em>. 2023–2026. Software livre (AGPL-3.0).</p>
       </blockquote>
+      <dl class="creditos">
+        <dt>Realização</dt><dd><a href="https://acaoeducativa.org.br/">Ação Educativa</a></dd>
+        <dt>Apoio</dt><dd><a href="https://malala.org/">Fundo Malala</a></dd>
+        <dt>Desenvolvimento</dt><dd>Leonardo Aucar, Renata Aquino e Fernanda Moura</dd>
+      </dl>
       <p>O SAPyL é software livre sob a <a href="https://github.com/leoaucar/sapyl/blob/main/LICENSE">GNU
         Affero General Public License, versão 3</a>. Versões modificadas, inclusive as oferecidas
         como serviço pela rede, devem continuar livres.</p>
@@ -353,8 +377,19 @@ saneamento basico</code></pre>
       <a href="https://github.com/leoaucar/sapyl/issues">Relatar um problema</a>
       <a href="https://github.com/leoaucar/sapyl/blob/main/AUTHORS.md">Autoria</a>
     </nav>
+    <div class="rodape__creditos">
+      <p><strong>Realização</strong> <a href="https://acaoeducativa.org.br/">Ação Educativa</a>
+        · <strong>Apoio</strong> <a href="https://malala.org/">Fundo Malala</a></p>
+      <p><strong>Projeto Gênero e Políticas Educacionais</strong> (2023–2025):
+        <a href="https://acaoeducativa.org.br/">Ação Educativa</a>,
+        <a href="https://www.fe.usp.br/">FE-USP</a>,
+        <a href="https://www.fcc.org.br/">Fundação Carlos Chagas</a>,
+        <a href="https://www.geledes.org.br/">Geledés – Instituto da Mulher Negra</a> e
+        <a href="https://profscontraoesp.org/">Coletivo Professor@s contra o Escola sem Partido</a></p>
+    </div>
     <p class="rodape__nota">Os dados vêm dos sites públicos das casas legislativas que usam o SAPL,
-      sistema desenvolvido pelo Interlegis. O SAPyL não é um produto do Interlegis.</p>
+      sistema desenvolvido pelo <a href="https://www12.senado.leg.br/interlegis">Interlegis</a>
+      (Senado Federal). O SAPyL não é um produto do Interlegis.</p>
   </footer>
 </body>
 </html>

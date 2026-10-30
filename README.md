@@ -2,7 +2,7 @@
 
 **Raspador do Sistema de Apoio Legislativo**
 
-Acompanhe, num só lugar, o que está tramitando em dezenas de câmaras e
+Acompanhe, num só lugar, o que está tramitando nas centenas de câmaras e
 assembleias brasileiras que usam o SAPL. Software livre (AGPL-3.0).
 
 [![testes](https://github.com/leoaucar/sapyl/actions/workflows/tests.yml/badge.svg)](https://github.com/leoaucar/sapyl/actions/workflows/tests.yml)
@@ -23,13 +23,19 @@ Versões anteriores a 0.2 se chamavam *sapl_scrap*. Veja também
 
 ## Para que serve
 
-Muitas Câmaras Municipais e Assembleias Legislativas publicam seus projetos
-de lei, requerimentos e outras matérias no **SAPL** (Sistema de Apoio ao
-Processo Legislativo, do Interlegis). Cada casa tem o seu site, e não há uma
-busca que junte todas. O SAPyL faz essa busca por você: é feito para
-pesquisadoras e pesquisadores, jornalistas, organizações da sociedade civil e
-qualquer pessoa que queira saber o que está sendo proposto sobre um tema em
-muitas casas legislativas ao mesmo tempo.
+Mais de mil casas legislativas (câmaras municipais e algumas assembleias
+estaduais) estão na lista das que publicam seus projetos de lei,
+requerimentos e outras matérias no **SAPL** (Sistema de Apoio ao Processo
+Legislativo), desenvolvido pelo programa Interlegis do Senado Federal. Cada
+casa tem o seu site, e não há uma busca que junte todas.
+
+O SAPyL faz essa busca unificada e entrega o resultado numa planilha. Serve
+para pesquisar a produção legislativa sobre qualquer assunto (educação, saúde,
+segurança pública, assistência social…) e para dar base a pesquisas
+acadêmicas, ao trabalho de movimentos sociais, de organizações da sociedade
+civil e de jornalistas, e a quem queira saber o que está sendo proposto sobre
+um tema em muitas casas ao mesmo tempo. É software livre e de código aberto:
+use e ajude a melhorar.
 
 O programa pesquisa uma lista de palavras-chave na busca de cada casa legislativa,
 coleta os links das matérias encontradas, obtém os dados de cada matéria (título,
@@ -47,8 +53,8 @@ O que ele garante:
 - **Várias casas ao mesmo tempo.** Até 8 casas são processadas em paralelo,
   com o mesmo resultado de uma casa por vez.
 - **Retomada.** Se a execução parar no meio (Ctrl+C, queda de energia ou de
-  internet), basta rodar de novo e escolher "retomar": o que já foi feito não
-  é refeito, e o que falhou é tentado outra vez.
+  internet), basta rodar de novo e escolher **Retomar um projeto**: o que já
+  foi feito não é refeito, e o que falhou é tentado outra vez.
 - **Sem duplicatas.** Uma matéria encontrada por várias palavras aparece uma
   vez só, com todas as palavras na coluna `Palavras`.
 
@@ -57,6 +63,21 @@ casa com 1 000 matérias leva cerca de 30 minutos, e as casas que ficam no
 mesmo servidor dividem o limite dele (veja
 [Várias casas ao mesmo tempo](#várias-casas-ao-mesmo-tempo)). Veja
 estimativas e próximos passos no [ROADMAP](ROADMAP.md).
+
+## Origem e créditos
+
+O SAPyL foi criado para apoiar o mapeamento da atuação do ultraconservadorismo
+e da extrema direita nos legislativos em pautas educacionais. Essa pesquisa
+foi uma das frentes do projeto **Gênero e Políticas Educacionais**, realizado
+entre 2023 e 2025 numa parceria entre Ação Educativa, Faculdade de Educação da
+Universidade de São Paulo (FE-USP), Fundação Carlos Chagas (FCC), Geledés –
+Instituto da Mulher Negra e Coletivo Professor@s contra o Escola sem Partido,
+com apoio do Fundo Malala.
+
+- **Realização:** Ação Educativa
+- **Apoio:** Fundo Malala
+- **Desenvolvimento:** Leonardo Aucar, Renata Aquino e Fernanda Moura (veja
+  [AUTHORS.md](AUTHORS.md))
 
 ## Requisitos
 
@@ -170,8 +191,12 @@ listas de marcar (os estados), a barra de espaço marca e `Enter` confirma.
 7. **Baixar os textos originais (PDFs)?** Cerca de 10 MB por matéria; uma
    execução completa pode passar de 100 GB.
 8. **Confirmação:** um resumo do projeto (estados, casas, palavras, número de
-   buscas, PDFs). *Começar*, *Mudar respostas* (volta ao passo 4) ou
-   *Cancelar* (nada é criado).
+   buscas, PDFs). *Começar*, *Cancelar* (nada é criado) ou *← Voltar*.
+
+Toda pergunta tem **← Voltar**: ele volta uma pergunta, mantendo as respostas
+já dadas (no nome do projeto, volta ao menu). Na lista de estados, ele é o
+primeiro item; no nome, basta deixar vazio e apertar `Enter`. Nas listas de
+projetos, *← Voltar* volta ao menu.
 
 As respostas ficam salvas no projeto (`config.json`); ao retomar, nada é
 perguntado de novo.
@@ -183,7 +208,8 @@ perguntado de novo.
 respostas num arquivo: `sapyl < respostas.txt`), as mesmas perguntas aparecem
 numeradas: digite o número da opção, `s` ou `n` nas perguntas de sim ou não, e
 as siglas dos estados separadas por vírgula ou espaço (`SP, RJ`, ou
-`sul-sudeste`; Enter para todos). O menu principal fica `1` Novo projeto,
+`sul-sudeste`; Enter para todos). *← Voltar* é a última opção numerada; nas
+outras perguntas, digite `<` para voltar. O menu principal fica `1` Novo projeto,
 `2` Retomar, `3` Atualizar, `4` Autoria e tramitação, `5` Ajuda, `6` Sair. Se
 os menus com as setas não funcionarem no seu terminal, rode
 `SAPYL_MENUS=0 sapyl` (no PowerShell: `$env:SAPYL_MENUS=0; sapyl`) para usar
@@ -252,16 +278,44 @@ requisição em andamento), e a retomada continua de onde parou.
 
 ### Resumo e log
 
-Durante a execução, o terminal mostra um painel que se atualiza sozinho: uma
-barra com as casas concluídas, o tempo da execução e uma **estimativa do
-tempo restante** (calculada depois do primeiro minuto, pelas matérias raspadas
-por minuto), as contagens do projeto (buscas, matérias, PDFs) e uma linha para
-cada casa em andamento, com a etapa (`buscando 2/3`, `matérias 45/120`,
-`PDFs 3/40`). Acima do painel aparecem só as linhas de começo e fim de cada
-casa (`[sapl.x.leg.br] Concluída: 3 buscas, 120 matérias (2 com erro)`), os
-avisos e os erros. A linha de cada matéria, página de busca e PDF vai só para
-o log. Com as perguntas numeradas, no lugar do painel aparece uma linha de
-progresso a cada minuto, com o tempo restante.
+Depois de *Começar*, o terminal mostra as etapas, separadas por linhas em
+branco:
+
+```
+Projeto val_tui · AC · 23 palavras
+Etapa 1 de 2: testando os sites (22 casas)
+  20 de 22 casas no ar (fora: 2 dns)
+
+Etapa 2 de 2: busca e raspagem (20 casas, até 8 ao mesmo tempo)
+
+✓ sapl.feijo.ac.leg.br: 23 buscas, 12 matérias
+✓ sapl.xapuri.ac.leg.br: 23 buscas, 40 matérias (1 com erro)
+```
+
+Embaixo, um painel que se atualiza sozinho:
+
+```
+Projeto val_tui · AC · 20 casas no ar · 23 palavras
+──────────────────────────────────────────────────
+Casas      ━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━  8 de 20 concluídas (40%)
+Tempo      12 min 30 s · faltam ~25 min (estimativa)
+
+Buscas     380 de 460 completas
+Matérias   612 raspadas · 3 com erro
+PDFs       não pedidos
+
+Em andamento (3)
+  sapl.riobranco.ac.leg.br  matérias  45/1126  ╺━━━━━━━━━━━
+  sapl.cruzeirodosul.ac.leg.br  buscando  12/23  ━━━━━━╺━━━━━
+```
+
+A **estimativa do tempo restante** aparece depois do primeiro minuto,
+calculada pelas matérias raspadas por minuto. Acima do painel ficam só as casas
+concluídas (`✓`), os avisos e os erros; a linha de cada matéria, página de
+busca e PDF, e as falhas esperadas do teste dos sites, vão só para o log. Com
+as perguntas numeradas, no lugar do painel aparece a cada minuto um bloco de
+duas linhas: casas concluídas, em andamento e na fila; depois buscas,
+matérias, PDFs, tempo e tempo restante.
 
 No fim de cada execução aparece um resumo: casas pesquisadas, buscas
 incompletas, matérias encontradas, únicas, raspadas e com erro, downloads, o

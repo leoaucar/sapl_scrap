@@ -67,13 +67,17 @@ for ip, ts in sorted(envios.items(), key=str):
 > ≥ 10× smaller than `val_a_resultados_crus_casas.csv` (§2, project `par_8`),
 > and (b) option 3 on `par_8` with Ctrl+C halfway + resume and a browser spot
 > check of 5 matters, Rio Branco included (§5).
+>
+> (a) ✅ `par_8_paginas_busca.csv` is 121 KB vs 10.0 MB for
+> `val_a_resultados_crus_casas.csv` (≈ 83× smaller). (b) on a 300-matter
+> sample instead of all of `par_8` (user's choice, 2026-10-30): see §5.1.
 
 ## 0. Preconditions
 
 | # | Check | Result |
 |---|---|---|
 | 0.1 | Tasks T01–T13 ticked | ✅ (plus T15 from finding V1) |
-| 0.2 | CI green on the branch | ✅ run 40958816934 (`testes`, 3.10 + 3.12) |
+| 0.2 | CI green on the branch | ✅ run 40993687180 on the last commit (`testes`, 3.10 + 3.12) |
 | 0.3 | `pytest` offline < 60 s; coverage ≥ 95 % (AC 1) | ✅ time: 35 s · coverage: 99 % (349 tests; also 3.10 + pandas 2 locally) |
 | 0.4 | No new dependency in `pyproject.toml` (NFR-1) | ✅ `pyproject.toml` unchanged |
 | 0.5 | A hand-edited invalid `paralelo` (e.g. `limite_por_servidor: 10`) stops before any request with exit code 2 and a message naming the key | ✅ on a copy of `par_seq`: exit 2, `"paralelo.limite_por_servidor" = 10: … no mínimo 35`, 0 request lines in the new log. Cosmetic: "Buscando os termos" prints before the error (note for Phase 2b) |
@@ -146,6 +150,25 @@ On `par_8`: update mode (no `Relevante`), then option 3.
 |---|---|---|
 | Update: same keys, statuses `ok`, limits held | yes | ✅ `par_8_resultado_final_ATUALIZADO_29_10_2026.csv`: 1 190 rows, same keys and order, all `ok`, 28 min 58 s (21:09–21:38); 1 190 requests (names from the cache), host ≤ 35/60 s, server ≤ 70/60 s, 0 × 429 |
 | Option 3: `Autoria`/`Tramite` filled, `fonte_autoria` = `api`, limits held | yes | ✅ on the updated table: 1 190 `ok` / 1 190 `ok`, 0 errors, 1 h 01 min 45 s (21:38–22:40); `fonte_autoria` 1 189 `api`, 1 `api+html` (an isolated 404 on one list, as in spec 2); 2 564 requests, host ≤ 35/60 s, server ≤ 70/60 s, 0 × 429. Empty `Autoria` 62 / `Tramite` 376 (Rio Branco 61/363, AL 1/13): spot-checked RB 27827 and 41321, the API and the HTML page have no procedure entries |
+
+### 5.1 Option 3 with Ctrl+C and resume (carried over from spec 2, item b)
+
+Added on 2026-10-30. Input: a CSV with the first 150 matters of each house in
+`par_int_resultado_final.csv` (AL and Rio Branco, 300 matters), in
+`val_autoria_proj/`, through option 3 with a CSV path (no project cache).
+SIGINT sent by a script at 14:52:35; then a resume. Reference: the same
+input run once without interruption (`val_autoria_run_sem_ctrlc_proj/`,
+10 min 16 s). (A first attempt at the interruption did not stop: the
+script started the program with SIGINT ignored, a property of background
+jobs in non-interactive bash; fixed with `set -m`, not a program issue.)
+
+| Check | Expected | Result |
+|---|---|---|
+| Ctrl+C stops quickly, resume message, no traceback | yes | ✅ under 1 s at 105 of 300 (AL 48, RB 57); "Parando: esperando 2 casa(s)…", exit code 1, no traceback |
+| Resume skips what is done; only in-flight items requested twice | yes | ✅ "195 matérias a buscar, 105 já feitas"; 1 matter in both logs (AL 16733: its `autoria` request was sent at 14:52:16, before the stop, and it was not yet in the state file); 7 min 10 s |
+| Same result as an uninterrupted run | yes | ✅ 300 rows, same order; `Autoria`, `Tramite`, statuses, `fonte_autoria`, `erro` identical; 300 `ok` / 300 `ok`, `fonte_autoria` all `api` |
+| Limits over both runs | host ≤ 35, server ≤ 120 | ✅ AL 35, RB 35, server 70 per 60 s; 744 requests, all 200 |
+| Browser spot check of 5 matters (Rio Branco included) | `Autoria` and latest `Tramite` match the site | ✅ AL 16733, 16055, 3693; RB 38704, 42362 (empty `Tramite`, none on the site either): all match (checked by the user) |
 
 ## 6. Docs
 

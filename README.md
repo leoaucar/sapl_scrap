@@ -200,6 +200,15 @@ programa avisa no log e reduz esse limite pela metade até o fim da execução
 (nunca abaixo de 35). Nada se perde: as requisições esperam e são feitas de
 novo.
 
+Esses valores foram medidos nos sites reais (outubro de 2026). Com 50 casas
+e 23 palavras, o limite de 120 por minuto foi atingido e mantido sem nenhum
+`HTTP 429`. Com 175, a execução ficou 19 % mais rápida, mas as respostas mais
+lentas do servidor demoraram 1,5 vez mais, um sinal de sobrecarga: por isso o
+padrão ficou em 120. O ganho do paralelismo aparece quando muitas casas têm
+trabalho ao mesmo tempo. Se quase todas as matérias são de uma casa só (por
+exemplo, uma capital grande), a execução leva o tempo dessa casa, como numa
+casa por vez.
+
 Os valores ficam no `config.json` do projeto, na chave `paralelo`:
 
 ```json

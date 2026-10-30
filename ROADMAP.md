@@ -55,7 +55,10 @@ Com a Fase 2 (até 8 casas ao mesmo tempo, 120 requisições por minuto no
 servidor compartilhado), a raspagem fica cerca de **3,4 vezes mais rápida**
 que uma casa por vez: algo como **3 a 6 h** para a execução completa, e o
 teste das URLs cai para uns **15 min**. O limite do servidor é o que manda, não
-o número de casas; a validação da Fase 2 mede se ele pode subir.
+o número de casas. Na validação (29/10/2026, 50 casas e 23 palavras), 175 por
+minuto deixou a execução 19 % mais rápida sem nenhum 429, mas as respostas
+mais lentas pioraram 1,55 vez; o padrão ficou em 120 (próximo valor a testar:
+150, numa execução completa).
 
 ## 3. Bugs e riscos conhecidos
 
@@ -227,8 +230,11 @@ Estimativa: a execução completa passa a ser limitada pelo servidor
 compartilhado, não pela casa com mais matérias: **3 a 6 h** com 120
 requisições por minuto, em vez de 10–20 h (veja a seção 2).
 
-> Implementada na spec [`specs/2026-10-27-paralelismo/`](specs/2026-10-27-paralelismo/);
-> a validação contra os sites reais (`validation.md`) define os valores padrão finais.
+> **Situação:** Fase 2 concluída, validada contra os sites reais e no `main`
+> em 30/10/2026 (spec [`specs/2026-10-27-paralelismo/`](specs/2026-10-27-paralelismo/),
+> veja o `validation.md`). Valores padrão mantidos: 8 casas e 120 requisições
+> por minuto por servidor. Nas 10 casas do Acre não houve ganho (Rio Branco
+> sozinha leva ~45 min); o ganho aparece com muitas casas com trabalho.
 
 ### Fase 2b: Melhorar a usabilidade
 Revisão básica da interface de linha de comando e do fluxo de trabalho do

@@ -35,28 +35,44 @@ the menus mode running a real project end to end (searches started in 8
 houses at once). The second attempt routed all requests to a dead proxy and
 killed the program after a timeout.
 
-## 3. Pending: with the user (spec §8)
+## 3. Real-site validation (2026-10-30)
 
-Run in a real terminal on Linux, in the repository folder:
+Run by Claude at the user's request, in a real terminal emulated with a
+pseudo-terminal (`pty`, 110×40, the program sees a TTY and uses the arrow-key
+menus). The driver waits for each question's text before pressing keys and
+moves the cursor until `»` is on the wanted option, so nothing is chosen
+blind. Working folder `val_v04/` (untracked) with `palavras_chave.csv` =
+`plano diretor`; state RR, test with 10 houses (3 on line).
 
-- [ ] **V1 New project:** `sapyl` → Novo projeto → one state (e.g. AC) → teste
-      com 10 casas → PDFs não → Começar. Check: menus, confirmation text, the
-      live panel (bar, time left after the first minute, one row per house),
-      only start/finish lines above it, summary in a frame with "Próximos
-      passos", the authorship offer (answer *Não*).
-- [ ] **V2 Ctrl+C and resume:** in a second run, Ctrl+C during the matters.
-      Check: stops within seconds, message names "Retomar um projeto" and the
-      project; the list shows it as *interrompido*; resuming finishes it.
-- [ ] **V3 Authorship offer:** answer *Sim* once (small project). Check: runs
-      on that result, its own summary.
-- [ ] **V4 Numbered mode:** `SAPYL_MENUS=0 sapyl` and a piped run
-      (`printf '6\n' | sapyl`).
-- [ ] **V5 Windows terminal** (if available): menus, accents, panel. Otherwise
-      noted as not checked.
-- [ ] **V6 CI green** on the branch (needs a push).
-- [ ] **V7 Amendment (FR-23 to FR-25):** `← Voltar` through every question of a
-      new project (and `<` with `SAPYL_MENUS=0`); the run output in sections
-      (header, stages, `✓` lines, sectioned panel); the project lists newest
-      first with creation and update dates.
-- [ ] **V8 Docs for beginners:** someone new follows the README install
-      (ZIP download, venv, activation) on Windows or Linux without help.
+| # | Check | Result |
+|---|---|---|
+| V1 | New project in menus mode: keywords shown, name, states checkbox (RR marked with Space), "Teste com 10 casas", PDFs *Não*, confirmation, *Começar* | ✅ Stage lines, `✓` lines and the sectioned panel as designed (header, `Casas` bar `2 de 3 concluídas (67%)`, `Tempo`, `Buscas 3 de 3 completas`, `Matérias 5 raspadas · 0 com erro`, `PDFs não pedidos`, `Em andamento (1)` with `sapl.boavista.rr.leg.br matérias 5/35`) |
+| V2 | Ctrl+C after 5 matters, then *Retomar um projeto* → list → *Continuar* | ✅ Stopped within a second, exit 1, message `…escolha "Retomar um projeto" e depois "v04".`; the list showed `v04 — interrompido · criado em … · atualizado em …`; the resume scraped the 30 left and the project became *concluído* (35 matters) |
+| V3 | Authorship offer after the resume, answered *Sim* | ⚠️→✅ First run: all 35 authorships done, then the program **froze** before writing the output (all 14 threads waiting on locks; ptrace blocked, no stack). Not reproduced in two replays nor in a 30-round offline stress test. Fixed by drawing the panel in its own thread, outside `rich`'s locks (our locks were taken inside `rich`'s refresh), plus `kill -USR1 <pid>` now prints every thread's stack. Replay with the fix: authorship done, output written, `USR1` printout worked mid-run |
+| V4 | Numbered mode: `printf '6' \| sapyl`; `SAPYL_MENUS=0` with `<` to go back | ✅ |
+| V5 | Windows terminal | ⏭️ Not checked (no Windows machine available) |
+| V6 | CI on the branch and on `main` | ✅ `testes` and `pagina` green |
+| V7 | ← Voltar in menus mode: from the states list to the name, empty name to the main menu, from the confirmation to the PDF question | ✅ |
+| V8 | Install following the README (Linux) | ✅ with a finding: without `python3-venv`, `python3 -m venv` fails **and leaves a half-made `.venv`** that blocks the next try; README now says to delete it. (Checked with the ZIP download, later removed from the docs at the user's request; the steps after downloading are the same.) |
+
+### Issues found during the validation, all fixed on `main`
+
+1. **Freeze after the authorship offer** (V3): see the table.
+2. **State list: Enter without Space meant "all states"** (found by the user:
+   RJ under the cursor + Enter → a test with 10 Acre houses). Enter with
+   nothing marked is now refused with a message (spec FR-7 amended).
+3. **Time-left estimate too pessimistic** (V2: "faltam ~30 min" for 30
+   matters on one site at 35/min): the rate counted the search time before
+   the first matter; it now starts at the first matter.
+4. **Half-made `.venv`** (V8): README note.
+
+## 4. Server ceiling: 150 per minute (2026-10-30)
+
+Asked by the user after the 29/10 ramp (`specs/2026-10-27-paralelismo/validation.md`
+§7 kept 120 because 175 raised p95 1.55×). Same inputs as that ramp: the first
+50 houses (`limite` `'2'`, still read from `config.json`), the 23 education
+keywords, no PDFs, 8 houses at once; a fresh 120 baseline and then 150, 5
+minutes apart, one program at a time. Measures with the same script for both.
+
+RESULTADO_DA_RAMPA
+

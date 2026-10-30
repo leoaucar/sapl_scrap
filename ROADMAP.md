@@ -306,6 +306,9 @@ Decidir na spec o que vai para a Fase 7.
       desenho do plenário), em SVG e nos tamanhos PNG usuais, funcionando nos
       temas claro e escuro
 
+- [ ] **Conferir a interface no Windows** (menus com as setas, acentos, painel
+      ao vivo, Ctrl+C): ficou de fora da validação da Fase 2b, por falta de uma
+      máquina com Windows
 - [ ] **Logotipos da Ação Educativa e do Fundo Malala nos créditos da página:**
       os arquivos estão em `Visual_Identity/parceiros/`, mas **só entram no
       site depois do ok de cada organização** (pedir também a versão oficial

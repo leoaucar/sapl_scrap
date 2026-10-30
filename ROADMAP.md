@@ -242,12 +242,70 @@ projeto, do ponto de vista de quem pesquisa: as perguntas, as mensagens, os
 arquivos que aparecem na pasta do projeto e os passos para criar, retomar e
 atualizar um projeto.
 
-- [ ] Revisar as perguntas e mensagens do terminal (clareza, ordem, o que
+- [x] Revisar as perguntas e mensagens do terminal (clareza, ordem, o que
       acontece com respostas inválidas)
-- [ ] Revisar o fluxo de trabalho (novo, retomar, atualizar, autoria e
+- [x] Revisar o fluxo de trabalho (novo, retomar, atualizar, autoria e
       tramitação) e os arquivos gerados em cada um
-- [ ] Listar o que melhorar e decidir o que entra nesta fase e o que vai para
-      a Fase 7 (configuração e linha de comando)
+- [x] Listar o que melhorar e decidir o que entra nesta fase, o que vai para
+      a Fase 2c e o que vai para a Fase 7 (configuração e linha de comando)
+
+Spec [`specs/2026-10-30-interface-terminal/`](specs/2026-10-30-interface-terminal/)
+(revisão de 30/10/2026):
+
+- [ ] Menus com as setas do teclado (`questionary`), com as mesmas perguntas
+      numeradas quando o terminal não é interativo
+- [ ] Menu principal: novo projeto, retomar (escolhendo da lista), atualizar,
+      autoria e tramitação, ajuda, sair
+- [ ] Situação de cada projeto na lista (concluído, com falhas, interrompido,
+      não iniciado), sem fazer requisições
+- [ ] Estados escolhidos numa lista (com o atalho Sul e Sudeste) e "todas as
+      casas ou teste com 10"; aviso do tamanho dos PDFs
+- [ ] Palavras-chave lidas e mostradas antes de criar o projeto; arquivo
+      ausente ou errado gera uma mensagem clara, sem traceback e sem pasta
+      vazia
+- [ ] Tela de confirmação antes de começar (casas, buscas, PDFs): começar,
+      mudar as respostas ou cancelar
+- [ ] Terminal mais limpo durante a execução: barra de progresso, casas em
+      andamento e tempo restante estimado (`rich`); o detalhe vai só para o log
+- [ ] Resumo com os próximos passos e a oferta de buscar autoria e tramitação
+      do resultado logo em seguida
+
+### Fase 2c: Fluxo de trabalho e novas opções
+O que a revisão da Fase 2b encontrou no fluxo de trabalho e ficou para depois
+da interface (lista em `specs/2026-10-30-interface-terminal/spec.md`, §9).
+Decidir na spec o que vai para a Fase 7.
+
+**Novas opções no menu**
+- [ ] **Ampliar um projeto:** acrescentar palavras-chave ou estados a um
+      projeto existente, buscando só o que é novo e sem raspar de novo as
+      matérias que já estão lá (hoje é preciso criar outro projeto)
+- [ ] **Só contar os resultados:** fazer as buscas sem raspar as matérias e
+      mostrar quantos resultados cada palavra traz em cada casa, para testar
+      as palavras gastando pouco
+- [ ] **Baixar os PDFs depois:** baixar os textos de um projeto já pronto
+      (todos ou só os `Relevante`), sem raspar tudo de novo como no modo
+      atualização
+- [ ] **Testar a lista de casas** sozinha, fora de um projeto novo
+- [ ] **Configurações** no menu (casas ao mesmo tempo, limite por servidor),
+      em vez de editar o `config.json`
+
+**Arquivos e fluxo**
+- [ ] **Planilha que o Excel abre direito:** hoje o CSV sai em UTF-8 sem BOM
+      e separado por vírgula, e o Excel em português mostra os acentos
+      errados e tudo numa coluna. Gravar também um `.xlsx` ou um CSV que o
+      Excel lê corretamente
+- [ ] **Pasta do projeto mais limpa:** o resultado final fica no meio dos
+      arquivos internos (estado, páginas, links, matérias, cache, logs…); levar os internos para uma subpasta, lendo os
+      projetos antigos como estão
+- [ ] **Rodar o `sapyl` de qualquer pasta:** a planilha de casas junto com o
+      pacote e o arquivo de palavras num lugar conhecido (ou copiado para o
+      projeto ao criá-lo, para o projeto ficar completo)
+- [ ] **Retomar a busca da última página**, em vez de começar da página 1
+- [ ] **Modo atualização:** um arquivo `_ATUALIZADO_<dd_mm_aaaa>` por
+      execução (data num formato diferente do dos logs, `aaaa-mm-dd`); os
+      arquivos se acumulam
+- [ ] **Autoria e tramitação:** onde fica a saída (ao lado da entrada) e o
+      nome do arquivo
 
 ### Fase 3: Saída em banco SQL e armazenamento de documentos
 - [ ] Gravar os resultados em **SQLite** (padrão, um arquivo `.db` por projeto)

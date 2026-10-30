@@ -8,7 +8,8 @@ ou num painel ao vivo (modo menus, veja `PainelAoVivo`).
 `Tela` decide onde isso aparece e desenha o resumo do fim.
 
 Tempo restante (estimativa): só depois de 1 minuto e de pelo menos uma casa
-concluída. Trabalho que falta = matérias conhecidas e ainda não raspadas (das
+concluída. O ritmo conta desde a primeira matéria raspada (o tempo das
+buscas, antes dela, não entra). Trabalho que falta = matérias conhecidas e ainda não raspadas (das
 casas que já terminaram a busca) + casas que ainda não terminaram a busca ×
 média de matérias por casa concluída. Dividido pelas matérias por minuto nos
 últimos 5 minutos.
@@ -126,6 +127,7 @@ class Andamento:
         self.inicio = self.relogio()
         self._feitas: deque[tuple[float, int]] = deque()
         self._total_feitas = 0
+        self._primeira_feita: float | None = None  # quando saiu a 1ª matéria
 
     def comecar(self, total_casas: int) -> None:
         """Começa a contar uma fila de `total_casas` casas."""
@@ -166,8 +168,11 @@ class Andamento:
         if status is None:
             return
         if etapa in UNIDADES_DE_TRABALHO:
+            agora = self.relogio()
+            if self._primeira_feita is None:
+                self._primeira_feita = agora
             self._total_feitas += 1
-            self._feitas.append((self.relogio(), self._total_feitas))
+            self._feitas.append((agora, self._total_feitas))
         if etapa == registro.BUSCA:
             casa.buscas += 1
         elif etapa == registro.MATERIAS:
@@ -196,7 +201,9 @@ class Andamento:
             self._feitas.popleft()
         if not self._feitas:
             return 0.0
-        janela = min(JANELA_RITMO, agora - self.inicio)
+        # conta só desde a 1ª matéria: o tempo das buscas, antes dela, não é ritmo
+        desde = self._primeira_feita if self._primeira_feita is not None else self.inicio
+        janela = max(min(JANELA_RITMO, agora - desde), 1.0)
         antes = self._feitas[0][1] - 1
         return (self._total_feitas - antes) / janela if janela > 0 else 0.0
 

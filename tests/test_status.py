@@ -98,7 +98,7 @@ def test_tempo_restante_pelas_materias_por_minuto():
     modelo.receber(_registro('inicio'), B)
     _materias(modelo, relogio, B, 40, 100)
     # ritmo: 100 matérias em 100 s; falta: 60 (B) + 60 (C) = 120 -> 120 s
-    assert round(modelo.restante()) == 120
+    assert abs(modelo.restante() - 120) < 2
     assert modelo.progresso().endswith('Tempo 1 min 40 s, faltam ~2 min (estimativa)')
 
 
@@ -109,7 +109,7 @@ def test_tempo_restante_casa_ainda_buscando_vale_a_media():
     modelo.receber(_registro('fim'), A)
     modelo.receber(_registro('inicio'), B)
     modelo.receber(_registro(andamento=('busca', 1, 3, 'completa')), B)
-    assert round(modelo.restante()) == 90  # média 90, ritmo 1/s
+    assert abs(modelo.restante() - 90) < 2  # média 90, ritmo 1/s
 
 
 def test_ritmo_usa_so_os_ultimos_5_minutos():
@@ -256,3 +256,16 @@ def test_resumo_num_quadro_e_no_log(tmp_path):
     texto = console.export_text()
     assert '╭' in texto and 'Resultado: [x].csv' in texto and texto.count('Resumo') == 1
     assert 'Resultado: [x].csv' in next((tmp_path / 'logs').iterdir()).read_text(encoding='utf-8')
+
+
+def test_ritmo_conta_desde_a_primeira_materia():
+    """Achado da validação de 30/10: 7 min de busca faziam o ritmo parecer lento."""
+    modelo, relogio = _modelo(total=2)
+    modelo.receber(_registro('inicio'), A)
+    modelo.receber(_registro(andamento=('busca', 1, 1, 'completa')), A)
+    modelo.receber(_registro('fim'), A)  # casa sem matérias
+    modelo.receber(_registro('inicio'), B)
+    relogio.dormir(420)  # 7 min de busca
+    _materias(modelo, relogio, B, 5, 35, intervalo=60 / 35)  # 35 por minuto
+    # faltam 30 matérias a 35/min: menos de 1 minuto (antes dava ~30 min)
+    assert modelo.restante() < 60

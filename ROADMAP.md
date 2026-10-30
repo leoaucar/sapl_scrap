@@ -252,23 +252,30 @@ atualizar um projeto.
 Spec [`specs/2026-10-30-interface-terminal/`](specs/2026-10-30-interface-terminal/)
 (revisão de 30/10/2026):
 
-- [ ] Menus com as setas do teclado (`questionary`), com as mesmas perguntas
+- [x] Menus com as setas do teclado (`questionary`), com as mesmas perguntas
       numeradas quando o terminal não é interativo
-- [ ] Menu principal: novo projeto, retomar (escolhendo da lista), atualizar,
+- [x] Menu principal: novo projeto, retomar (escolhendo da lista), atualizar,
       autoria e tramitação, ajuda, sair
-- [ ] Situação de cada projeto na lista (concluído, com falhas, interrompido,
+- [x] Situação de cada projeto na lista (concluído, com falhas, interrompido,
       não iniciado), sem fazer requisições
-- [ ] Estados escolhidos numa lista (com o atalho Sul e Sudeste) e "todas as
+- [x] Estados escolhidos numa lista (com o atalho Sul e Sudeste) e "todas as
       casas ou teste com 10"; aviso do tamanho dos PDFs
-- [ ] Palavras-chave lidas e mostradas antes de criar o projeto; arquivo
+- [x] Palavras-chave lidas e mostradas antes de criar o projeto; arquivo
       ausente ou errado gera uma mensagem clara, sem traceback e sem pasta
       vazia
-- [ ] Tela de confirmação antes de começar (casas, buscas, PDFs): começar,
+- [x] Tela de confirmação antes de começar (casas, buscas, PDFs): começar,
       mudar as respostas ou cancelar
-- [ ] Terminal mais limpo durante a execução: barra de progresso, casas em
+- [x] Terminal mais limpo durante a execução: barra de progresso, casas em
       andamento e tempo restante estimado (`rich`); o detalhe vai só para o log
-- [ ] Resumo com os próximos passos e a oferta de buscar autoria e tramitação
+- [x] Resumo com os próximos passos e a oferta de buscar autoria e tramitação
       do resultado logo em seguida
+- [x] Depois do primeiro uso: *← Voltar* em cada pergunta, saída da execução
+      organizada em etapas e painel em seções, listas de projetos do mais
+      recente para o mais antigo (com as datas de criação e de atualização)
+
+> **Situação:** implementada e no `main` em 30/10/2026 (versão 0.4.0). A
+> validação nos sites reais com a pessoa (itens V1–V8 do `validation.md` da
+> spec) ainda está pendente; o merge foi feito antes dela, a pedido.
 
 ### Fase 2c: Fluxo de trabalho e novas opções
 O que a revisão da Fase 2b encontrou no fluxo de trabalho e ficou para depois

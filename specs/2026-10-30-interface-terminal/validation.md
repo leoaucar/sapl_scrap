@@ -2,7 +2,8 @@
 
 - **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Tasks:** [tasks.md](tasks.md)
 - **Branch:** `spec/2026-10-30-interface-terminal` · **Version:** 0.4.0
-- **Status:** In progress (offline checks done; real-site checks with the user pending)
+- **Status:** Merged into `main` on 2026-10-30 at the user's request, **before** the
+  real-site checks with the user (§3, V1–V8), which remain pending. Offline checks done.
 
 ## 1. Automated (offline)
 

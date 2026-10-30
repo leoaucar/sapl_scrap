@@ -9,8 +9,16 @@ import pytest
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.estado import Estado
 from sapyl.interface import principal as programa
+from sapyl.interface.perguntas import PerguntasTexto
 from sapyl.tabela import ler_final
-from tests.apoio import SaplFalso, roteiro
+from tests.apoio import (
+    SaplFalso,
+    respostas_atualizar,
+    respostas_autoria,
+    respostas_novo_projeto,
+    respostas_retomar,
+    roteiro,
+)
 
 A = 'https://sapl.a.ac.leg.br/'
 CV = 'sapl/sapl.cascavel.pr.leg.br/'
@@ -42,7 +50,8 @@ def cliente(sessao, relogio):
     return ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir)
 
 
-NOVO = ('1', 'teste', '2', '1', '1')  # novo projeto, nome, sem Sul/Sudeste, todas, downloads
+NOVO = respostas_novo_projeto(pdfs='s')  # todos os estados, todas as casas, com PDFs
+RETOMAR = respostas_retomar()
 
 
 def test_importar_nao_executa_nada():
@@ -78,8 +87,8 @@ def test_retomada_nao_pergunta_nada_e_so_refaz_o_que_falhou(projeto_tmp, cliente
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
     sapl._casas['sapl.a.ac.leg.br']['html']['43300'] = CV + 'materia_43301.html'
     sessao.pedidos.clear()
-    # só: não atualizar, nome, retomar. Uma pergunta a mais esvaziaria o roteiro.
-    assert programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp) == 0
+    # só: retomar, o projeto, continuar. Uma pergunta a mais esvaziaria o roteiro.
+    assert programa.main(roteiro(*RETOMAR), cliente, projeto_tmp) == 0
     assert not any('/sistema/search/' in u for u in sessao.pedidos)
     assert not any(u.endswith('/materia/38415') for u in sessao.pedidos)
     assert any(u.endswith('/materia/43300') for u in sessao.pedidos)
@@ -95,8 +104,10 @@ def test_tabela_de_casas_reaproveitada_e_filtrada(projeto_tmp, cliente, sessao, 
         'https://sapl.c.sp.leg.br/,False\n',
         encoding='utf-8',
     )
-    # novo projeto, nome, reusar tabela, Sul/Sudeste, todas, sem downloads
-    programa.main(roteiro('1', 'sul', '1', '1', '1', '2'), cliente, projeto_tmp)
+    respostas = respostas_novo_projeto('sul', tabela='1', estados='sul-sudeste')
+    assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 0
+    config = json.loads((projeto_tmp / 'sul_proj' / 'config.json').read_text(encoding='utf-8'))
+    assert config['estados'] == ['PR'] and 'sul_sudeste' not in config
     assert not any(u.rstrip('/').endswith('.leg.br') for u in sessao.pedidos)  # nenhum teste de URL
     assert not any('sapl.a.ac.leg.br' in u for u in sessao.pedidos)  # AC filtrado
     assert any('sapl.b.pr.leg.br/sistema/search' in u for u in sessao.pedidos)
@@ -105,7 +116,7 @@ def test_tabela_de_casas_reaproveitada_e_filtrada(projeto_tmp, cliente, sessao, 
 def test_modo_atualizacao(projeto_tmp, cliente, sessao, sapl):
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
     sessao.pedidos.clear()
-    assert programa.main(roteiro('2', 'teste', '2'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro(*respostas_atualizar('n')), cliente, projeto_tmp) == 0
     pasta = projeto_tmp / 'teste_proj'
     atualizados = sorted(p.name for p in pasta.glob('*_ATUALIZADO_*'))
     assert [n.split('_ATUALIZADO_')[0] for n in atualizados] == [
@@ -120,8 +131,9 @@ def test_modo_atualizacao(projeto_tmp, cliente, sessao, sapl):
 
 def test_modo_atualizacao_com_downloads_duas_vezes(projeto_tmp, cliente, sessao, sapl):
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
-    programa.executar_atualizacao(projeto_tmp, cliente, roteiro('teste', '1'), hoje='01_01_2027')
-    programa.executar_atualizacao(projeto_tmp, cliente, roteiro('teste', '1'), hoje='01_01_2027')
+    for _ in range(2):
+        perguntas = PerguntasTexto(roteiro('1', 's', '1'))  # projeto, PDFs, continuar
+        programa.executar_atualizacao(projeto_tmp, cliente, perguntas, hoje='01_01_2027')
     assert (
         projeto_tmp / 'teste_proj' / 'downloads01_01_2027' / 'sapl.a.ac.leg.br_38415.pdf'
     ).exists()
@@ -132,7 +144,7 @@ def test_ctrl_c_sai_com_mensagem(projeto_tmp, cliente, capsys):
         raise KeyboardInterrupt
 
     assert programa.main(interromper, cliente, projeto_tmp) == 1
-    assert 'retomar' in capsys.readouterr().out
+    assert 'Interrompido. Nada foi iniciado.' in capsys.readouterr().out
 
 
 def test_ctrl_c_no_meio_da_raspagem_permite_retomar(
@@ -183,7 +195,7 @@ def test_fim_da_entrada_numa_pergunta_sai_com_mensagem(projeto_tmp, cliente, cap
         raise EOFError
 
     assert programa.main(sem_mais_respostas, cliente, projeto_tmp) == 1
-    assert 'retomar' in capsys.readouterr().out
+    assert 'Interrompido. Nada foi iniciado.' in capsys.readouterr().out
 
 
 def test_boas_vindas_e_resumo_com_o_nome_sapyl(projeto_tmp, cliente, sessao, sapl, caplog, capsys):
@@ -210,7 +222,7 @@ def test_retomada_avisa_palavras_mudadas_e_usa_as_salvas(
     _palavras(projeto_tmp, 'plano diretor', 'saneamento')  # saiu "orçamento, ..."; entrou uma
     sessao.pedidos.clear()
     with caplog.at_level(logging.WARNING, logger='sapyl'):
-        assert programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp) == 0
+        assert programa.main(roteiro(*RETOMAR), cliente, projeto_tmp) == 0
     aviso = next(r.getMessage() for r in caplog.records if 'palavras-chave mudou' in r.getMessage())
     assert 'Novas no arquivo (não serão buscadas): "saneamento"' in aviso
     assert f'Do projeto, fora do arquivo (continuam): {ORC}' in aviso
@@ -223,7 +235,7 @@ def test_retomada_avisa_palavras_mudadas_e_usa_as_salvas(
 def test_sem_aviso_quando_as_palavras_sao_iguais(projeto_tmp, cliente, sessao, sapl, caplog):
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
     with caplog.at_level(logging.WARNING, logger='sapyl'):
-        programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp)
+        programa.main(roteiro(*RETOMAR), cliente, projeto_tmp)
     assert not any('palavras-chave mudou' in r.getMessage() for r in caplog.records)
 
 
@@ -252,10 +264,10 @@ def test_atualizacao_mantem_colunas_e_filtra_relevantes(projeto_tmp, cliente, se
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
     _marcar(projeto_tmp, {'38415': ' Sim', '43300': 'x'})
     sessao.pedidos.clear()
-    ler = roteiro('2', 'teste', '1', '2')  # atualizar, nome, só relevantes, sem downloads
+    ler = roteiro(*respostas_atualizar('s', 'n'))  # só relevantes, sem downloads
     with caplog.at_level(logging.INFO, logger='sapyl'):
         assert programa.main(ler, cliente, projeto_tmp) == 0
-    assert programa.PERGUNTA_RELEVANTES in ler.perguntas
+    assert any(programa.PERGUNTA_RELEVANTES in p for p in ler.perguntas)
     final = _atualizado(projeto_tmp)
     assert final['sapl_id'].tolist() == ['38415', '43300']
     assert list(final.columns)[-2:] == ['Relevante', 'Notas']
@@ -268,7 +280,7 @@ def test_atualizacao_mantem_colunas_e_filtra_relevantes(projeto_tmp, cliente, se
 def test_atualizacao_sem_filtro_mantem_todas_e_as_colunas(projeto_tmp, cliente, sessao, sapl):
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
     _marcar(projeto_tmp, {'38415': 'sim'})
-    assert programa.main(roteiro('2', 'teste', '2', '2'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro(*respostas_atualizar('n', 'n')), cliente, projeto_tmp) == 0
     final = _atualizado(projeto_tmp)
     assert final['sapl_id'].tolist() == ['38415', '43301', '43300', '42263']
     assert final['Relevante'].tolist() == ['sim', '', '', '']
@@ -276,9 +288,9 @@ def test_atualizacao_sem_filtro_mantem_todas_e_as_colunas(projeto_tmp, cliente, 
 
 def test_sem_coluna_relevante_nao_pergunta(projeto_tmp, cliente, sessao, sapl):
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
-    ler = roteiro('2', 'teste', '2')
+    ler = roteiro(*respostas_atualizar('n'))
     assert programa.main(ler, cliente, projeto_tmp) == 0
-    assert programa.PERGUNTA_RELEVANTES not in ler.perguntas
+    assert not any(programa.PERGUNTA_RELEVANTES in p for p in ler.perguntas)
 
 
 # --- Opção 3: autoria e tramitação (FR-7, FR-17) ----------------------------
@@ -291,10 +303,13 @@ def _sapl_sem_api_de_autoria(sessao, casa, *ids):
             sessao.responder(f'{casa}materia/{i}/{lista}', texto='<p>sem tabela</p>')
 
 
-def test_menu_tem_tres_opcoes():
-    assert '1- novo projeto' in programa.PERGUNTA_MODO
-    assert '2- atualizar' in programa.PERGUNTA_MODO
-    assert '3- autoria e tramitação' in programa.PERGUNTA_MODO
+def test_menu_principal_no_modo_texto(projeto_tmp, cliente):
+    ler = roteiro('6')
+    assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert ler.perguntas[0] == (
+        'O que você quer fazer?\n1- Novo projeto\n2- Retomar um projeto\n'
+        '3- Atualizar um projeto\n4- Autoria e tramitação\n5- Ajuda\n6- Sair\n'
+    )
 
 
 def test_autoria_de_um_projeto_usa_o_resultado_mais_recente(projeto_tmp, cliente, sessao, sapl):
@@ -306,7 +321,7 @@ def test_autoria_de_um_projeto_usa_o_resultado_mais_recente(projeto_tmp, cliente
     ler_final(pasta / 'teste_resultado_final.csv').head(1).to_csv(atualizado, index=False)
     os.utime(atualizado, (2_000_000_000, 2_000_000_000))  # mais novo
     _sapl_sem_api_de_autoria(sessao, A, '38415')
-    assert programa.main(roteiro('3', 'teste'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro(*respostas_autoria()), cliente, projeto_tmp) == 0
     saida = pasta / 'teste_resultado_final_ATUALIZADO_01_01_2027_autoria_tramitacao.csv'
     assert ler_final(saida)['sapl_id'].tolist() == ['38415']
     assert list((pasta / 'logs').glob('teste_*_autoria.log'))
@@ -317,16 +332,18 @@ def test_autoria_de_um_csv_avulso(projeto_tmp, cliente, sessao, sapl, capsys):
     planilhas.mkdir()
     (planilhas / 'minha.csv').write_text(f'Link Materia\n{A}materia/43301\n', encoding='utf-8')
     _sapl_sem_api_de_autoria(sessao, A, '43301')
-    ler = roteiro('3', 'nao_existe', 'planilhas/minha.csv')
+    # sem projetos na pasta: pergunta direto o caminho do CSV
+    ler = roteiro('4', 'nao_existe.csv', 'planilhas/minha.csv', '1')
     assert programa.main(ler, cliente, projeto_tmp) == 0
-    assert 'Não encontrei o projeto nem o arquivo "nao_existe"' in capsys.readouterr().out
+    assert 'Não encontrei o arquivo CSV "nao_existe.csv"' in capsys.readouterr().out
     assert (planilhas / 'minha_autoria_tramitacao.csv').exists()
     assert (planilhas / 'minha_autoria_tramitacao_estado.csv').exists()
     assert list((planilhas / 'logs').glob('minha_*_autoria.log'))
 
 
 def test_ctrl_c_na_autoria_explica_como_retomar(projeto_tmp, cliente, capsys):
-    respostas = iter(['3'])
+    (projeto_tmp / 'minha.csv').write_text(f'Link Materia\n{A}materia/1\n', encoding='utf-8')
+    respostas = iter(['4', 'minha.csv'])  # Ctrl+C na confirmação
 
     def ler(texto=''):
         try:
@@ -335,7 +352,8 @@ def test_ctrl_c_na_autoria_explica_como_retomar(projeto_tmp, cliente, capsys):
             raise KeyboardInterrupt from None
 
     assert programa.main(ler, cliente, projeto_tmp) == 1
-    assert 'escolha 3 e digite a mesma entrada' in capsys.readouterr().out
+    saida = capsys.readouterr().out
+    assert 'escolha "Autoria e tramitação" e de novo' in saida and 'minha.csv' in saida
 
 
 # --- `paralelo` no config.json (TR-7) -----------------------------------------
@@ -353,7 +371,7 @@ def test_projeto_antigo_sem_paralelo_usa_os_padroes(projeto_tmp, cliente, sessao
     config = json.loads(arquivo.read_text(encoding='utf-8'))
     del config['paralelo']
     arquivo.write_text(json.dumps(config), encoding='utf-8')
-    assert programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro(*RETOMAR), cliente, projeto_tmp) == 0
     assert 'paralelo' not in json.loads(arquivo.read_text(encoding='utf-8'))
 
 
@@ -366,7 +384,7 @@ def _estragar_paralelo(pasta, valor):
 
 @pytest.mark.parametrize(
     'respostas',
-    [('1', 'teste', '1'), ('2', 'teste', '2'), ('3', 'teste')],
+    [('2', '1'), ('3', '1'), ('4', '1')],  # o projeto escolhido; nada mais é perguntado
     ids=['retomada', 'atualizacao', 'autoria'],
 )
 def test_valor_invalido_para_antes_de_qualquer_requisicao(
@@ -430,14 +448,14 @@ def test_erro_inesperado_numa_casa_nao_perde_as_outras(
     monkeypatch.setattr(materias, 'raspar_materia', quebrar_uma_casa)
     with caplog.at_level(logging.ERROR, logger='sapyl'):
         assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 1
-    assert 'escolha "retomar"' in capsys.readouterr().out
+    assert 'escolha "Retomar um projeto" e depois "teste"' in capsys.readouterr().out
     assert any('1 casa(s) pararam' in r.getMessage() for r in caplog.records)
     assert any(r.exc_info for r in caplog.records)  # o traceback vai para o log
     estado = Estado(projeto_tmp / 'teste_proj' / 'teste_estado.csv')
     assert estado.contagens('busca') == {'completa': 4}  # as buscas das duas casas
     estado.fechar()
     monkeypatch.setattr(materias, 'raspar_materia', original)
-    assert programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro(*RETOMAR), cliente, projeto_tmp) == 0
     final = ler_final(projeto_tmp / 'teste_proj' / 'teste_resultado_final.csv')
     assert final['sapl_id'].tolist() == ['38415', '43301', '43300', '42263']
 
@@ -448,3 +466,116 @@ def test_texto_do_progresso(tmp_path):
     estado.registrar('materia', 'h/2', 'erro', 'x')
     assert programa.progresso_das_materias(estado) == 'matérias: 1 raspadas, 1 com erro'
     estado.fechar()
+
+
+# --- Menu, conferências antes de perguntar e confirmação (FR-3 a FR-16) -------
+
+
+def test_ajuda_e_sair(projeto_tmp, cliente, capsys):
+    assert programa.main(roteiro('5', '6'), cliente, projeto_tmp) == 0
+    saida = capsys.readouterr().out
+    assert 'Ajuda do SAPyL' in saida and 'palavras_chave.csv' in saida
+
+
+def test_retomar_sem_projetos_volta_ao_menu(projeto_tmp, cliente, capsys):
+    assert programa.main(roteiro('2', '3', '6'), cliente, projeto_tmp) == 0
+    saida = capsys.readouterr().out
+    assert 'Nenhum projeto nesta pasta' in saida
+    assert 'Nenhum projeto com resultado final' in saida
+
+
+@pytest.mark.parametrize('falta', ['palavras', 'coluna', 'planilha'])
+def test_entradas_erradas_param_antes_de_perguntar_o_nome(
+    projeto_tmp, cliente, sessao, capsys, falta
+):
+    pasta = projeto_tmp / 'arquivos_csv'
+    if falta == 'palavras':
+        (pasta / 'palavras_chave.xlsx').unlink()
+    elif falta == 'coluna':
+        (pasta / 'palavras_chave.csv').write_text('Termos\nx\n', encoding='utf-8')
+    else:
+        (pasta / 'casas_legislativas.xlsx').unlink()
+    ler = roteiro('1')
+    assert programa.main(ler, cliente, projeto_tmp) == 2
+    assert len(ler.perguntas) == 1  # só o menu
+    saida = capsys.readouterr().out
+    assert {
+        'palavras': 'Não encontrei o arquivo de palavras-chave',
+        'coluna': 'não tem a coluna',
+        'planilha': 'Não encontrei a planilha',
+    }[falta] in saida
+    assert 'Traceback' not in saida
+    assert not list(projeto_tmp.glob('*_proj')) and sessao.pedidos == []
+
+
+def test_palavras_aparecem_em_texto_simples_e_confirmacao(
+    projeto_tmp, cliente, sessao, sapl, capsys
+):
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    saida = capsys.readouterr().out
+    assert (
+        '  1. plano diretor\n  2. orçamento + emenda impositiva (juntos na mesma matéria)' in saida
+    )
+    assert 'Casas: 3 (o programa testa quais estão no ar antes de buscar)' in saida
+    assert 'Buscas: até 6 (casas × palavras)' in saida
+    assert 'PDFs: sim' in saida and 'Estados: todos' in saida
+    assert '"plano+diretor"' not in saida.split('Resumo')[0]
+
+
+def test_cancelar_nao_cria_nada(projeto_tmp, cliente, sessao, capsys):
+    respostas = respostas_novo_projeto()[:-1] + ['3']
+    assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 0
+    assert 'Cancelado. Nada foi feito.' in capsys.readouterr().out
+    assert not list(projeto_tmp.glob('*_proj')) and sessao.pedidos == []
+
+
+def test_mudar_respostas_pergunta_de_novo(projeto_tmp, cliente, sessao, sapl):
+    # primeiro: só SP, teste com 10; depois muda para AC e PR, todas
+    respostas = ['1', 'teste', 'SP', '2', 'n', '2', 'AC PR', '1', 'n', '1']
+    assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 0
+    config = json.loads((projeto_tmp / 'teste_proj' / 'config.json').read_text(encoding='utf-8'))
+    assert config['estados'] == ['AC', 'PR'] and config['limite'] == '1'
+    assert not any('sapl.c.sp.leg.br' in u for u in sessao.pedidos)
+    # com filtro de estados, a tabela geral de casas não é trocada
+    assert not (projeto_tmp / 'arquivos_csv' / 'casas_resultado.csv').exists()
+
+
+def test_cancelar_a_retomada(projeto_tmp, cliente, sessao, sapl, capsys):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    sessao.pedidos.clear()
+    assert programa.main(roteiro('2', '1', '2'), cliente, projeto_tmp) == 0
+    assert sessao.pedidos == [] and 'Cancelado' in capsys.readouterr().out
+
+
+def test_nome_existente_pode_ser_retomado_pelo_novo(projeto_tmp, cliente, sessao, sapl):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    # novo, nome que existe, retomar este projeto, continuar
+    assert programa.main(roteiro('1', 'teste', '1', '1'), cliente, projeto_tmp) == 0
+    logs = list((projeto_tmp / 'teste_proj' / 'logs').glob('*_retomada.log'))
+    assert len(logs) == 1
+
+
+@pytest.mark.parametrize(
+    'antiga,casas',
+    [
+        ({'sul_sudeste': True, 'limite': '1'}, ['sapl.b.pr.leg.br', 'sapl.c.sp.leg.br']),
+        (
+            {'sul_sudeste': False, 'limite': '3'},
+            ['sapl.a.ac.leg.br', 'sapl.b.pr.leg.br', 'sapl.c.sp.leg.br'],
+        ),
+        (
+            {'sul_sudeste': False, 'limite': '2'},
+            ['sapl.a.ac.leg.br', 'sapl.b.pr.leg.br', 'sapl.c.sp.leg.br'],
+        ),
+    ],
+)
+def test_config_antiga_retoma_com_as_mesmas_casas(
+    projeto_tmp, cliente, sessao, sapl, antiga, casas
+):
+    projeto = programa.gp.Projeto(projeto_tmp, 'velho')
+    projeto.criar()
+    config = {'palavras': [P], 'reusar_tabela': False, 'downloads': False, **antiga}
+    programa.gp.salvar_config(projeto, config)
+    assert programa.main(roteiro(*RETOMAR), cliente, projeto_tmp) == 0
+    tabela = programa.cl.ler_tabela_casas(projeto.casas)
+    assert [u.split('//')[1].rstrip('/') for u in tabela['url']] == casas

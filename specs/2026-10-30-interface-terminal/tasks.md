@@ -36,7 +36,7 @@ Rules for every task (same as earlier specs):
 
 ## Phase B: Flows
 
-- [ ] **T04 Main menu, lists, help and new project** (FR-3 to FR-16; plan §6.1–6.4)
+- [x] **T04 Main menu, lists, help and new project** (FR-3 to FR-16; plan §6.1–6.4)
   - New menu loop, `ajuda.py`, project lists with status, update and authors
     choosers (with `Outro arquivo CSV…`).
   - New-project flow: keywords first, name, house list, states, how many,

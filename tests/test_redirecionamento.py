@@ -12,7 +12,7 @@ from sapyl.estado import Cache, Estado, ler_csv
 from sapyl.interface import principal as programa
 from sapyl.links import base_da_casa, endereco_final, links_da_pagina, no_endereco, normalizar_link
 from sapyl.tabela import ler_final
-from tests.apoio import SaplFalso, roteiro
+from tests.apoio import SaplFalso, respostas_novo_projeto, roteiro
 from tests.test_materias import _link, _responder_consultas
 
 ANTIGO = 'https://sapl.antigo.ac.leg.br/'
@@ -152,7 +152,7 @@ def test_projeto_com_casa_que_redireciona(projeto_tmp, cliente, sessao):
     pd.DataFrame({'UF': ['AC'], 'URL do serviço': [ANTIGO]}).to_excel(
         projeto_tmp / 'arquivos_csv' / 'casas_legislativas.xlsx', index=False
     )
-    assert programa.main(roteiro('1', 'r', '2', '1', '2'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro(*respostas_novo_projeto('r')), cliente, projeto_tmp) == 0
     assert [u for u in sessao.pedidos if u.startswith(ANTIGO)] == [ANTIGO]
     final = ler_final(projeto_tmp / 'r_proj' / 'r_resultado_final.csv')
     assert final['Link Casa'].tolist() == [ANTIGO, ANTIGO]

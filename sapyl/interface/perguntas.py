@@ -132,7 +132,7 @@ class PerguntasTexto:
         exemplos = ', '.join(f'{a.valor} ({a.rotulo})' for a in atalhos)
         pergunta = (
             f'{texto}\nDigite separados por vírgula ou espaço '
-            f'({", ".join(o.valor for o in opcoes)}), ou {exemplos}. Enter: todas.\n'
+            f'({", ".join(o.valor for o in opcoes)}), ou {exemplos}. Enter: todos.\n'
         )
         while True:
             partes = [p for p in re.split(r'[,\s]+', self._ler(pergunta).lower()) if p]

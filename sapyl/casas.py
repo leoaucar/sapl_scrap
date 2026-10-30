@@ -1,4 +1,4 @@
-"""Lista de casas legislativas: leitura, teste de quais estão no ar, filtros.
+"""Lista de casas legislativas: leitura, teste de quais estão no ar, filtros por estado e limite.
 
 A tabela de casas (`casas_resultado.csv`) tem as colunas
 `url, ativa, motivo, uf`. Tabelas antigas, com as colunas `0` (url) e `1`
@@ -28,17 +28,6 @@ LIMITE_TESTE = '4'
 CASAS_NO_TESTE = 10
 
 COLUNAS_PLANILHA = ('UF', 'URL do serviço')
-
-# Opções do menu de limite de casas (para testes)
-OPCOES_LIMITE = {
-    '1': 'todas as casas',
-    '2': '50 primeiras casas',
-    '3': '50 últimas casas',
-    '4': 'apenas 10 casas',
-}
-PERGUNTA_LIMITE = 'Deseja limitar sua busca para teste?\n' + ''.join(
-    f'{k}- {v}\n' for k, v in OPCOES_LIMITE.items()
-)
 
 log = registro.logger('casas')
 
@@ -158,11 +147,6 @@ def salvar_tabela_casas(casas: pd.DataFrame, caminho: str | Path) -> None:
     casas.reindex(columns=COLUNAS_CASAS, fill_value='').to_csv(caminho, index=False)
 
 
-def filtrar_sul_sudeste(casas: pd.DataFrame) -> pd.DataFrame:
-    """Só as casas dos estados de ESTADOS_SUL_SUDESTE."""
-    return casas[casas['uf'].isin(ESTADOS_SUL_SUDESTE)].reset_index(drop=True)
-
-
 def ufs(casas: pd.DataFrame) -> list[str]:
     """As UFs da tabela, em ordem alfabética, sem repetir nem vazias."""
     return sorted({str(u) for u in casas['uf'] if str(u).strip()})
@@ -177,7 +161,8 @@ def filtrar_estados(casas: pd.DataFrame, estados: Iterable[str]) -> pd.DataFrame
 
 
 def limitar_casas(casas: pd.DataFrame, opcao: str) -> pd.DataFrame:
-    """Aplica a opção do menu de limite (veja OPCOES_LIMITE)."""
+    """Aplica `limite` do config.json: '1' todas, '4' as 10 primeiras (teste);
+    '2' e '3' (50 primeiras, 50 últimas) só em projetos antigos."""
     opcao = str(opcao)
     if opcao == '2':
         casas = casas[:50]

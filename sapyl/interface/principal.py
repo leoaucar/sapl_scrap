@@ -58,6 +58,7 @@ from sapyl.estado import ArquivoCSV, Cache, Estado
 from sapyl.interface import ajuda, status
 from sapyl.interface.entrada import (
     abrir_ou_criar,
+    em_passos,
     escolher_entrada_autoria,
     escolher_projeto,
     rotulo_do_projeto,
@@ -68,6 +69,7 @@ from sapyl.interface.perguntas import (
     Opcao,
     Perguntas,
     PerguntasMenu,
+    Voltar,
     criar_perguntas,
 )
 from sapyl.links import (
@@ -114,12 +116,8 @@ PERGUNTA_DOWNLOAD = (
     'Baixar os textos originais (PDFs)? Cerca de 10 MB por matéria; uma execução '
     'completa pode passar de 100 GB.'
 )
-COMECAR, MUDAR, CANCELAR = 'comecar', 'mudar', 'cancelar'
-OPCOES_CONFIRMAR_NOVO = [
-    Opcao('Começar', COMECAR),
-    Opcao('Mudar respostas', MUDAR),
-    Opcao('Cancelar', CANCELAR),
-]
+COMECAR, CANCELAR = 'comecar', 'cancelar'
+OPCOES_CONFIRMAR_NOVO = [Opcao('Começar', COMECAR), Opcao('Cancelar', CANCELAR)]
 CONTINUAR = 'continuar'
 OPCOES_CONTINUAR = [Opcao('Continuar', CONTINUAR), Opcao('Cancelar', CANCELAR)]
 MENSAGEM_CANCELADO = 'Cancelado. Nada foi feito.'
@@ -201,17 +199,32 @@ class Respostas:
 
 
 def perguntar_configuracao(
-    raiz: str | Path, perguntas: Perguntas, planilha: pd.DataFrame
+    raiz: str | Path,
+    perguntas: Perguntas,
+    planilha: pd.DataFrame,
+    voltar: bool = False,
+    confirmar: Callable[[Respostas], None] | None = None,
 ) -> Respostas:
-    """Lista de casas, estados, quantas casas e PDFs (FR-6 a FR-9)."""
+    """Lista de casas, estados, quantas casas e PDFs (FR-6 a FR-9), um passo de cada vez.
+
+    `← Voltar` repete a pergunta anterior, com as respostas guardadas; no
+    primeiro passo, lança `Voltar` (com `voltar`). `confirmar(respostas)` é
+    um último passo (a tela de confirmação), que também pode voltar.
+    """
     tabela_global = _pasta_csv(raiz) / 'casas_resultado.csv'
     testadas = None
-    reusar = False
     if tabela_global.exists():
         testadas = cl.ler_tabela_casas(tabela_global, _pasta_csv(raiz) / 'casas_legislativas.xlsx')
+    r = Respostas(False, [], cl.LIMITE_TODAS, False, 0)
+
+    def base() -> pd.DataFrame:
+        return testadas[testadas['ativa']] if r.reusar_tabela and testadas is not None else planilha
+
+    def tabela() -> None:
+        assert testadas is not None
         data = datetime.fromtimestamp(tabela_global.stat().st_mtime).strftime('%d/%m/%Y')
         no_ar = int(testadas['ativa'].sum())
-        reusar = (
+        r.reusar_tabela = (
             perguntas.escolher(
                 'Lista de casas legislativas',
                 [
@@ -220,28 +233,43 @@ def perguntar_configuracao(
                     ),
                     Opcao('Testar os sites de novo (pode levar até ~15 min)', 'n'),
                 ],
+                voltar=voltar,
             )
             == 's'
         )
-    base = testadas[testadas['ativa']] if reusar and testadas is not None else planilha
-    opcoes_ufs = [Opcao(uf, uf) for uf in cl.ufs(base)]
-    estados = perguntas.marcar(PERGUNTA_ESTADOS, opcoes_ufs, ATALHOS_ESTADOS)
-    if len(estados) == len(opcoes_ufs):
-        estados = []  # todos marcados = todos
-    total = len(cl.filtrar_estados(base, estados))
-    limite = perguntas.escolher(
-        PERGUNTA_QUANTAS,
-        [
-            Opcao(f'Todas as casas dos estados escolhidos ({_numero(total)})', cl.LIMITE_TODAS),
-            Opcao(
-                f'Teste com {cl.CASAS_NO_TESTE} casas (bom para conferir as palavras)',
-                cl.LIMITE_TESTE,
-            ),
-        ],
-    )
-    casas = total if limite == cl.LIMITE_TODAS else min(total, cl.CASAS_NO_TESTE)
-    downloads = perguntas.sim_nao(PERGUNTA_DOWNLOAD)
-    return Respostas(reusar, estados, limite, downloads, casas)
+
+    def estados() -> None:
+        opcoes_ufs = [Opcao(uf, uf) for uf in cl.ufs(base())]
+        marcados = perguntas.marcar(
+            PERGUNTA_ESTADOS, opcoes_ufs, ATALHOS_ESTADOS, voltar=voltar or testadas is not None
+        )
+        r.estados = [] if len(marcados) == len(opcoes_ufs) else marcados  # todos = todos
+
+    def quantas() -> None:
+        total = len(cl.filtrar_estados(base(), r.estados))
+        r.limite = perguntas.escolher(
+            PERGUNTA_QUANTAS,
+            [
+                Opcao(f'Todas as casas dos estados escolhidos ({_numero(total)})', cl.LIMITE_TODAS),
+                Opcao(
+                    f'Teste com {cl.CASAS_NO_TESTE} casas (bom para conferir as palavras)',
+                    cl.LIMITE_TESTE,
+                ),
+            ],
+            voltar=True,
+        )
+        r.casas = total if r.limite == cl.LIMITE_TODAS else min(total, cl.CASAS_NO_TESTE)
+
+    def pdfs() -> None:
+        r.downloads = perguntas.sim_nao(PERGUNTA_DOWNLOAD, voltar=True)
+
+    passos: list[Callable[[], object]] = [estados, quantas, pdfs]
+    if testadas is not None:
+        passos.insert(0, tabela)
+    if confirmar is not None:
+        passos.append(lambda: confirmar(r))
+    em_passos(passos)
+    return r
 
 
 def texto_de_confirmacao(
@@ -577,31 +605,57 @@ def executar_atualizacao(
     pessoa voltou ao menu ou cancelou (`contexto.nome` diz qual dos dois).
     """
     contexto = contexto or Contexto('atualizar')
-    base = escolher_projeto(raiz, perguntas, 'Qual projeto atualizar?', so_com_resultado=True)
-    if base is None:
-        return None
-    paralelo = ler_paralelo(base)
-    tabela = ler_final(base.final)
-    so_relevantes = COLUNA_RELEVANTE in tabela.columns and perguntas.sim_nao(PERGUNTA_RELEVANTES)
-    downloads = perguntas.sim_nao(PERGUNTA_DOWNLOAD)
     hoje = hoje or datetime.now().strftime('%d_%m_%Y')
-    projeto = gp.Projeto(raiz, base.nome, data=hoje)
-    n = len(filtrar_relevantes(tabela)) if so_relevantes else len(tabela)
-    perguntas.mostrar(
-        '\n'.join(
-            [
-                '',
-                f'Projeto: {rotulo_do_projeto(base)}',
-                f'Matérias a atualizar: {_numero(n)}'
-                + (' (só as relevantes)' if so_relevantes else ''),
-                'PDFs: ' + ('sim' if downloads else 'não'),
-                f'Resultado: {projeto.final.name}',
-                '',
-            ]
-        )
-    )
+    while True:
+        base = escolher_projeto(raiz, perguntas, 'Qual projeto atualizar?', so_com_resultado=True)
+        if base is None:
+            return None
+        paralelo = ler_paralelo(base)
+        tabela = ler_final(base.final)
+        projeto = gp.Projeto(raiz, base.nome, data=hoje)
+        r: dict[str, Any] = {'relevantes': False, 'downloads': False}
+
+        def relevantes(r: dict[str, Any] = r) -> None:
+            r['relevantes'] = perguntas.sim_nao(PERGUNTA_RELEVANTES, voltar=True)
+
+        def pdfs(r: dict[str, Any] = r) -> None:
+            r['downloads'] = perguntas.sim_nao(PERGUNTA_DOWNLOAD, voltar=True)
+
+        def confirmar(
+            r: dict[str, Any] = r,
+            base: gp.Projeto = base,
+            tabela: pd.DataFrame = tabela,
+            projeto: gp.Projeto = projeto,
+        ) -> None:
+            n = len(filtrar_relevantes(tabela)) if r['relevantes'] else len(tabela)
+            perguntas.mostrar(
+                '\n'.join(
+                    [
+                        '',
+                        f'Projeto: {rotulo_do_projeto(base)}',
+                        f'Matérias a atualizar: {_numero(n)}'
+                        + (' (só as relevantes)' if r['relevantes'] else ''),
+                        'PDFs: ' + ('sim' if r['downloads'] else 'não'),
+                        f'Resultado: {projeto.final.name}',
+                        '',
+                    ]
+                )
+            )
+            r['escolha'] = perguntas.escolher(
+                'Começar a atualização?', OPCOES_CONTINUAR, voltar=True
+            )
+
+        passos = [pdfs, confirmar]
+        if COLUNA_RELEVANTE in tabela.columns:
+            passos.insert(0, relevantes)
+        try:
+            em_passos(passos)
+        except Voltar:
+            continue  # de volta à lista de projetos
+        break
+    so_relevantes, downloads = r['relevantes'], r['downloads']
     contexto.nome = base.nome
-    if perguntas.escolher('Começar a atualização?', OPCOES_CONTINUAR) == CANCELAR:
+    if r['escolha'] == CANCELAR:
         contexto.cancelado = True
         return None
     inicio = preparar_cliente(cliente, paralelo)
@@ -682,13 +736,15 @@ def executar_autoria(
     resumo, ou None se a pessoa voltou ao menu ou cancelou.
     """
     contexto = contexto or Contexto('autoria')
-    escolha = entrada or escolher_entrada_autoria(raiz, perguntas)
-    if escolha is None:
-        return None
-    planilha, projeto = escolha
-    paralelo = ler_paralelo(projeto)
-    contexto.nome = projeto.nome if projeto is not None else str(planilha)
-    if entrada is None:
+    while True:
+        escolha = entrada or escolher_entrada_autoria(raiz, perguntas)
+        if escolha is None:
+            return None
+        planilha, projeto = escolha
+        paralelo = ler_paralelo(projeto)
+        contexto.nome = projeto.nome if projeto is not None else str(planilha)
+        if entrada is not None:
+            break
         origem = rotulo_do_projeto(projeto) if projeto is not None else str(planilha)
         n = _numero(_linhas_do_csv(planilha))
         perguntas.mostrar(
@@ -702,9 +758,15 @@ def executar_autoria(
                 ]
             )
         )
-        if perguntas.escolher('Começar?', OPCOES_CONTINUAR) == CANCELAR:
+        try:
+            confirmacao = perguntas.escolher('Começar?', OPCOES_CONTINUAR, voltar=True)
+        except Voltar:
+            contexto.nome = None
+            continue  # de volta à escolha da entrada
+        if confirmacao == CANCELAR:
             contexto.cancelado = True
             return None
+        break
     inicio = preparar_cliente(cliente, paralelo)
     if projeto is not None:
         registro.configurar(
@@ -748,28 +810,47 @@ def _executar_e_resumir(
 def fluxo_novo(
     raiz: str | Path, cliente: ClienteSAPL, perguntas: Perguntas, contexto: Contexto
 ) -> str | None:
-    """Projeto novo: confere as entradas, pergunta, confirma e executa (FR-6 a FR-15).
+    """Projeto novo: confere as entradas, pergunta, confirma e executa (FR-6 a FR-15, FR-23).
 
     Nada é criado em disco antes de "Começar". Um nome que já existe pode ser
-    retomado. Devolve o resumo, ou None se a pessoa cancelou.
+    retomado. `← Voltar` repete a pergunta anterior; no nome, volta ao menu.
+    Devolve o resumo, ou None (menu ou cancelado).
     """
     pasta = _pasta_csv(raiz)
     palavras = preparar_termos(ler_palavras(pasta))
     planilha = cl.importar_casas(pasta / 'casas_legislativas.xlsx')
     perguntas.mostrar('\n' + texto_das_palavras(palavras) + '\n')
-    projeto, novo = abrir_ou_criar(raiz, perguntas)
-    if not novo and gp.carregar_config(projeto) is not None:
-        return fluxo_retomar(raiz, cliente, perguntas, contexto, projeto)
     paralelo = padroes.padroes_paralelo()
     while True:
-        respostas = perguntar_configuracao(raiz, perguntas, planilha)
-        perguntas.mostrar(texto_de_confirmacao(projeto, palavras, respostas, paralelo))
-        escolha = perguntas.escolher('Tudo certo?', OPCOES_CONFIRMAR_NOVO)
-        if escolha == COMECAR:
-            break
-        if escolha == CANCELAR:
+        try:
+            projeto, novo = abrir_ou_criar(raiz, perguntas, voltar=True)
+        except Voltar:
+            return None
+        if not novo and gp.carregar_config(projeto) is not None:
+            texto = fluxo_retomar(raiz, cliente, perguntas, contexto, projeto)
+            if texto is None and not contexto.cancelado:
+                continue  # voltou da confirmação: pergunta o nome de novo
+            return texto
+        decisao: dict[str, str] = {}
+
+        def confirmar(
+            r: Respostas, projeto: gp.Projeto = projeto, decisao: dict[str, str] = decisao
+        ) -> None:
+            perguntas.mostrar(texto_de_confirmacao(projeto, palavras, r, paralelo))
+            decisao['escolha'] = perguntas.escolher(
+                'Tudo certo?', OPCOES_CONFIRMAR_NOVO, voltar=True
+            )
+
+        try:
+            respostas = perguntar_configuracao(
+                raiz, perguntas, planilha, voltar=True, confirmar=confirmar
+            )
+        except Voltar:
+            continue
+        if decisao['escolha'] == CANCELAR:
             contexto.cancelado = True
             return None
+        break
     projeto.criar()
     contexto.nome = projeto.nome
     registro.configurar(
@@ -793,37 +874,50 @@ def fluxo_retomar(
     """Retoma um projeto da lista (ou o dado). Devolve o resumo, ou None (menu/cancelar).
 
     O resumo de confirmação vem antes de qualquer mensagem sobre a execução, e
-    o `paralelo` é conferido antes dele (FR-14, FR-16).
+    o `paralelo` é conferido antes dele (FR-14, FR-16). `← Voltar` na
+    confirmação volta à lista (ou devolve None, com o projeto dado).
     """
-    if projeto is None:
-        projeto = escolher_projeto(raiz, perguntas, 'Qual projeto retomar?')
-        if projeto is None:
-            return None
-    config = gp.carregar_config(projeto)
-    if config is None:
-        # projeto de versão antiga, sem config.json: as perguntas de um projeto novo
-        perguntas.mostrar(f'O projeto "{projeto.nome}" não tem config.json; responda de novo.')
-        pasta = _pasta_csv(raiz)
-        palavras = preparar_termos(ler_palavras(pasta))
-        planilha = cl.importar_casas(pasta / 'casas_legislativas.xlsx')
-        perguntas.mostrar(texto_das_palavras(palavras))
-        respostas = perguntar_configuracao(raiz, perguntas, planilha)
-        config = configuracao_nova(palavras, respostas)
-    paralelo = ler_paralelo(projeto, config)
-    perguntas.mostrar(
-        '\n'.join(
-            [
-                '',
-                f'Projeto: {rotulo_do_projeto(projeto)}',
-                texto_das_palavras(config['palavras']),
-                'PDFs: ' + ('sim' if config['downloads'] else 'não'),
-                f'Casas ao mesmo tempo: {paralelo["casas_ao_mesmo_tempo"]}',
-                '',
-            ]
-        )
-    )
+    dado = projeto is not None
+    while True:
+        if not dado:
+            projeto = escolher_projeto(raiz, perguntas, 'Qual projeto retomar?')
+            if projeto is None:
+                return None
+        assert projeto is not None
+        config = gp.carregar_config(projeto)
+        try:
+            if config is None:
+                # projeto de versão antiga, sem config.json: as perguntas de um projeto novo
+                perguntas.mostrar(
+                    f'O projeto "{projeto.nome}" não tem config.json; responda de novo.'
+                )
+                pasta = _pasta_csv(raiz)
+                palavras = preparar_termos(ler_palavras(pasta))
+                planilha = cl.importar_casas(pasta / 'casas_legislativas.xlsx')
+                perguntas.mostrar(texto_das_palavras(palavras))
+                respostas = perguntar_configuracao(raiz, perguntas, planilha, voltar=True)
+                config = configuracao_nova(palavras, respostas)
+            paralelo = ler_paralelo(projeto, config)
+            perguntas.mostrar(
+                '\n'.join(
+                    [
+                        '',
+                        f'Projeto: {rotulo_do_projeto(projeto)}',
+                        texto_das_palavras(config['palavras']),
+                        'PDFs: ' + ('sim' if config['downloads'] else 'não'),
+                        f'Casas ao mesmo tempo: {paralelo["casas_ao_mesmo_tempo"]}',
+                        '',
+                    ]
+                )
+            )
+            escolha = perguntas.escolher('Continuar este projeto?', OPCOES_CONTINUAR, voltar=True)
+        except Voltar:
+            if dado:
+                return None
+            continue
+        break
     contexto.nome = projeto.nome
-    if perguntas.escolher('Continuar este projeto?', OPCOES_CONTINUAR) == CANCELAR:
+    if escolha == CANCELAR:
         contexto.cancelado = True
         return None
     if not projeto.config.exists():

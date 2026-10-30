@@ -523,15 +523,16 @@ def test_palavras_aparecem_em_texto_simples_e_confirmacao(
 
 
 def test_cancelar_nao_cria_nada(projeto_tmp, cliente, sessao, capsys):
-    respostas = respostas_novo_projeto()[:-2] + ['3']  # Cancelar em vez de Começar
+    respostas = respostas_novo_projeto()[:-2] + ['2']  # Cancelar em vez de Começar
     assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 0
     assert 'Cancelado. Nada foi feito.' in capsys.readouterr().out
     assert not list(projeto_tmp.glob('*_proj')) and sessao.pedidos == []
 
 
-def test_mudar_respostas_pergunta_de_novo(projeto_tmp, cliente, sessao, sapl):
-    # primeiro: só SP, teste com 10; depois muda para AC e PR, todas
-    respostas = ['1', 'teste', 'SP', '2', 'n', '2', 'AC PR', '1', 'n', '1', 'n']
+def test_voltar_um_passo_de_cada_vez(projeto_tmp, cliente, sessao, sapl):
+    # só SP, teste com 10, sem PDFs; na confirmação volta (3), nos PDFs volta (<),
+    # em "quantas" volta (3), muda para AC e PR, todas, sem PDFs, começa
+    respostas = ['1', 'teste', 'SP', '2', 'n', '3', '<', '3', 'AC PR', '1', 'n', '1', 'n']
     assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 0
     config = json.loads((projeto_tmp / 'teste_proj' / 'config.json').read_text(encoding='utf-8'))
     assert config['estados'] == ['AC', 'PR'] and config['limite'] == '1'
@@ -620,17 +621,17 @@ class _MenusComRoteiro(PerguntasMenu):
         self._texto = PerguntasTexto(ler)
         self.console = console
 
-    def escolher(self, texto, opcoes):
-        return self._texto.escolher(texto, opcoes)
+    def escolher(self, texto, opcoes, voltar=False):
+        return self._texto.escolher(texto, opcoes, voltar)
 
-    def sim_nao(self, texto, padrao=False):
-        return self._texto.sim_nao(texto, padrao)
+    def sim_nao(self, texto, padrao=False, voltar=False):
+        return self._texto.sim_nao(texto, padrao, voltar)
 
-    def marcar(self, texto, opcoes, atalhos):
-        return self._texto.marcar(texto, opcoes, atalhos)
+    def marcar(self, texto, opcoes, atalhos, voltar=False):
+        return self._texto.marcar(texto, opcoes, atalhos, voltar)
 
-    def texto(self, texto, validar):
-        return self._texto.texto(texto, validar)
+    def texto(self, texto, validar, voltar=False):
+        return self._texto.texto(texto, validar, voltar)
 
 
 def test_modo_menus_painel_e_resumo_num_quadro(projeto_tmp, cliente, sessao, sapl, monkeypatch):
@@ -732,3 +733,47 @@ def test_erro_inesperado_antes_do_log_vai_para_um_arquivo(
     [arquivo] = projeto_tmp.glob('sapyl_erro_*.log')
     assert 'ZeroDivisionError' in arquivo.read_text(encoding='utf-8')
     assert str(arquivo) in capsys.readouterr().out
+
+
+# --- ← Voltar nos fluxos (FR-23) ---------------------------------------------
+
+
+def test_voltar_no_nome_volta_ao_menu(projeto_tmp, cliente, sessao):
+    ler = roteiro('1', '<', '6')
+    assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert ler.perguntas[-1].startswith('O que você quer fazer?')
+    assert not list(projeto_tmp.glob('*_proj')) and sessao.pedidos == []
+
+
+def test_voltar_dos_estados_pergunta_o_nome_de_novo(projeto_tmp, cliente, sessao, sapl):
+    # sem tabela geral, estados é a primeira pergunta depois do nome
+    respostas = ['1', 'errado', '<', 'certo', '', '1', 'n', '1', 'n']
+    assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 0
+    assert [p.name for p in projeto_tmp.glob('*_proj')] == ['certo_proj']
+
+
+def test_voltar_na_retomada_volta_a_lista_e_ao_menu(projeto_tmp, cliente, sessao, sapl):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    sessao.pedidos.clear()
+    # retomar, projeto 1, ← Voltar (3) na confirmação, ← Voltar (2) na lista, Sair
+    ler = roteiro('2', '1', '3', '2', '6')
+    assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert sessao.pedidos == []
+    assert sum(p.startswith('Qual projeto retomar?') for p in ler.perguntas) == 2
+
+
+def test_voltar_na_atualizacao(projeto_tmp, cliente, sessao, sapl):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    _marcar(projeto_tmp, {'38415': 'x'})
+    # atualizar, projeto, relevantes s, PDFs < (volta), relevantes n, PDFs n, continuar
+    ler = roteiro('3', '1', 's', '<', 'n', 'n', '1', 'n')
+    assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert len(_atualizado(projeto_tmp)) == 4  # todas: "só relevantes" foi desfeito
+
+
+def test_voltar_no_csv_da_autoria_volta_a_lista(projeto_tmp, cliente, sessao, sapl):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    # autoria, Outro CSV (2), < no caminho, ← Voltar na lista (3), Sair
+    ler = roteiro('4', '2', '<', '3', '6')
+    assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert sum(p.startswith('De onde vêm as matérias?') for p in ler.perguntas) == 2

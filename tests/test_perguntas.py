@@ -9,6 +9,7 @@ from sapyl.interface.perguntas import (
     Opcao,
     PerguntasMenu,
     PerguntasTexto,
+    Voltar,
     criar_perguntas,
     usar_menus,
 )
@@ -196,3 +197,62 @@ def test_menus_so_com_input_num_terminal_interativo():
 
 def test_criar_perguntas_com_roteiro_e_texto():
     assert isinstance(criar_perguntas(roteiro()), PerguntasTexto)
+
+
+# ---- ← Voltar (FR-23) ----
+
+
+def test_texto_voltar_e_a_ultima_opcao_numerada():
+    ler = roteiro('4')
+    with pytest.raises(Voltar):
+        PerguntasTexto(ler).escolher('Qual?', OPCOES, voltar=True)
+    assert ler.perguntas[0].endswith('3- Terceira\n4- ← Voltar\n')
+    assert PerguntasTexto(roteiro('2')).escolher('?', OPCOES, voltar=True) == 'b'
+
+
+@pytest.mark.parametrize('pergunta', ['sim_nao', 'marcar', 'texto'])
+def test_texto_menor_que_volta(pergunta):
+    p = PerguntasTexto(roteiro('<'))
+    chamadas = {
+        'sim_nao': lambda: p.sim_nao('?', voltar=True),
+        'marcar': lambda: p.marcar('?', UFS, ATALHOS, voltar=True),
+        'texto': lambda: p.texto('?', lambda v: None, voltar=True),
+    }
+    with pytest.raises(Voltar):
+        chamadas[pergunta]()
+
+
+def test_texto_sem_voltar_menor_que_e_uma_resposta(capsys):
+    assert PerguntasTexto(roteiro('<')).texto('?', lambda v: None) == '<'
+    assert PerguntasTexto(roteiro('<', 's')).sim_nao('?') is True
+    assert 'Digite s (sim) ou n (não).' in capsys.readouterr().out
+
+
+def test_texto_dicas_do_voltar():
+    ler = roteiro('s')
+    PerguntasTexto(ler).sim_nao('PDFs?', voltar=True)
+    assert ler.perguntas[0] == 'PDFs? (s/N; < volta)\n'
+
+
+def test_menu_voltar_na_lista_e_no_sim_nao(teclas):
+    with pytest.raises(Voltar):
+        teclas(BAIXO, BAIXO, BAIXO, ENTER).escolher('?', OPCOES, voltar=True)
+    with pytest.raises(Voltar):
+        teclas(BAIXO, ENTER).sim_nao('?', voltar=True)  # Não -> ← Voltar
+    assert teclas(ENTER).sim_nao('?', voltar=True) is False
+
+
+def test_menu_voltar_na_lista_de_marcar(teclas):
+    with pytest.raises(Voltar):
+        teclas(ESPACO, ENTER).marcar('?', UFS, ATALHOS, voltar=True)
+    # ← Voltar, Todos, Sul e Sudeste: o atalho continua funcionando
+    assert teclas(BAIXO, BAIXO, ESPACO, ENTER).marcar('?', UFS, ATALHOS, voltar=True) == [
+        'PR',
+        'SP',
+    ]
+
+
+def test_menu_texto_vazio_volta(teclas):
+    with pytest.raises(Voltar):
+        teclas(ENTER).texto('Nome', lambda v: 'vazio' if not v else None, voltar=True)
+    assert teclas('a', ENTER).texto('Nome', lambda v: None, voltar=True) == 'a'

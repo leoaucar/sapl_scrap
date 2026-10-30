@@ -74,7 +74,7 @@ Rules for every task (same as earlier specs):
 
 ## Phase C2: Amendment after the first use (spec FR-23, FR-24)
 
-- [ ] **T11 Voltar** (FR-23; plan §10a)
+- [x] **T11 Voltar** (FR-23; plan §10a)
   - `Voltar` in `perguntas.py` (both modes); step loop in the new-project,
     resume, update and authors flows; confirmation `Começar / ← Voltar /
     Cancelar`.

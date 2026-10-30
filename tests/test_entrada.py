@@ -59,7 +59,7 @@ def test_lista_de_projetos_com_situacao_e_voltar(tmp_path):
     perguntas, ler = _p('2')
     assert entrada.escolher_projeto(tmp_path, perguntas, 'Qual?').nome == 'vazio'
     assert '1- bom — não iniciado · ? · 1 matéria\n' in ler.perguntas[0]
-    assert '2- vazio — não iniciado · ? · ? matérias\n3- Voltar ao menu\n' in ler.perguntas[0]
+    assert '2- vazio — não iniciado · ? · ? matérias\n3- ← Voltar\n' in ler.perguntas[0]
     perguntas, _ = _p('3')
     assert entrada.escolher_projeto(tmp_path, perguntas, 'Qual?') is None
 
@@ -88,7 +88,7 @@ def test_autoria_de_projeto_usa_o_resultado_mais_recente(tmp_path):
     perguntas, ler = _p('1')
     planilha, escolhido = entrada.escolher_entrada_autoria(tmp_path, perguntas)
     assert planilha == atualizado and escolhido.nome == 'p'
-    assert '2- Outro arquivo CSV…\n3- Voltar ao menu\n' in ler.perguntas[0]
+    assert '2- Outro arquivo CSV…\n3- ← Voltar\n' in ler.perguntas[0]
 
 
 def test_autoria_outro_csv_e_voltar(tmp_path, capsys):

@@ -5,13 +5,12 @@ numeradas, veja `perguntas.py`). Nada aqui cria pastas: o projeto novo só é
 criado quando a pessoa confirma (veja `principal`).
 """
 
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
-from sapyl.interface.perguntas import Opcao, Perguntas
+from sapyl.interface.perguntas import Opcao, Perguntas, Voltar
 from sapyl.projeto import Projeto, nome_limpo, projetos_existentes, situacao
 
-VOLTAR = '__voltar__'
-OPCAO_VOLTAR = Opcao('Voltar ao menu', VOLTAR)
 OUTRO_CSV = '__outro_csv__'
 
 PERGUNTA_NOME = 'Nome do projeto (a pasta será <nome>_proj/)'
@@ -28,21 +27,45 @@ def validar_nome(nome: str) -> str | None:
     return None
 
 
-def abrir_ou_criar(raiz: str | Path, perguntas: Perguntas) -> tuple[Projeto, bool]:
+def em_passos(passos: Sequence[Callable[[], object]]) -> None:
+    """Roda as perguntas em ordem; `Voltar` numa delas repete a anterior.
+
+    Cada passo guarda a resposta onde quiser (as anteriores ficam). `Voltar`
+    no primeiro passo é repassado a quem chamou.
+    """
+    i = 0
+    while i < len(passos):
+        try:
+            passos[i]()
+            i += 1
+        except Voltar:
+            if i == 0:
+                raise
+            i -= 1
+
+
+def abrir_ou_criar(
+    raiz: str | Path, perguntas: Perguntas, voltar: bool = False
+) -> tuple[Projeto, bool]:
     """Pergunta o nome. Devolve (Projeto, novo); a pasta de um projeto novo não é criada.
 
-    Se o nome já existe, oferece retomar esse projeto ou escolher outro nome.
-    Um projeto existente nunca é sobrescrito.
+    Se o nome já existe, oferece retomar esse projeto ou escolher outro nome
+    (`← Voltar` ali também pergunta o nome de novo). Um projeto existente
+    nunca é sobrescrito. Com `voltar`, `Voltar` no nome é repassado.
     """
     while True:
-        nome = nome_limpo(perguntas.texto(PERGUNTA_NOME, validar_nome))
+        nome = nome_limpo(perguntas.texto(PERGUNTA_NOME, validar_nome, voltar=voltar))
         projeto = Projeto(raiz, nome)
         if not projeto.pasta.exists():
             return projeto, True
-        escolha = perguntas.escolher(
-            f'O projeto "{nome}" já existe.',
-            [Opcao('Retomar este projeto', 'retomar'), Opcao('Escolher outro nome', 'outro')],
-        )
+        try:
+            escolha = perguntas.escolher(
+                f'O projeto "{nome}" já existe.',
+                [Opcao('Retomar este projeto', 'retomar'), Opcao('Escolher outro nome', 'outro')],
+                voltar=True,
+            )
+        except Voltar:
+            continue
         if escolha == 'retomar':
             return projeto, False
 
@@ -67,7 +90,7 @@ def escolher_projeto(
 ) -> Projeto | None:
     """Um projeto da lista (`<nome>_proj/` na pasta), com a situação de cada um.
 
-    Devolve None se não há projetos (avisa) ou se a pessoa volta ao menu.
+    Devolve None se não há projetos (avisa) ou se a pessoa escolhe `← Voltar`.
     """
     projetos = [Projeto(raiz, nome) for nome in projetos_existentes(raiz)]
     if so_com_resultado:
@@ -76,9 +99,11 @@ def escolher_projeto(
         tipo = 'com resultado final ' if so_com_resultado else ''
         perguntas.mostrar(f'Nenhum projeto {tipo}nesta pasta ({Path(raiz).resolve()}).')
         return None
-    opcoes = [Opcao(rotulo_do_projeto(p), p.nome) for p in projetos] + [OPCAO_VOLTAR]
-    nome = perguntas.escolher(texto, opcoes)
-    return None if nome == VOLTAR else Projeto(raiz, nome)
+    opcoes = [Opcao(rotulo_do_projeto(p), p.nome) for p in projetos]
+    try:
+        return Projeto(raiz, perguntas.escolher(texto, opcoes, voltar=True))
+    except Voltar:
+        return None
 
 
 def _csv_em(raiz: str | Path, resposta: str) -> Path:
@@ -86,7 +111,7 @@ def _csv_em(raiz: str | Path, resposta: str) -> Path:
     return caminho if caminho.is_absolute() else Path(raiz) / caminho
 
 
-def perguntar_csv(raiz: str | Path, perguntas: Perguntas) -> Path:
+def perguntar_csv(raiz: str | Path, perguntas: Perguntas, voltar: bool = False) -> Path:
     """Caminho de um CSV que existe (relativo à pasta de trabalho, ou absoluto)."""
 
     def validar(resposta: str) -> str | None:
@@ -97,7 +122,7 @@ def perguntar_csv(raiz: str | Path, perguntas: Perguntas) -> Path:
             return f'Não encontrei o arquivo CSV "{resposta}". Confira o caminho.'
         return None
 
-    return _csv_em(raiz, perguntas.texto(PERGUNTA_CSV, validar))
+    return _csv_em(raiz, perguntas.texto(PERGUNTA_CSV, validar, voltar=voltar))
 
 
 def escolher_entrada_autoria(
@@ -106,18 +131,28 @@ def escolher_entrada_autoria(
     """Um projeto com resultado (usa o mais recente) ou um CSV avulso.
 
     Devolve (planilha de entrada, projeto ou None para um CSV avulso), ou None
-    se a pessoa volta ao menu.
+    se a pessoa volta ao menu (`← Voltar` na lista, ou no caminho quando não há
+    projetos; no caminho escolhido pela lista, `← Voltar` volta à lista).
     """
     projetos = [Projeto(raiz, nome) for nome in projetos_existentes(raiz)]
     projetos = [p for p in projetos if resultado_mais_recente(p) is not None]
     if not projetos:
-        return perguntar_csv(raiz, perguntas), None
+        try:
+            return perguntar_csv(raiz, perguntas, voltar=True), None
+        except Voltar:
+            return None
     opcoes = [Opcao(rotulo_do_projeto(p), p.nome) for p in projetos]
-    opcoes += [Opcao('Outro arquivo CSV…', OUTRO_CSV), OPCAO_VOLTAR]
-    escolha = perguntas.escolher(PERGUNTA_ENTRADA_AUTORIA, opcoes)
-    if escolha == VOLTAR:
-        return None
-    if escolha == OUTRO_CSV:
-        return perguntar_csv(raiz, perguntas), None
+    opcoes.append(Opcao('Outro arquivo CSV…', OUTRO_CSV))
+    while True:
+        try:
+            escolha = perguntas.escolher(PERGUNTA_ENTRADA_AUTORIA, opcoes, voltar=True)
+        except Voltar:
+            return None
+        if escolha != OUTRO_CSV:
+            break
+        try:
+            return perguntar_csv(raiz, perguntas, voltar=True), None
+        except Voltar:
+            continue
     projeto = Projeto(raiz, escolha)
     return resultado_mais_recente(projeto) or projeto.final, projeto

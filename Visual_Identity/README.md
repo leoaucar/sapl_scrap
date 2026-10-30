@@ -5,6 +5,10 @@ da página e os logotipos das organizações parceiras.
 
 ## `parceiros/`
 
+> **Ainda não usar na página nem no README.** Os logotipos só entram no site
+> depois do ok de cada organização (Ação Educativa e Fundo Malala), por
+> escrito, de preferência com a versão oficial do arquivo que elas indicarem.
+
 Logotipos de quem realizou e apoiou o projeto, baixados dos sites oficiais em
 30/10/2026, para os créditos (página do projeto e README). Eles pertencem às
 organizações e **não** estão sob a licença AGPL-3.0 do SAPyL. Antes de

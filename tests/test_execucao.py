@@ -148,3 +148,31 @@ def test_prefixo_no_terminal(tmp_path, capsys):
     erro = capsys.readouterr().err
     assert '[sapl.x.leg.br] olá' in erro and '[sapl.y.leg.br] dentro' in erro
     assert '[sapl.x.leg.br] de volta' in erro
+
+
+def test_linha_de_progresso_tem_a_marca(caplog):
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        execucao.por_casa(CASAS[:2], lambda c: time.sleep(0.12), 1, threading.Event(), a_cada=0.05)
+    linhas = [r for r in caplog.records if r.getMessage().startswith('Progresso')]
+    assert linhas and all(getattr(r, registro.PROGRESSO, False) for r in linhas)
+
+
+def test_anunciar_comeco_e_fim_de_cada_casa(tmp_path, caplog):
+    registro.configurar(tmp_path, 'p')
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        execucao.por_casa(
+            CASAS[:2], len, 2, threading.Event(), anunciar=True, ao_terminar=lambda c: f'{len(c)} x'
+        )
+    eventos = {getattr(r, registro.EVENTO_CASA, None) for r in caplog.records}
+    assert {'inicio', 'fim'} <= eventos
+    texto = next((tmp_path / 'logs').iterdir()).read_text(encoding='utf-8')
+    for casa in CASAS[:2]:
+        host = execucao.nome_da_casa(casa)
+        assert f'[{host}] Começando' in texto
+        assert f'[{host}] Concluída: {len(casa)} x' in texto
+
+
+def test_sem_anunciar_nao_ha_linhas_de_casa(caplog):
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        execucao.por_casa(CASAS[:2], len, 2, threading.Event())
+    assert not any(hasattr(r, registro.EVENTO_CASA) for r in caplog.records)

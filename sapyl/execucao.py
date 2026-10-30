@@ -7,8 +7,12 @@ threads compartilham.
 
 - Cada linha do log escrita durante a tarefa de uma casa começa com
   `[<host>] ` (veja `registro.casa_atual`).
+- Com `anunciar`, uma linha quando cada casa começa e outra quando termina
+  (com o texto de `ao_terminar(casa)`, ex.: as contagens da casa).
 - A cada `a_cada` segundos, uma linha de progresso geral: casas concluídas,
   em andamento e na fila, mais o texto de `progresso()` (ex.: matérias).
+  Ela vai com a marca `registro.PROGRESSO`, para a interface poder deixá-la
+  de fora do terminal quando mostra o painel de progresso.
 - Ctrl+C: liga o evento `parar` (o cliente não faz mais requisições e as
   esperas acabam), descarta as casas que não começaram, espera as que estão
   em andamento pararem (no máximo o tempo de uma requisição) e repassa o
@@ -58,6 +62,8 @@ def por_casa(
     parar: threading.Event,
     progresso: Callable[[], str] | None = None,
     a_cada: float = PROGRESSO_A_CADA,
+    anunciar: bool = False,
+    ao_terminar: Callable[[str], str] | None = None,
 ) -> list[T]:
     """Roda `tarefa(casa)` para cada casa, até `n` ao mesmo tempo (veja o módulo).
 
@@ -78,7 +84,16 @@ def por_casa(
             ativas[0] += 1
         try:
             with registro.casa_atual(nome_da_casa(casa)):
-                return tarefa(casa)
+                if anunciar:
+                    log.info('Começando', extra={registro.EVENTO_CASA: 'inicio'})
+                resultado = tarefa(casa)
+                if anunciar:
+                    detalhe = ao_terminar(casa) if ao_terminar else ''
+                    log.info(
+                        'Concluída' + (f': {detalhe}' if detalhe else ''),
+                        extra={registro.EVENTO_CASA: 'fim'},
+                    )
+                return resultado
         finally:
             with trava:
                 ativas[0] -= 1
@@ -112,7 +127,7 @@ def por_casa(
                     falhas.append((casa_do[futuro], erro))
             if time.monotonic() >= proximo:
                 proximo = time.monotonic() + a_cada
-                log.info(_linha_de_progresso(futuros, progresso))
+                log.info(_linha_de_progresso(futuros, progresso), extra={registro.PROGRESSO: True})
     except KeyboardInterrupt:
         executor.shutdown(wait=False, cancel_futures=True)  # descarta a fila
         with trava:

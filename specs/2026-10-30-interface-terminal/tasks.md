@@ -50,7 +50,7 @@ Rules for every task (same as earlier specs):
 
 ## Phase C: Progress and end of run
 
-- [ ] **T05 Quiet terminal** (FR-19; plan §5.1, §5.3)
+- [x] **T05 Quiet terminal** (FR-19; plan §5.1, §5.3)
   - `registro.andamento`; per-item lines in `busca`, `materias`,
     `downloads`, `autoria`, `casas` become DEBUG progress records;
     `execucao.por_casa` start/finish lines and tagged progress line;

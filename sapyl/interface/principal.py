@@ -328,13 +328,27 @@ def sobre_a_execucao(cliente: ClienteSAPL, paralelo: dict[str, int], inicio: flo
 
 
 def mapeador(
-    cliente: ClienteSAPL, paralelo: dict[str, int], progresso: Callable[[], str] | None = None
+    cliente: ClienteSAPL,
+    paralelo: dict[str, int],
+    progresso: Callable[[], str] | None = None,
+    anunciar: bool = True,
+    ao_terminar: Callable[[str], str] | None = None,
 ) -> padroes.Mapear:
-    """`mapear(tarefa, casas)` que roda até `casas_ao_mesmo_tempo` casas ao mesmo tempo."""
+    """`mapear(tarefa, casas)` que roda até `casas_ao_mesmo_tempo` casas ao mesmo tempo.
+
+    Com `anunciar`, cada casa tem uma linha no começo e outra no fim (o teste
+    das casas não anuncia: seriam duas linhas por casa da lista).
+    """
 
     def mapear(tarefa: Callable[[str], Any], casas: Sequence[str]) -> list[Any]:
         return execucao.por_casa(
-            casas, tarefa, paralelo['casas_ao_mesmo_tempo'], cliente.parar, progresso
+            casas,
+            tarefa,
+            paralelo['casas_ao_mesmo_tempo'],
+            cliente.parar,
+            progresso,
+            anunciar=anunciar,
+            ao_terminar=ao_terminar,
         )
 
     return mapear
@@ -432,7 +446,9 @@ def executar_projeto(
     inicio = preparar_cliente(cliente, paralelo)
     estado = Estado(projeto.estado)
     try:
-        casas = preparar_casas(projeto, config, cliente, raiz, mapeador(cliente, paralelo))
+        casas = preparar_casas(
+            projeto, config, cliente, raiz, mapeador(cliente, paralelo, anunciar=False)
+        )
         palavras = config['palavras']
         ativas = list(casas[casas['ativa']]['url'])
         refazer_links = bool(buscas_pendentes(casas, palavras, estado))

@@ -177,3 +177,46 @@ def test_resumos_mostram_as_linhas_da_execucao(tmp_path):
     assert extra[0] in texto and texto.index(extra[0]) < texto.index('Resultado:')
     texto = registro.resumo_autoria(Counter(ok=1), tmp_path / 's.csv', execucao=extra)
     assert extra[0] in texto
+
+
+# --- Terminal mais limpo (FR-19) -------------------------------------------
+
+
+def test_andamento_e_debug_com_o_registro(caplog):
+    with caplog.at_level(logging.DEBUG, logger='sapyl'):
+        registro.andamento(
+            registro.logger('materias'), registro.MATERIAS, 3, 9, 'Matéria %d', 3, status='ok'
+        )
+    [linha] = caplog.records
+    assert linha.levelno == logging.DEBUG and linha.getMessage() == 'Matéria 3'
+    assert linha.andamento == ('materias', 3, 9, 'ok')
+
+
+def test_linhas_de_item_so_no_arquivo(tmp_path, capsys):
+    registro.configurar(tmp_path, 'p')
+    log = registro.logger('materias')
+    registro.andamento(log, registro.MATERIAS, 1, 2, 'Matéria 1 de 2: título')
+    log.info('Concluída')
+    erro = capsys.readouterr().err
+    assert 'Concluída' in erro and 'Matéria 1 de 2' not in erro
+    texto = next((tmp_path / 'logs').iterdir()).read_text(encoding='utf-8')
+    assert 'DEBUG sapyl.materias Matéria 1 de 2: título' in texto and 'Concluída' in texto
+
+
+def test_configurar_com_o_terminal_da_interface(tmp_path, capsys):
+    class Guardar(logging.Handler):
+        def __init__(self):
+            super().__init__(logging.DEBUG)
+            self.mensagens = []
+
+        def emit(self, record):
+            self.mensagens.append(record.getMessage())
+
+    guardar = Guardar()
+    registro.configurar(tmp_path, 'p', terminal=guardar)
+    registro.andamento(registro.logger(), registro.PDFS, 1, 1, 'Download 1')
+    assert guardar.mensagens[-1] == 'Download 1' and capsys.readouterr().err == ''
+    quantas = len(guardar.mensagens)
+    registro.configurar(tmp_path, 'p')  # troca: o handler antigo sai
+    registro.logger().info('depois')
+    assert len(guardar.mensagens) == quantas

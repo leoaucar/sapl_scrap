@@ -97,7 +97,16 @@ def testar_casas(
         posicao.setdefault(url, i)
 
     def testar(url: str) -> tuple[bool, str, str]:
-        log.info('Testando casa %d de %d: %s', posicao[url], len(urls), url)
+        registro.andamento(
+            log,
+            registro.TESTE,
+            posicao[url],
+            len(urls),
+            'Testando casa %d de %d: %s',
+            posicao[url],
+            len(urls),
+            url,
+        )
         return testar_casa(url, cliente)
 
     resultados = mapear(testar, urls)

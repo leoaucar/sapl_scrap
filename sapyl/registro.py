@@ -7,7 +7,11 @@ Todas as mensagens passam pelo logger `sapyl`:
   limite de requisições). O `<nome>.log` de projetos antigos fica como está.
 
 Com várias casas ao mesmo tempo, cada linha escrita durante o trabalho de uma
-casa começa com `[<host>] ` (veja `casa_atual`). As linhas de requisição
+casa começa com `[<host>] ` (veja `casa_atual`).
+
+As linhas de cada item (matéria, PDF, palavra buscada, casa testada) são
+DEBUG: vão só para o arquivo. Elas levam um registro de andamento (veja
+`andamento`), que a interface usa para mostrar o progresso no terminal. As linhas de requisição
 (`sapyl.http`) não ganham o prefixo: já começam pelo host, e o formato delas é
 o que os scripts de validação leem.
 """
@@ -42,6 +46,15 @@ MODOS = ('novo', 'retomada', 'atualizacao', 'autoria')
 # Arquivo de log da execução atual (o resumo mostra o caminho)
 _log_atual: str | None = None
 
+# Atributos extras das linhas de log (veja `andamento` e `execucao.por_casa`):
+# ANDAMENTO = (etapa, feitos, total, status do item ou None);
+# EVENTO_CASA = 'inicio' ou 'fim' de uma casa; PROGRESSO = linha de progresso geral.
+ANDAMENTO = 'andamento'
+EVENTO_CASA = 'casa_evento'
+PROGRESSO = 'progresso'
+# Etapas do andamento
+TESTE, BUSCA, MATERIAS, PDFS, AUTORIA = 'teste', 'busca', 'materias', 'pdfs', 'autoria'
+
 
 class _Contagens(Protocol):
     """O que o resumo usa do estado do projeto (`sapyl.estado.Estado`)."""
@@ -70,6 +83,24 @@ class _PrefixoCasa(logging.Filter):
         return True
 
 
+def andamento(
+    logger_: logging.Logger,
+    etapa: str,
+    feitos: int,
+    total: int,
+    mensagem: str,
+    *args: object,
+    status: str | None = None,
+) -> None:
+    """Linha DEBUG (só no arquivo) com o andamento de uma etapa da casa atual.
+
+    `feitos` de `total` itens da `etapa` (`TESTE`, `BUSCA`, `MATERIAS`, `PDFS`,
+    `AUTORIA`); `status` é o resultado do item que acabou (`ok`, `erro`...) ou
+    None quando a linha só anuncia o total.
+    """
+    logger_.debug(mensagem, *args, extra={ANDAMENTO: (etapa, feitos, total, status)})
+
+
 def caminho_do_log(pasta: str | Path, nome: str, modo: str, agora: datetime | None = None) -> Path:
     """`<pasta>/logs/<nome>_<aaaa-mm-dd_hhmmss>_<modo>.log`, sem repetir um arquivo existente."""
     if modo not in MODOS:
@@ -84,11 +115,17 @@ def caminho_do_log(pasta: str | Path, nome: str, modo: str, agora: datetime | No
 
 
 def configurar(
-    pasta: str | Path, nome: str, modo: str = 'novo', agora: datetime | None = None
+    pasta: str | Path,
+    nome: str,
+    modo: str = 'novo',
+    agora: datetime | None = None,
+    terminal: logging.Handler | None = None,
 ) -> str:
     """Liga o log no terminal e num arquivo novo em `<pasta>/logs/`. Devolve o caminho.
 
-    Pode ser chamada várias vezes: troca os destinos anteriores pelos novos.
+    `terminal`: o destino do terminal (a interface passa o seu); sem ele, um
+    `StreamHandler` no nível INFO. Pode ser chamada várias vezes: troca os
+    destinos anteriores pelos novos.
     """
     global _log_atual
     logger = logging.getLogger(LOGGER)
@@ -98,9 +135,10 @@ def configurar(
             logger.removeHandler(handler)
             handler.close()
 
-    terminal = logging.StreamHandler()
-    terminal.setLevel(logging.INFO)
-    terminal.setFormatter(logging.Formatter(FORMATO_TERMINAL))
+    if terminal is None:
+        terminal = logging.StreamHandler()
+        terminal.setLevel(logging.INFO)
+        terminal.setFormatter(logging.Formatter(FORMATO_TERMINAL))
 
     caminho = str(caminho_do_log(pasta, nome, modo, agora))
     os.makedirs(os.path.dirname(caminho), exist_ok=True)

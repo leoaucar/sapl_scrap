@@ -579,3 +579,15 @@ def test_config_antiga_retoma_com_as_mesmas_casas(
     assert programa.main(roteiro(*RETOMAR), cliente, projeto_tmp) == 0
     tabela = programa.cl.ler_tabela_casas(projeto.casas)
     assert [u.split('//')[1].rstrip('/') for u in tabela['url']] == casas
+
+
+def test_terminal_so_com_comeco_e_fim_das_casas(projeto_tmp, cliente, sessao, sapl, capsys):
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    terminal = capsys.readouterr().err
+    assert '[sapl.a.ac.leg.br] Começando' in terminal
+    assert '[sapl.a.ac.leg.br] Concluída' in terminal
+    assert 'Matéria 1 de' not in terminal and 'Download 1 de' not in terminal
+    assert 'Testando casa' not in terminal and 'página(s)' not in terminal
+    [log] = (projeto_tmp / 'teste_proj' / 'logs').iterdir()
+    texto = log.read_text(encoding='utf-8')
+    assert 'Matéria 1 de' in texto and 'Download 1 de' in texto and 'Testando casa 1 de 3' in texto

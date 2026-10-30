@@ -78,7 +78,9 @@ def baixar_da_casa(linhas: list[Linha], pasta: str, cliente: ClienteSAPL, estado
     os.makedirs(pasta, exist_ok=True)
     a_baixar = [linha for linha in linhas if linha['status'] == 'ok']
     if a_baixar:
-        log.info('Downloads: %d matérias', len(a_baixar))
+        registro.andamento(
+            log, registro.PDFS, 0, len(a_baixar), 'Downloads: %d matérias', len(a_baixar)
+        )
     for n, linha in enumerate(a_baixar, start=1):
         chave = _chave(linha)
         link = linha['texto_original']
@@ -92,7 +94,18 @@ def baixar_da_casa(linhas: list[Linha], pasta: str, cliente: ClienteSAPL, estado
             continue
         erro = baixar_arquivo(link, destino, cliente)
         estado.registrar(ETAPA_PDF, chave, 'erro' if erro else 'ok', erro)
-        log.info('Download %d de %d (%s): %s', n, len(a_baixar), chave, erro or nome)
+        registro.andamento(
+            log,
+            registro.PDFS,
+            n,
+            len(a_baixar),
+            'Download %d de %d (%s): %s',
+            n,
+            len(a_baixar),
+            chave,
+            erro or nome,
+            status='erro' if erro else 'ok',
+        )
 
 
 def preencher_downloads(final: pd.DataFrame, estado: Estado, pasta: str) -> pd.DataFrame:

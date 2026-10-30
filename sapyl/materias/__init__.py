@@ -89,7 +89,7 @@ class Fontes:
             )
             return
         if self.de(casa_url) != 'html':
-            log.info(
+            log.debug(
                 'Casa %s sem API de matérias (%s): usando as páginas HTML', host(casa_url), motivo
             )
         self._por_host[host(casa_url)] = 'html'

@@ -116,3 +116,14 @@ def test_limite_de_teste_e_limites_antigos():
     assert len(cl.limitar_casas(casas, cl.LIMITE_TODAS)) == 60
     assert cl.limitar_casas(casas, '3')['url'].iloc[0] == 'https://10/'
     assert len(cl.limitar_casas(casas, '2')) == 50
+
+
+def test_teste_das_casas_nao_avisa_falhas_no_terminal(cliente, sessao, caplog):
+    import logging
+
+    sessao.responder('https://b/', status=500)
+    casas = pd.DataFrame({'url': ['https://b/'], 'uf': ['PR']})
+    with caplog.at_level(logging.DEBUG, logger='sapyl'):
+        cl.testar_casas(casas, cliente)
+    falhas = [r for r in caplog.records if r.getMessage().startswith('Falha em')]
+    assert falhas and all(r.levelno == logging.DEBUG for r in falhas)

@@ -71,7 +71,7 @@ def importar_casas(planilha: str | Path) -> pd.DataFrame:
 
 def testar_casa(url: str, cliente: ClienteSAPL) -> tuple[bool, str, str]:
     """(no ar, motivo, url_final) de uma casa: uma requisição à página inicial."""
-    resposta = cliente.get(url, timeout=(5, 5), max_tentativas=2)
+    resposta = cliente.get(url, timeout=(5, 5), max_tentativas=2, avisar=False)
     resposta.fechar()
     final = ''
     if resposta.ok and resposta.bruta is not None:

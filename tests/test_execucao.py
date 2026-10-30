@@ -116,7 +116,7 @@ def test_linha_de_progresso(caplog):
         )
     linhas = [r.getMessage() for r in caplog.records if r.getMessage().startswith('Progresso')]
     assert linhas
-    assert linhas[0].endswith('; matérias: 3 ok') and 'de 6 casas concluídas' in linhas[0]
+    assert linhas[0].endswith(' na fila\n  matérias: 3 ok') and 'de 6 casas concluídas' in linhas[0]
     assert 'em andamento' in linhas[0] and 'na fila' in linhas[0]
 
 
@@ -159,7 +159,7 @@ def test_linha_de_progresso_tem_a_marca(caplog):
 
 def test_anunciar_comeco_e_fim_de_cada_casa(tmp_path, caplog):
     registro.configurar(tmp_path, 'p')
-    with caplog.at_level(logging.INFO, logger='sapyl'):
+    with caplog.at_level(logging.DEBUG, logger='sapyl'):
         execucao.por_casa(
             CASAS[:2], len, 2, threading.Event(), anunciar=True, ao_terminar=lambda c: f'{len(c)} x'
         )
@@ -168,8 +168,8 @@ def test_anunciar_comeco_e_fim_de_cada_casa(tmp_path, caplog):
     texto = next((tmp_path / 'logs').iterdir()).read_text(encoding='utf-8')
     for casa in CASAS[:2]:
         host = execucao.nome_da_casa(casa)
-        assert f'[{host}] Começando' in texto
-        assert f'[{host}] Concluída: {len(casa)} x' in texto
+        assert f'DEBUG sapyl.execucao [{host}] Começando' in texto
+        assert f'INFO sapyl.execucao ✓ {host}: {len(casa)} x' in texto
 
 
 def test_sem_anunciar_nao_ha_linhas_de_casa(caplog):

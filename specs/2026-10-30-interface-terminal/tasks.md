@@ -80,7 +80,7 @@ Rules for every task (same as earlier specs):
     Cancelar`.
   - Tests: back and forth through every step; Voltar from the first step;
     texto `<`; menus via pipe input.
-- [ ] **T12 Organised run output** (FR-24; plan §10a)
+- [x] **T12 Organised run output** (FR-24; plan §10a)
   - Header and stage lines; "Começando" to the log; `✓ <host>: …`; panel in
     sections; two-line texto block; structured counters.
   - Tests: recording console render of every section; texto block; terminal

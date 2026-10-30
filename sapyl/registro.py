@@ -51,6 +51,7 @@ _log_atual: str | None = None
 # EVENTO_CASA = 'inicio' ou 'fim' de uma casa; PROGRESSO = linha de progresso geral.
 ANDAMENTO = 'andamento'
 EVENTO_CASA = 'casa_evento'
+HOST = 'host_da_casa'  # host da casa, quando a linha não é escrita dentro de `casa_atual`
 PROGRESSO = 'progresso'
 # Etapas do andamento
 TESTE, BUSCA, MATERIAS, PDFS, AUTORIA = 'teste', 'busca', 'materias', 'pdfs', 'autoria'

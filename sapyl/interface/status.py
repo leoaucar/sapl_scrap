@@ -57,11 +57,13 @@ class Casa:
     autoria: int = 0
     busca_terminada: bool = False
 
+    def nome_da_etapa(self) -> str:
+        """`matérias`, `buscando`, `PDFs`... ou `começando`."""
+        return NOMES_DAS_ETAPAS.get(self.etapa, self.etapa) if self.etapa else 'começando'
+
     def texto_da_etapa(self) -> str:
         """`matérias 45/120`, `buscando 2/3`, ou `começando`."""
-        if not self.etapa:
-            return 'começando'
-        nome = NOMES_DAS_ETAPAS.get(self.etapa, self.etapa)
+        nome = self.nome_da_etapa()
         return f'{nome} {self.feitos}/{self.total}' if self.total else nome
 
     def resumo(self) -> str:
@@ -92,28 +94,32 @@ class Foto:
 
     total_casas: int
     concluidas: int
-    em_andamento: list[tuple[str, str]]  # (host, etapa)
+    em_andamento: list[tuple[str, str, int, int]]  # (host, etapa, feitos, total)
     teste: tuple[int, int]  # casas testadas, total
     decorrido: float
     restante: float | None
-    contagens: str
+    contagens: list[tuple[str, str]]  # (rótulo, texto): Buscas, Matérias, PDFs
+    titulo: str = ''
 
 
 @dataclass
 class Andamento:
     """Estado do andamento, alimentado pelos registros do log (seguro entre threads).
 
-    `contagens`: texto das contagens do projeto todo (do arquivo de estado),
-    para a retomada mostrar o total e não só o desta execução.
+    `contagens`: (rótulo, texto) das contagens do projeto todo (do arquivo de
+    estado), para a retomada mostrar o total e não só o desta execução. Sem
+    elas (autoria), o andamento conta o que viu nesta execução. `titulo`: a
+    linha de cima do painel (projeto, estados, casas, palavras).
     """
 
-    contagens: Callable[[], str] = lambda: ''
+    contagens: Callable[[], list[tuple[str, str]]] = lambda: []
     relogio: Callable[[], float] = time.monotonic
     total_casas: int = 0
     casas: dict[str, Casa] = field(default_factory=dict)
     concluidas: dict[str, Casa] = field(default_factory=dict)
     teste_feitos: int = 0
     teste_total: int = 0
+    titulo: str = ''
 
     def __post_init__(self) -> None:
         self._trava = threading.Lock()
@@ -134,6 +140,7 @@ class Andamento:
         dados = getattr(record, registro.ANDAMENTO, None)
         if evento is None and dados is None:
             return
+        host = getattr(record, registro.HOST, None) or host
         with self._trava:
             if evento == 'inicio':
                 self.casas[host] = Casa()
@@ -214,27 +221,45 @@ class Andamento:
             falta += max(nao_comecaram, 0) * media
             return falta / ritmo
 
+    def _contagens_vistas(self) -> list[tuple[str, str]]:
+        """Sem contagens do projeto (autoria): o que esta execução já fez."""
+        todas = [*self.casas.values(), *self.concluidas.values()]
+        autoria = sum(c.autoria for c in todas)
+        if not autoria:
+            return []
+        return [('Autoria', f'{autoria} matéria{"s" if autoria != 1 else ""} feitas')]
+
     def foto(self) -> Foto:
         """O andamento agora (para o painel ou a linha)."""
         restante = self.restante()
+        contagens = self.contagens()
         with self._trava:
             return Foto(
                 # sem `comecar` (autoria), o total é o que já apareceu
                 total_casas=max(self.total_casas, len(self.casas) + len(self.concluidas)),
                 concluidas=len(self.concluidas),
-                em_andamento=[(h, c.texto_da_etapa()) for h, c in self.casas.items()],
+                em_andamento=[
+                    (h, c.nome_da_etapa(), c.feitos, c.total) for h, c in self.casas.items()
+                ],
                 teste=(self.teste_feitos, self.teste_total),
                 decorrido=self.relogio() - self.inicio,
                 restante=restante,
-                contagens=self.contagens(),
+                contagens=contagens or self._contagens_vistas(),
+                titulo=self.titulo,
             )
 
     def progresso(self) -> str:
-        """Fim da linha de progresso do modo texto: contagens e tempo restante."""
+        """Segunda linha do bloco de progresso do modo texto: contagens e tempo.
+
+        `Buscas 92 de 230 completas · Matérias 145 raspadas · … · Tempo 3 min 20 s,
+        faltam ~5 min (estimativa)`.
+        """
         foto = self.foto()
-        partes = [foto.contagens] if foto.contagens else []
-        partes.append(f'tempo restante: {texto_restante(foto.restante)}')
-        return '; '.join(partes)
+        partes = [f'{rotulo} {texto}' for rotulo, texto in foto.contagens]
+        tempo = f'Tempo {_duracao(foto.decorrido)}'
+        restante = texto_restante(foto.restante)
+        partes.append(f'{tempo}, faltam {restante}' if foto.restante else f'{tempo}, {restante}')
+        return ' · '.join(partes)
 
 
 def texto_restante(segundos: float | None) -> str:
@@ -263,9 +288,11 @@ class HandlerAndamento(logging.Handler):
 
 
 @contextmanager
-def acompanhar(contagens: Callable[[], str] = lambda: '') -> Iterator[Andamento]:
+def acompanhar(
+    contagens: Callable[[], list[tuple[str, str]]] = lambda: [], titulo: str = ''
+) -> Iterator[Andamento]:
     """Liga um `Andamento` ao log do programa durante o bloco."""
-    andamento = Andamento(contagens)
+    andamento = Andamento(contagens, titulo=titulo)
     handler = HandlerAndamento(andamento)
     logger = registro.logger()
     if logger.level == logging.NOTSET:  # sem `registro.configurar` (testes)
@@ -313,41 +340,88 @@ def _duracao(segundos: float) -> str:
     return registro.formatar_duracao(segundos)
 
 
+LARGURA_ROTULO = 10  # "Matérias  "
+LARGURA_BARRA_CASA = 12
+
+
+def _por_cento(feitos: int, total: int) -> str:
+    return f'{round(100 * feitos / total)}%' if total else '0%'
+
+
 def painel(foto: Foto) -> Any:
-    """O que o painel mostra agora: barra das casas, contagens e casas em andamento."""
+    """O painel em seções (FR-24): título, casas e tempo, contagens, casas em andamento.
+
+    Exemplo::
+
+        Projeto val_tui · AC · 10 casas · 23 palavras
+        ─────────────────────────────────────────────
+        Casas      ━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━  4 de 10 concluídas (40%)
+        Tempo      3 min 20 s · faltam ~5 min (estimativa)
+
+        Buscas     92 de 230 completas
+        Matérias   145 raspadas · 2 com erro
+        PDFs       não pedidos
+
+        Em andamento (1)
+          sapl.feijo.ac.leg.br  buscando  12/23  ━━━━━━╺━━━━━
+    """
     from rich.console import Group
     from rich.progress_bar import ProgressBar
+    from rich.rule import Rule
     from rich.table import Table
     from rich.text import Text
 
-    linhas: list[Any] = []
+    partes: list[Any] = []
+    if foto.titulo:
+        partes += [Text(foto.titulo, style='bold'), Rule(style='dim', align='left')]
+
+    blocos = Table.grid(padding=(0, 1))
+    blocos.add_column(width=LARGURA_ROTULO, style='bold')
+    blocos.add_column()
     testadas, teste_total = foto.teste
     if foto.total_casas == 0 and teste_total:
-        grade = Table.grid(padding=(0, 1))
-        grade.add_row(
-            Text('Testando as casas'),
-            ProgressBar(total=teste_total, completed=testadas, width=LARGURA_BARRA),
-            Text(f'{testadas}/{teste_total} · {_duracao(foto.decorrido)}'),
-        )
-        return Group(grade)
-    grade = Table.grid(padding=(0, 1))
-    grade.add_row(
-        Text('Casas'),
-        ProgressBar(total=max(foto.total_casas, 1), completed=foto.concluidas, width=LARGURA_BARRA),
-        Text(f'{foto.concluidas}/{foto.total_casas} concluídas'),
+        rotulo, feitos, total, texto = 'Testando', testadas, teste_total, 'sites testados'
+    else:
+        rotulo, feitos, total, texto = 'Casas', foto.concluidas, foto.total_casas, 'concluídas'
+    barra = Table.grid(padding=(0, 2))
+    barra.add_row(
+        ProgressBar(total=max(total, 1), completed=feitos, width=LARGURA_BARRA),
+        Text(f'{feitos} de {total} {texto} ({_por_cento(feitos, total)})'),
     )
-    linhas.append(grade)
-    linhas.append(
-        Text(f'Tempo: {_duracao(foto.decorrido)} · restante: {texto_restante(foto.restante)}')
+    blocos.add_row(rotulo, barra)
+    restante = texto_restante(foto.restante)
+    tempo = _duracao(foto.decorrido)
+    blocos.add_row(
+        'Tempo', Text(f'{tempo} · faltam {restante}' if foto.restante else f'{tempo} · {restante}')
     )
+    partes.append(blocos)
+
     if foto.contagens:
-        linhas.append(Text(foto.contagens, style='dim'))
+        contagens = Table.grid(padding=(0, 1))
+        contagens.add_column(width=LARGURA_ROTULO, style='bold')
+        contagens.add_column()
+        for rotulo_contagem, texto_contagem in foto.contagens:
+            contagens.add_row(rotulo_contagem, texto_contagem)
+        partes += [Text(''), contagens]
+
     if foto.em_andamento:
         casas = Table.grid(padding=(0, 2))
-        for host, etapa in foto.em_andamento:
-            casas.add_row(Text(f'  {host}'), Text(etapa))
-        linhas.append(casas)
-    return Group(*linhas)
+        casas.add_column()
+        casas.add_column()
+        casas.add_column(justify='right')
+        casas.add_column()
+        for host, etapa, feitos_casa, total_casa in foto.em_andamento:
+            if total_casa:
+                contagem = f'{feitos_casa}/{total_casa}'
+                barra_casa: Any = ProgressBar(
+                    total=total_casa, completed=feitos_casa, width=LARGURA_BARRA_CASA
+                )
+            else:
+                contagem, barra_casa = '', Text('')
+            casas.add_row(Text(f'  {host}'), Text(etapa), Text(contagem), barra_casa)
+        titulo_casas = Text(f'Em andamento ({len(foto.em_andamento)})', style='bold')
+        partes += [Text(''), titulo_casas, casas]
+    return Group(*partes)
 
 
 class Tela:
@@ -373,9 +447,11 @@ class Tela:
         return self._terminal
 
     @contextmanager
-    def acompanhar(self, contagens: Callable[[], str] = lambda: '') -> Iterator[Andamento]:
+    def acompanhar(
+        self, contagens: Callable[[], list[tuple[str, str]]] = lambda: [], titulo: str = ''
+    ) -> Iterator[Andamento]:
         """Liga o `Andamento` ao log e, no modo ao vivo, mostra o painel durante o bloco."""
-        with acompanhar(contagens) as andamento:
+        with acompanhar(contagens, titulo) as andamento:
             if not self.ao_vivo:
                 yield andamento
                 return

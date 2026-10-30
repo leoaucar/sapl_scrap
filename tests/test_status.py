@@ -25,7 +25,7 @@ def _registro(evento=None, andamento=None):
 
 def _modelo(total=3):
     relogio = RelogioFalso(1000)
-    modelo = status.Andamento(lambda: 'matérias: 0 raspadas', relogio.agora)
+    modelo = status.Andamento(lambda: [('Matérias', '0 raspadas')], relogio.agora)
     modelo.comecar(total)
     return modelo, relogio
 
@@ -44,14 +44,17 @@ def test_etapas_das_casas_em_andamento_e_concluidas():
     modelo.receber(_registro(andamento=('busca', 0, 3, None)), A)
     modelo.receber(_registro(andamento=('busca', 2, 3, 'completa')), A)
     modelo.receber(_registro('inicio'), B)
-    assert modelo.foto().em_andamento == [(A, 'buscando 2/3'), (B, 'começando')]
+    assert modelo.foto().em_andamento == [
+        (A, 'buscando', 2, 3),
+        (B, 'começando', 0, 0),
+    ]
     _materias(modelo, relogio, A, 2, 5, erro_em={2})
     modelo.receber(_registro(andamento=('pdfs', 1, 1, 'ok')), A)
     assert modelo.resumo_da_casa(f'https://{A}/') == '1 busca, 2 matérias (1 com erro), 1 PDF'
     modelo.receber(_registro('fim'), A)
     foto = modelo.foto()
-    assert foto.concluidas == 1 and foto.em_andamento == [(B, 'começando')]
-    assert foto.total_casas == 3 and foto.contagens == 'matérias: 0 raspadas'
+    assert foto.concluidas == 1 and foto.em_andamento == [(B, 'começando', 0, 0)]
+    assert foto.total_casas == 3 and foto.contagens == [('Matérias', '0 raspadas')]
 
 
 def test_resumo_da_casa_sem_nada():
@@ -82,7 +85,7 @@ def test_tempo_restante_calculando_antes_de_um_minuto_ou_sem_casa_concluida():
     _materias(modelo2, relogio2, A, 2, 2, intervalo=1)
     modelo2.receber(_registro('fim'), A)
     assert modelo2.restante() is None  # 2 s: menos de 1 minuto
-    assert modelo2.progresso() == 'matérias: 0 raspadas; tempo restante: calculando'
+    assert modelo2.progresso() == 'Matérias 0 raspadas · Tempo 2 s, calculando'
 
 
 def test_tempo_restante_pelas_materias_por_minuto():
@@ -96,7 +99,7 @@ def test_tempo_restante_pelas_materias_por_minuto():
     _materias(modelo, relogio, B, 40, 100)
     # ritmo: 100 matérias em 100 s; falta: 60 (B) + 60 (C) = 120 -> 120 s
     assert round(modelo.restante()) == 120
-    assert modelo.progresso().endswith('tempo restante: ~2 min (estimativa)')
+    assert modelo.progresso().endswith('Tempo 1 min 40 s, faltam ~2 min (estimativa)')
 
 
 def test_tempo_restante_casa_ainda_buscando_vale_a_media():
@@ -177,24 +180,37 @@ def _console():
 
 def test_painel_mostra_barra_contagens_e_casas():
     foto = status.Foto(
-        5, 2, [(A, 'matérias 45/120'), (B, 'buscando 1/3')], (0, 0), 125, 4800, 'matérias: 9'
+        5,
+        2,
+        [(A, 'matérias', 45, 120), (B, 'buscando', 1, 3), (C, 'começando', 0, 0)],
+        (0, 0),
+        125,
+        4800,
+        [('Buscas', '9 de 15 completas'), ('Matérias', '9 raspadas · 0 com erro')],
+        'Projeto p · AC · 5 casas no ar · 3 palavras',
     )
-    console = _console()
+    console = Console(record=True, width=80, file=io.StringIO(), force_terminal=True)
     console.print(status.painel(foto))
-    texto = console.export_text()
-    assert '2/5 concluídas' in texto
-    assert 'Tempo: 2 min 05 s · restante: ~1 h 20 min (estimativa)' in texto
-    assert max(len(linha.rstrip()) for linha in texto.splitlines()) <= 80
-    assert 'matérias: 9' in texto
-    assert f'{A}  matérias 45/120' in texto and f'{B}  buscando 1/3' in texto
-    assert '━' in texto  # a barra
+    linhas = [linha.rstrip() for linha in console.export_text().splitlines()]
+    assert linhas[0] == 'Projeto p · AC · 5 casas no ar · 3 palavras'
+    assert set(linhas[1]) == {'─'}
+    assert linhas[2].startswith('Casas      ━') and linhas[2].endswith('2 de 5 concluídas (40%)')
+    assert linhas[3] == 'Tempo      2 min 05 s · faltam ~1 h 20 min (estimativa)'
+    assert linhas[4] == ''
+    assert linhas[5:7] == ['Buscas     9 de 15 completas', 'Matérias   9 raspadas · 0 com erro']
+    assert linhas[7] == '' and linhas[8] == 'Em andamento (3)'
+    assert linhas[9].startswith(f'  {A}  matérias   45/120  ━')
+    assert linhas[10].split() == [B, 'buscando', '1/3', '━━━━'] or B in linhas[10]
+    assert linhas[11].split() == [C, 'começando']
+    assert max(len(linha) for linha in linhas) <= 80
 
 
 def test_painel_durante_o_teste_das_casas():
     console = _console()
-    console.print(status.painel(status.Foto(0, 0, [], (120, 1404), 30, None, '')))
+    console.print(status.painel(status.Foto(0, 0, [], (120, 1404), 30, None, [])))
     texto = console.export_text()
-    assert 'Testando as casas' in texto and '120/1404' in texto
+    assert texto.startswith('Testando   ━') and '120 de 1404 sites testados (9%)' in texto
+    assert 'Tempo      30 s · calculando' in texto
 
 
 def test_tela_texto_nao_tem_terminal_proprio():

@@ -582,11 +582,19 @@ def test_config_antiga_retoma_com_as_mesmas_casas(
     assert [u.split('//')[1].rstrip('/') for u in tabela['url']] == casas
 
 
-def test_terminal_so_com_comeco_e_fim_das_casas(projeto_tmp, cliente, sessao, sapl, capsys):
+def test_terminal_organizado_por_etapas(projeto_tmp, cliente, sessao, sapl, capsys):
     assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
     terminal = capsys.readouterr().err
-    assert '[sapl.a.ac.leg.br] Começando' in terminal
-    assert '[sapl.a.ac.leg.br] Concluída' in terminal
+    print(terminal)  # para ver com -s
+    inicio = terminal.index('\nProjeto teste · todos os estados · 2 palavras\n')
+    etapa1 = terminal.index('Etapa 1 de 2: testando os sites (3 casas)\n')
+    no_ar = terminal.index('  2 de 3 casas no ar (fora: 1 HTTP 500)\n\n')
+    assert 'Falha em' not in terminal and 'sem API' not in terminal
+    etapa2 = terminal.index('Etapa 2 de 2: busca e raspagem (2 casas, até 8 ao mesmo tempo)\n\n')
+    feita = terminal.index('✓ sapl.a.ac.leg.br: 2 buscas, 4 matérias (2 com erro), 2 PDFs\n')
+    planilha = terminal.index('\nMontando a planilha final\n')
+    assert inicio < etapa1 < no_ar < etapa2 < feita < planilha
+    assert 'Começando' not in terminal and 'Buscando os termos' not in terminal
     assert 'Matéria 1 de' not in terminal and 'Download 1 de' not in terminal
     assert 'Testando casa' not in terminal and 'página(s)' not in terminal
     [log] = (projeto_tmp / 'teste_proj' / 'logs').iterdir()
@@ -610,8 +618,9 @@ def test_linha_de_progresso_com_tempo_restante(
     with caplog.at_level(logging.INFO, logger='sapyl'):
         assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
     linhas = [r.getMessage() for r in caplog.records if r.getMessage().startswith('Progresso')]
-    assert linhas and 'buscas: ' in linhas[-1] and 'PDFs: ' in linhas[-1]
-    assert linhas[-1].endswith('tempo restante: calculando')
+    assert linhas and '\n  Buscas 4 de 4 completas · Matérias ' in linhas[-1]
+    assert ' · PDFs 2 baixados · 0 com erro · Tempo ' in linhas[-1]
+    assert linhas[-1].endswith(', calculando')
 
 
 class _MenusComRoteiro(PerguntasMenu):
@@ -644,7 +653,7 @@ def test_modo_menus_painel_e_resumo_num_quadro(projeto_tmp, cliente, sessao, sap
     monkeypatch.setattr(programa, 'criar_perguntas', lambda entrada: menus)
     assert programa.main(input, cliente, projeto_tmp) == 0
     texto = console.export_text()
-    assert '[sapl.a.ac.leg.br] Concluída: 2 buscas, 4 matérias (2 com erro), 2 PDFs' in texto
+    assert '✓ sapl.a.ac.leg.br: 2 buscas, 4 matérias (2 com erro), 2 PDFs' in texto
     assert '╭' in texto and 'Resumo (SAPyL' in texto
     assert 'Matéria 1 de' not in texto
 

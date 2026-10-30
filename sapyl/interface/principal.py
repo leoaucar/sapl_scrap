@@ -30,6 +30,7 @@ import errno
 import sys
 import time
 import traceback
+from collections import Counter
 from collections.abc import Callable, Sequence
 from contextlib import ExitStack
 from dataclasses import dataclass, field
@@ -403,6 +404,21 @@ def mapeador(
     return mapear
 
 
+def texto_das_casas_no_ar(casas: pd.DataFrame) -> str:
+    """`8 de 10 casas no ar (fora: 1 dns, 1 HTTP 500)`."""
+    no_ar = int(casas['ativa'].sum())
+    texto = f'{_numero(no_ar)} de {_numero(len(casas))} casas no ar'
+    motivos = Counter(str(m) or '?' for m in casas.loc[~casas['ativa'], 'motivo'])
+    if motivos:
+        texto += ' (fora: ' + ', '.join(f'{n} {m}' for m, n in motivos.most_common()) + ')'
+    return texto
+
+
+def _vai_reusar(config: dict[str, Any], raiz: str | Path) -> bool:
+    """Se a tabela geral de casas vai ser reaproveitada (sem testar os sites)."""
+    return bool(config.get('reusar_tabela')) and (_pasta_csv(raiz) / 'casas_resultado.csv').exists()
+
+
 def preparar_casas(
     projeto: gp.Projeto,
     config: dict[str, Any],
@@ -426,13 +442,13 @@ def preparar_casas(
     estados = estados_da_config(config)
     casas = cl.limitar_casas(cl.filtrar_estados(casas, estados), config['limite'])
     if not testadas:
-        log.info('Testando %d casas legislativas', len(casas))
+        log.info('Etapa 1 de 2: testando os sites (%d casas)', len(casas))
         casas = cl.testar_casas(casas, cliente, mapear)
         # A tabela geral só é trocada quando todas as casas foram testadas
         if not estados and config['limite'] == cl.LIMITE_TODAS:
             cl.salvar_tabela_casas(casas, tabela_global)
     cl.salvar_tabela_casas(casas, projeto.casas)
-    log.info('Casas: %d, das quais %d no ar', len(casas), int(casas['ativa'].sum()))
+    log.info('  %s\n', texto_das_casas_no_ar(casas))
     return casas
 
 
@@ -482,16 +498,36 @@ def progresso_das_materias(estado: Estado) -> str:
     return f'matérias: {contagem.get("ok", 0)} raspadas, {contagem.get("erro", 0)} com erro'
 
 
-def contagens_do_projeto(estado: Estado, buscas: bool = True, downloads: bool = False) -> str:
-    """Contagens do projeto todo (do estado), para o progresso: buscas, matérias, PDFs."""
-    partes = []
+def contagens_do_projeto(
+    estado: Estado,
+    total_buscas: int | None = None,
+    buscas: bool = True,
+    downloads: bool = False,
+) -> list[tuple[str, str]]:
+    """Contagens do projeto todo (do estado), para o progresso: buscas, matérias, PDFs.
+
+    `total_buscas` (casas no ar × palavras), quando se sabe, vira `92 de 230`.
+    """
+    linhas = []
     if buscas:
-        partes.append(f'buscas: {estado.contagens(ETAPA_BUSCA).get("completa", 0)} completas')
-    partes.append(progresso_das_materias(estado))
+        completas = _numero(estado.contagens(ETAPA_BUSCA).get('completa', 0))
+        de = f' de {_numero(total_buscas)}' if total_buscas else ''
+        linhas.append(('Buscas', f'{completas}{de} completas'))
+    materias = estado.contagens(ETAPA_MATERIA)
+    linhas.append(
+        (
+            'Matérias',
+            f'{_numero(materias.get("ok", 0))} raspadas · '
+            f'{_numero(materias.get("erro", 0))} com erro',
+        )
+    )
     if downloads:
         pdfs = estado.contagens(ETAPA_PDF)
-        partes.append(f'PDFs: {pdfs.get("ok", 0)} baixados, {pdfs.get("erro", 0)} com erro')
-    return '; '.join(partes)
+        texto = f'{_numero(pdfs.get("ok", 0))} baixados · {_numero(pdfs.get("erro", 0))} com erro'
+    else:
+        texto = 'não pedidos'
+    linhas.append(('PDFs', texto))
+    return linhas
 
 
 def executar_projeto(
@@ -511,17 +547,28 @@ def executar_projeto(
     inicio = preparar_cliente(cliente, paralelo)
     estado = Estado(projeto.estado)
     tela = tela or status.Tela()
+    palavras = config['palavras']
+    total_buscas: list[int] = []
 
-    def contagens() -> str:
-        return contagens_do_projeto(estado, downloads=config['downloads'])
+    def contagens() -> list[tuple[str, str]]:
+        total = total_buscas[0] if total_buscas else None
+        return contagens_do_projeto(estado, total, downloads=config['downloads'])
 
+    estados = ', '.join(estados_da_config(config)) or 'todos os estados'
+    etapas = 1 if projeto.casas.exists() or _vai_reusar(config, raiz) else 2
+    log.info('\nProjeto %s · %s · %d palavras', projeto.nome, estados, len(palavras))
     with ExitStack() as pilha:
         pilha.callback(estado.fechar)
         andamento = pilha.enter_context(tela.acompanhar(contagens))
+        andamento.titulo = f'Projeto {projeto.nome} · {estados} · {len(palavras)} palavras'
         teste = mapeador(cliente, paralelo, andamento.progresso, anunciar=False)
         casas = preparar_casas(projeto, config, cliente, raiz, teste)
-        palavras = config['palavras']
         ativas = list(casas[casas['ativa']]['url'])
+        total_buscas.append(len(ativas) * len(palavras))
+        andamento.titulo = (
+            f'Projeto {projeto.nome} · {estados} · {len(ativas)} casas no ar · '
+            f'{len(palavras)} palavras'
+        )
         refazer_links = bool(buscas_pendentes(casas, palavras, estado))
         refazer_links = refazer_links or not projeto.links.exists()
         if refazer_links:
@@ -548,7 +595,8 @@ def executar_projeto(
             raspagem.da_casa(links_casa)
 
         log.info(
-            'Casas a processar: %d, até %d ao mesmo tempo',
+            '%s: busca e raspagem (%d casas, até %d ao mesmo tempo)\n',
+            f'Etapa {etapas} de {etapas}' if etapas > 1 else 'Etapa única',
             len(fila),
             paralelo['casas_ao_mesmo_tempo'],
         )
@@ -562,11 +610,12 @@ def executar_projeto(
             raspagem.fechar()
             if paginas is not None:
                 paginas.fechar()
+        log.info('\nMontando a planilha final')
         if refazer_links:
             brutos = links_das_buscas(projeto.paginas, projeto.cru)
             links = deduplicar_links(ordenar_por_casa(brutos, casas['url']))
             salvar_links(links, projeto.links)
-            log.info('Links de matérias: %d encontrados, %d únicos', len(brutos), len(links))
+            log.info('  Links de matérias: %d encontrados, %d únicos', len(brutos), len(links))
         else:
             links = ler_links(projeto.links)
         final = montar_final(projeto.materias, links)
@@ -662,7 +711,7 @@ def executar_atualizacao(
     registro.configurar(
         projeto.pasta, projeto.nome, 'atualizacao', terminal=contexto.tela.terminal()
     )
-    log.info('Atualizando o projeto %s a partir de %s', projeto.nome, base.final)
+    log.info('\nAtualizando o projeto %s a partir de %s', projeto.nome, base.final.name)
     extras = colunas_extras(tabela)
     if extras:
         log.info('Colunas acrescentadas mantidas: %s', ', '.join(extras))
@@ -685,10 +734,12 @@ def executar_atualizacao(
         grupos = agrupar_por_casa(links)
         fila = [g[0]['Link Casa'] for g in grupos.values()]
 
-        def contagens() -> str:
+        def contagens() -> list[tuple[str, str]]:
             return contagens_do_projeto(estado, buscas=False, downloads=downloads)
 
-        with contexto.tela.acompanhar(contagens) as andamento:
+        titulo = f'Atualização de {base.nome} · {len(fila)} casas · {_numero(len(links))} matérias'
+        log.info('%d matérias em %d casas\n', len(links), len(fila))
+        with contexto.tela.acompanhar(contagens, titulo) as andamento:
             andamento.comecar(len(fila))
             mapear = mapeador(
                 cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
@@ -780,8 +831,8 @@ def executar_autoria(
             planilha.parent, planilha.stem, 'autoria', terminal=contexto.tela.terminal()
         )
         fontes = Fontes()
-    log.info('Autoria e tramitação de %s', planilha)
-    with contexto.tela.acompanhar() as andamento:
+    log.info('\nAutoria e tramitação de %s\n', planilha)
+    with contexto.tela.acompanhar(titulo=f'Autoria e tramitação · {planilha.name}') as andamento:
         mapear = mapeador(
             cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
         )
@@ -801,7 +852,7 @@ def _executar_e_resumir(
     raiz: str | Path,
     contexto: Contexto,
 ) -> str:
-    log.info('Buscando os termos: %s', '; '.join(descrever(p) for p in config['palavras']))
+    log.debug('Buscando os termos: %s', '; '.join(descrever(p) for p in config['palavras']))
     texto = executar_projeto(projeto, config, cliente, raiz, contexto.tela)
     contexto.resultado = (projeto.final, projeto)
     return texto
@@ -923,7 +974,7 @@ def fluxo_retomar(
     if not projeto.config.exists():
         gp.salvar_config(projeto, config)
     registro.configurar(projeto.pasta, projeto.nome, 'retomada', terminal=contexto.tela.terminal())
-    log.info('Retomando o projeto %s', projeto.nome)
+    log.info('\nRetomando o projeto %s', projeto.nome)
     avisar_palavras_mudadas(raiz, config['palavras'])
     return _executar_e_resumir(projeto, config, cliente, raiz, contexto)
 

@@ -277,8 +277,10 @@ listas de marcar (os estados), a barra de espaço marca e `Enter` confirma.
    do teste e quantas casas estavam no ar) ou testar os sites de novo (até
    ~15 min).
 5. **Estados:** marque os estados numa lista. Os atalhos *Todos os estados* e
-   *Sul e Sudeste* (RJ, SP, RS, SC, MG, ES e PR) ficam no topo; nada marcado
-   vale como todos.
+   *Sul e Sudeste* (RJ, SP, RS, SC, MG, ES e PR) ficam no topo. Marque cada
+   estado com a **barra de espaço** (só levar o cursor até ele não marca) e
+   aperte `Enter`; sem nada marcado, o programa pede para marcar. Antes de
+   começar, confira os estados na tela de confirmação.
 6. **Quantas casas:** todas as dos estados escolhidos ou um **teste com 10
    casas** (bom para conferir as palavras-chave antes de uma busca completa).
 7. **Baixar os textos originais (PDFs)?** Cerca de 10 MB por matéria; uma

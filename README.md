@@ -105,8 +105,10 @@ apertar `Enter`. Uma versão para baixar e abrir com dois cliques está no
 O código fica em <https://github.com/leoaucar/sapyl>. Há dois jeitos de
 baixar:
 
-- **Sem o git (mais simples):** abra o endereço acima, clique no botão verde
-  **`<> Code`** e depois em **Download ZIP**. Descompacte o arquivo
+- **Sem o git (mais simples):** baixe o ZIP pelo link
+  <https://github.com/leoaucar/sapyl/archive/refs/heads/main.zip> (o mesmo do
+  botão **Baixar** da [página do projeto](https://leoaucar.github.io/sapyl/),
+  ou, no GitHub, botão verde **`<> Code`** → **Download ZIP**). Descompacte o arquivo
   `sapyl-main.zip` onde quiser guardar o programa (no Windows: botão direito
   → *Extrair tudo*). A pasta criada se chama **`sapyl-main`**: use esse nome
   no lugar de `sapyl` nos comandos abaixo e pule a linha do `git clone`.

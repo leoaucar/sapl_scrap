@@ -140,3 +140,10 @@ def test_estimativa_de_tempo():
         'cerca de 29 minutos',
         'cerca de 2 horas',
     ]
+
+
+def test_botao_de_baixar_o_zip(pagina):
+    texto, leitor = pagina
+    zip_ = f'{REPOSITORIO}/archive/refs/heads/main.zip'
+    assert leitor.links.count(zip_) == 2  # no topo e no passo da instalação
+    assert 'Baixar o SAPyL (ZIP)' in texto and 'sapyl-main' in texto

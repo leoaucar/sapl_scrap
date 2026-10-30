@@ -296,6 +296,16 @@ Decidir na spec o que vai para a Fase 7.
 - [ ] **Configurações** no menu (casas ao mesmo tempo, limite por servidor),
       em vez de editar o `config.json`
 
+**Interface e página**
+- [ ] **Opção selecionada mais evidente nos menus do terminal:** hoje só a
+      seta `»` mostra onde está o cursor. Destacar a linha inteira (cor de
+      fundo ou negrito, com contraste que funcione em terminal claro e escuro,
+      e sem depender só de cor), também nas listas de marcar (estados)
+- [ ] **Favicon da página do projeto:** um ícone criado a partir da
+      identidade atual da página (a marca SAP**y**L com o "y" em destaque e o
+      desenho do plenário), em SVG e nos tamanhos PNG usuais, funcionando nos
+      temas claro e escuro
+
 **Arquivos e fluxo**
 - [ ] **Planilha que o Excel abre direito:** hoje o CSV sai em UTF-8 sem BOM
       e separado por vírgula, e o Excel em português mostra os acentos

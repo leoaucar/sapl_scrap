@@ -5,6 +5,8 @@ As camadas de baixo só escrevem no log (veja `registro.andamento` e
 `Andamento`, que a interface mostra: numa linha a cada minuto (modo texto)
 ou num painel ao vivo (modo menus, veja `PainelAoVivo`).
 
+`Tela` decide onde isso aparece e desenha o resumo do fim.
+
 Tempo restante (estimativa): só depois de 1 minuto e de pelo menos uma casa
 concluída. Trabalho que falta = matérias conhecidas e ainda não raspadas (das
 casas que já terminaram a busca) + casas que ainda não terminaram a busca ×
@@ -19,6 +21,7 @@ from collections import deque
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from typing import Any
 
 from sapyl import registro
 from sapyl.execucao import nome_da_casa
@@ -272,3 +275,135 @@ def acompanhar(contagens: Callable[[], str] = lambda: '') -> Iterator[Andamento]
         yield andamento
     finally:
         logger.removeHandler(handler)
+
+
+# ---- Na tela: painel ao vivo (modo menus) ou linhas simples (modo texto) ----
+
+# Marca de uma linha do log que não vai para o terminal (o resumo, desenhado à parte)
+SO_ARQUIVO = 'so_arquivo'
+LARGURA_BARRA = 30
+
+
+class HandlerTerminal(logging.Handler):
+    """Linhas do log no console do `rich`, acima do painel (nível INFO).
+
+    Com o painel ligado, a linha de progresso de cada minuto fica de fora (o
+    painel já mostra tudo). Linhas marcadas com `SO_ARQUIVO` nunca aparecem.
+    """
+
+    def __init__(self, console: Any) -> None:
+        super().__init__(logging.INFO)
+        self.console = console
+        self.painel_ligado = False
+        self.setFormatter(logging.Formatter(registro.FORMATO_TERMINAL))
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Escreve a linha (sem interpretar colchetes como formatação)."""
+        if getattr(record, SO_ARQUIVO, False):
+            return
+        if self.painel_ligado and getattr(record, registro.PROGRESSO, False):
+            return
+        try:
+            self.console.print(self.format(record), markup=False, highlight=False)
+        except Exception:
+            self.handleError(record)
+
+
+def _duracao(segundos: float) -> str:
+    return registro.formatar_duracao(segundos)
+
+
+def painel(foto: Foto) -> Any:
+    """O que o painel mostra agora: barra das casas, contagens e casas em andamento."""
+    from rich.console import Group
+    from rich.progress_bar import ProgressBar
+    from rich.table import Table
+    from rich.text import Text
+
+    linhas: list[Any] = []
+    testadas, teste_total = foto.teste
+    if foto.total_casas == 0 and teste_total:
+        grade = Table.grid(padding=(0, 1))
+        grade.add_row(
+            Text('Testando as casas'),
+            ProgressBar(total=teste_total, completed=testadas, width=LARGURA_BARRA),
+            Text(f'{testadas}/{teste_total} · {_duracao(foto.decorrido)}'),
+        )
+        return Group(grade)
+    grade = Table.grid(padding=(0, 1))
+    grade.add_row(
+        Text('Casas'),
+        ProgressBar(total=max(foto.total_casas, 1), completed=foto.concluidas, width=LARGURA_BARRA),
+        Text(f'{foto.concluidas}/{foto.total_casas} concluídas'),
+    )
+    linhas.append(grade)
+    linhas.append(
+        Text(f'Tempo: {_duracao(foto.decorrido)} · restante: {texto_restante(foto.restante)}')
+    )
+    if foto.contagens:
+        linhas.append(Text(foto.contagens, style='dim'))
+    if foto.em_andamento:
+        casas = Table.grid(padding=(0, 2))
+        for host, etapa in foto.em_andamento:
+            casas.add_row(Text(f'  {host}'), Text(etapa))
+        linhas.append(casas)
+    return Group(*linhas)
+
+
+class Tela:
+    """Onde o andamento e o resumo aparecem.
+
+    `ao_vivo` (modo menus): linhas do log pelo console do `rich`, um painel
+    que se atualiza durante a execução e o resumo num quadro. Senão (modo
+    texto): o terminal de sempre (`registro.configurar` sem `terminal`), a
+    linha de progresso a cada minuto e o resumo como texto.
+    """
+
+    def __init__(self, ao_vivo: bool = False, console: Any = None) -> None:
+        self.ao_vivo = ao_vivo
+        if ao_vivo and console is None:
+            from rich.console import Console
+
+            console = Console()
+        self.console = console
+        self._terminal = HandlerTerminal(console) if ao_vivo else None
+
+    def terminal(self) -> logging.Handler | None:
+        """O destino do terminal para `registro.configurar` (None = o padrão)."""
+        return self._terminal
+
+    @contextmanager
+    def acompanhar(self, contagens: Callable[[], str] = lambda: '') -> Iterator[Andamento]:
+        """Liga o `Andamento` ao log e, no modo ao vivo, mostra o painel durante o bloco."""
+        with acompanhar(contagens) as andamento:
+            if not self.ao_vivo:
+                yield andamento
+                return
+            from rich.live import Live
+
+            live = Live(
+                get_renderable=lambda: painel(andamento.foto()),
+                console=self.console,
+                refresh_per_second=2,
+                transient=True,
+            )
+            assert self._terminal is not None
+            self._terminal.painel_ligado = True
+            live.start()
+            try:
+                yield andamento
+            finally:  # também no Ctrl+C
+                live.stop()
+                self._terminal.painel_ligado = False
+
+    def resumo(self, texto: str) -> None:
+        """O resumo vai para o log e aparece no terminal (num quadro, no modo ao vivo)."""
+        log = registro.logger()
+        if not self.ao_vivo:
+            log.info(texto)
+            return
+        from rich.panel import Panel
+        from rich.text import Text
+
+        log.info(texto, extra={SO_ARQUIVO: True})
+        self.console.print(Panel(Text(texto.strip('\n')), expand=False))

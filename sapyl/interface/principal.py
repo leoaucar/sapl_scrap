@@ -30,7 +30,7 @@ import sys
 import time
 from collections.abc import Callable, Sequence
 from contextlib import ExitStack
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -60,7 +60,14 @@ from sapyl.interface.entrada import (
     escolher_projeto,
     rotulo_do_projeto,
 )
-from sapyl.interface.perguntas import Atalho, Leitor, Opcao, Perguntas, criar_perguntas
+from sapyl.interface.perguntas import (
+    Atalho,
+    Leitor,
+    Opcao,
+    Perguntas,
+    PerguntasMenu,
+    criar_perguntas,
+)
 from sapyl.links import (
     agrupar_por_casa,
     deduplicar_links,
@@ -131,6 +138,7 @@ class Contexto:
     modo: str | None = None
     nome: str | None = None
     cancelado: bool = False
+    tela: status.Tela = field(default_factory=status.Tela)
 
 
 def mensagem_interrompido(contexto: Contexto) -> str:
@@ -448,7 +456,11 @@ def contagens_do_projeto(estado: Estado, buscas: bool = True, downloads: bool = 
 
 
 def executar_projeto(
-    projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
+    projeto: gp.Projeto,
+    config: dict[str, Any],
+    cliente: ClienteSAPL,
+    raiz: str | Path,
+    tela: status.Tela | None = None,
 ) -> str:
     """Executa (ou retoma) um projeto do começo ao fim. Devolve o texto do resumo.
 
@@ -459,13 +471,14 @@ def executar_projeto(
     paralelo = ler_paralelo(projeto, config)
     inicio = preparar_cliente(cliente, paralelo)
     estado = Estado(projeto.estado)
+    tela = tela or status.Tela()
 
     def contagens() -> str:
         return contagens_do_projeto(estado, downloads=config['downloads'])
 
     with ExitStack() as pilha:
         pilha.callback(estado.fechar)
-        andamento = pilha.enter_context(status.acompanhar(contagens))
+        andamento = pilha.enter_context(tela.acompanhar(contagens))
         teste = mapeador(cliente, paralelo, andamento.progresso, anunciar=False)
         casas = preparar_casas(projeto, config, cliente, raiz, teste)
         palavras = config['palavras']
@@ -580,7 +593,9 @@ def executar_atualizacao(
         contexto.cancelado = True
         return None
     inicio = preparar_cliente(cliente, paralelo)
-    registro.configurar(projeto.pasta, projeto.nome, 'atualizacao')
+    registro.configurar(
+        projeto.pasta, projeto.nome, 'atualizacao', terminal=contexto.tela.terminal()
+    )
     log.info('Atualizando o projeto %s a partir de %s', projeto.nome, base.final)
     extras = colunas_extras(tabela)
     if extras:
@@ -607,7 +622,7 @@ def executar_atualizacao(
         def contagens() -> str:
             return contagens_do_projeto(estado, buscas=False, downloads=downloads)
 
-        with status.acompanhar(contagens) as andamento:
+        with contexto.tela.acompanhar(contagens) as andamento:
             andamento.comecar(len(fila))
             mapear = mapeador(
                 cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
@@ -674,15 +689,19 @@ def executar_autoria(
         return None
     inicio = preparar_cliente(cliente, paralelo)
     if projeto is not None:
-        registro.configurar(projeto.pasta, projeto.nome, 'autoria')
+        registro.configurar(
+            projeto.pasta, projeto.nome, 'autoria', terminal=contexto.tela.terminal()
+        )
         casas = cl.ler_tabela_casas(projeto.casas) if projeto.casas.exists() else None
         finais = cl.enderecos_finais(casas) if casas is not None else {}
         fontes = Fontes(Cache(projeto.cache), finais)
     else:
-        registro.configurar(planilha.parent, planilha.stem, 'autoria')
+        registro.configurar(
+            planilha.parent, planilha.stem, 'autoria', terminal=contexto.tela.terminal()
+        )
         fontes = Fontes()
     log.info('Autoria e tramitação de %s', planilha)
-    with status.acompanhar() as andamento:
+    with contexto.tela.acompanhar() as andamento:
         mapear = mapeador(
             cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
         )
@@ -693,10 +712,14 @@ def executar_autoria(
 
 
 def _executar_e_resumir(
-    projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
+    projeto: gp.Projeto,
+    config: dict[str, Any],
+    cliente: ClienteSAPL,
+    raiz: str | Path,
+    tela: status.Tela,
 ) -> str:
     log.info('Buscando os termos: %s', '; '.join(descrever(p) for p in config['palavras']))
-    return executar_projeto(projeto, config, cliente, raiz)
+    return executar_projeto(projeto, config, cliente, raiz, tela)
 
 
 def fluxo_novo(
@@ -726,10 +749,15 @@ def fluxo_novo(
             return None
     projeto.criar()
     contexto.nome = projeto.nome
-    registro.configurar(projeto.pasta, projeto.nome, 'novo' if novo else 'retomada')
+    registro.configurar(
+        projeto.pasta,
+        projeto.nome,
+        'novo' if novo else 'retomada',
+        terminal=contexto.tela.terminal(),
+    )
     config = configuracao_nova(palavras, respostas)
     gp.salvar_config(projeto, config)
-    return _executar_e_resumir(projeto, config, cliente, raiz)
+    return _executar_e_resumir(projeto, config, cliente, raiz, contexto.tela)
 
 
 def fluxo_retomar(
@@ -777,10 +805,10 @@ def fluxo_retomar(
         return None
     if not projeto.config.exists():
         gp.salvar_config(projeto, config)
-    registro.configurar(projeto.pasta, projeto.nome, 'retomada')
+    registro.configurar(projeto.pasta, projeto.nome, 'retomada', terminal=contexto.tela.terminal())
     log.info('Retomando o projeto %s', projeto.nome)
     avisar_palavras_mudadas(raiz, config['palavras'])
-    return _executar_e_resumir(projeto, config, cliente, raiz)
+    return _executar_e_resumir(projeto, config, cliente, raiz, contexto.tela)
 
 
 def main(
@@ -805,7 +833,12 @@ def main(
         'autoria': lambda r, c, p, ctx: executar_autoria(r, c, p, contexto=ctx),
     }
     print(BOAS_VINDAS)
-    contexto = Contexto()
+    tela = (
+        status.Tela(ao_vivo=True, console=perguntas.console)
+        if isinstance(perguntas, PerguntasMenu)
+        else status.Tela()
+    )
+    contexto = Contexto(tela=tela)
     try:
         while True:
             modo = perguntas.escolher(PERGUNTA_MODO, OPCOES_MODO)
@@ -814,7 +847,7 @@ def main(
             if modo == 'ajuda':
                 perguntas.mostrar(ajuda.TEXTO)
                 continue
-            contexto = Contexto(modo)
+            contexto = Contexto(modo, tela=tela)
             texto = fluxos[modo](raiz, cliente, perguntas, contexto)
             if texto is not None:
                 break
@@ -836,7 +869,7 @@ def main(
         log.error(str(erro))
         print(mensagem_interrompido(contexto))
         return 1
-    log.info(texto)
+    tela.resumo(texto)
     return 0
 
 

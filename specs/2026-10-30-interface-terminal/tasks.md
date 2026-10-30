@@ -61,7 +61,7 @@ Rules for every task (same as earlier specs):
   - `interface/status.py`: `Andamento`, `HandlerAndamento`, time-left
     estimate, `linha()`; counters from the state callback.
   - Tests: `test_status.py` (records, threads, fake-clock estimate).
-- [ ] **T07 Live panel** (FR-18, FR-21 panel; plan §5.3)
+- [x] **T07 Live panel** (FR-18, FR-21 panel; plan §5.3)
   - `PainelAoVivo` with `rich.live`; rich terminal handler on the same
     console; stopped on Ctrl+C; summary panel in menus mode.
   - Tests: recording console render; panel stopped after an interruption.

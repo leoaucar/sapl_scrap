@@ -1,7 +1,11 @@
 """Andamento da execução: registros do log, contagens e tempo restante (FR-18, FR-20)."""
 
+import io
 import logging
 import threading
+
+import pytest
+from rich.console import Console
 
 from sapyl import execucao, registro
 from sapyl.interface import status
@@ -162,3 +166,77 @@ def test_erro_no_andamento_nao_derruba_a_execucao(monkeypatch):
         monkeypatch.setattr(modelo, 'receber', lambda *a: 1 / 0)
         monkeypatch.setattr(logging, 'raiseExceptions', False)
         registro.andamento(registro.logger(), registro.MATERIAS, 1, 1, 'x', status='ok')
+
+
+# ---- painel ao vivo e tela (FR-18, FR-21) ----
+
+
+def _console():
+    return Console(record=True, width=100, file=io.StringIO(), force_terminal=True)
+
+
+def test_painel_mostra_barra_contagens_e_casas():
+    foto = status.Foto(
+        5, 2, [(A, 'matérias 45/120'), (B, 'buscando 1/3')], (0, 0), 125, 4800, 'matérias: 9'
+    )
+    console = _console()
+    console.print(status.painel(foto))
+    texto = console.export_text()
+    assert '2/5 concluídas' in texto
+    assert 'Tempo: 2 min 05 s · restante: ~1 h 20 min (estimativa)' in texto
+    assert max(len(linha.rstrip()) for linha in texto.splitlines()) <= 80
+    assert 'matérias: 9' in texto
+    assert f'{A}  matérias 45/120' in texto and f'{B}  buscando 1/3' in texto
+    assert '━' in texto  # a barra
+
+
+def test_painel_durante_o_teste_das_casas():
+    console = _console()
+    console.print(status.painel(status.Foto(0, 0, [], (120, 1404), 30, None, '')))
+    texto = console.export_text()
+    assert 'Testando as casas' in texto and '120/1404' in texto
+
+
+def test_tela_texto_nao_tem_terminal_proprio():
+    tela = status.Tela()
+    assert tela.terminal() is None and not tela.ao_vivo
+
+
+def test_handler_do_terminal_filtra_progresso_e_so_arquivo(tmp_path):
+    console = _console()
+    tela = status.Tela(ao_vivo=True, console=console)
+    registro.configurar(tmp_path, 'p', terminal=tela.terminal())
+    log = registro.logger()
+    with registro.casa_atual('sapl.x.leg.br'):
+        log.info('[colchetes] Começando')
+    log.info('Progresso: 1 de 2', extra={registro.PROGRESSO: True})
+    log.info('resumo', extra={status.SO_ARQUIVO: True})
+    registro.andamento(log, registro.MATERIAS, 1, 1, 'Matéria 1 de 1')
+    with tela.acompanhar():
+        log.info('Progresso: escondida', extra={registro.PROGRESSO: True})
+    texto = console.export_text()
+    assert '[sapl.x.leg.br] [colchetes] Começando' in texto
+    assert 'Progresso: 1 de 2' in texto  # sem o painel, a linha aparece
+    assert 'escondida' not in texto and 'resumo' not in texto and 'Matéria 1' not in texto
+    arquivo = next((tmp_path / 'logs').iterdir()).read_text(encoding='utf-8')
+    assert 'resumo' in arquivo and 'escondida' in arquivo
+
+
+def test_painel_para_no_ctrl_c():
+    tela = status.Tela(ao_vivo=True, console=_console())
+    with pytest.raises(KeyboardInterrupt), tela.acompanhar() as andamento:
+        andamento.comecar(2)
+        assert tela.terminal().painel_ligado
+        raise KeyboardInterrupt
+    assert not tela.terminal().painel_ligado
+    assert not tela.console.is_alt_screen and tela.console._live_stack == []
+
+
+def test_resumo_num_quadro_e_no_log(tmp_path):
+    console = _console()
+    tela = status.Tela(ao_vivo=True, console=console)
+    registro.configurar(tmp_path, 'p', terminal=tela.terminal())
+    tela.resumo('\n===== Resumo =====\nResultado: [x].csv')
+    texto = console.export_text()
+    assert '╭' in texto and 'Resultado: [x].csv' in texto and texto.count('Resumo') == 1
+    assert 'Resultado: [x].csv' in next((tmp_path / 'logs').iterdir()).read_text(encoding='utf-8')

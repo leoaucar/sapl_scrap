@@ -9,7 +9,7 @@ import pytest
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.estado import Estado
 from sapyl.interface import principal as programa
-from sapyl.interface.perguntas import PerguntasTexto
+from sapyl.interface.perguntas import PerguntasMenu, PerguntasTexto
 from sapyl.tabela import ler_final
 from tests.apoio import (
     SaplFalso,
@@ -611,3 +611,38 @@ def test_linha_de_progresso_com_tempo_restante(
     linhas = [r.getMessage() for r in caplog.records if r.getMessage().startswith('Progresso')]
     assert linhas and 'buscas: ' in linhas[-1] and 'PDFs: ' in linhas[-1]
     assert linhas[-1].endswith('tempo restante: calculando')
+
+
+class _MenusComRoteiro(PerguntasMenu):
+    """Modo menus (painel ao vivo), mas com as respostas de um roteiro."""
+
+    def __init__(self, ler, console):
+        self._texto = PerguntasTexto(ler)
+        self.console = console
+
+    def escolher(self, texto, opcoes):
+        return self._texto.escolher(texto, opcoes)
+
+    def sim_nao(self, texto, padrao=False):
+        return self._texto.sim_nao(texto, padrao)
+
+    def marcar(self, texto, opcoes, atalhos):
+        return self._texto.marcar(texto, opcoes, atalhos)
+
+    def texto(self, texto, validar):
+        return self._texto.texto(texto, validar)
+
+
+def test_modo_menus_painel_e_resumo_num_quadro(projeto_tmp, cliente, sessao, sapl, monkeypatch):
+    import io
+
+    from rich.console import Console
+
+    console = Console(record=True, width=120, file=io.StringIO(), force_terminal=True)
+    menus = _MenusComRoteiro(roteiro(*NOVO), console)
+    monkeypatch.setattr(programa, 'criar_perguntas', lambda entrada: menus)
+    assert programa.main(input, cliente, projeto_tmp) == 0
+    texto = console.export_text()
+    assert '[sapl.a.ac.leg.br] Concluída: 2 buscas, 4 matérias (2 com erro), 2 PDFs' in texto
+    assert '╭' in texto and 'Resumo (SAPyL' in texto
+    assert 'Matéria 1 de' not in texto

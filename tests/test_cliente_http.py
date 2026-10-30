@@ -237,7 +237,7 @@ def test_resposta_json_e_texto(cliente, sessao):
 
 def test_sessao_padrao_tem_user_agent():
     agente = http_sapl.criar_sessao().headers['User-Agent']
-    assert agente.startswith('SAPyL/0.2.0 ') and 'github.com/leoaucar/sapyl' in agente
+    assert agente.startswith('SAPyL/0.3.0 ') and 'github.com/leoaucar/sapyl' in agente
 
 
 # --- Limite entre execuções (achado V2 da validação) ------------------------

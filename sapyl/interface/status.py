@@ -316,6 +316,7 @@ def acompanhar(
 # Marca de uma linha do log que não vai para o terminal (o resumo, desenhado à parte)
 SO_ARQUIVO = 'so_arquivo'
 LARGURA_BARRA = 30
+INTERVALO_PAINEL = 0.5  # segundos entre dois desenhos do painel
 
 
 class HandlerTerminal(logging.Handler):
@@ -464,18 +465,35 @@ class Tela:
                 return
             from rich.live import Live
 
+            # O painel é montado nesta thread, fora das travas do rich, e entregue
+            # pronto: nenhuma trava do programa (andamento, estado) é pedida
+            # enquanto o rich segura as dele (um travamento visto na validação de
+            # 30/10/2026 vinha provavelmente dessa mistura).
             live = Live(
-                get_renderable=lambda: painel(andamento.foto()),
+                painel(andamento.foto()),
                 console=self.console,
-                refresh_per_second=2,
+                auto_refresh=False,
                 transient=True,
             )
             assert self._terminal is not None
             self._terminal.painel_ligado = True
+            parar = threading.Event()
+
+            def atualizar() -> None:
+                while not parar.wait(INTERVALO_PAINEL):
+                    try:
+                        live.update(painel(andamento.foto()), refresh=True)
+                    except Exception:  # o painel nunca derruba a execução
+                        registro.logger().debug('Falha ao desenhar o painel', exc_info=True)
+
             live.start()
+            pintor = threading.Thread(target=atualizar, name='painel', daemon=True)
+            pintor.start()
             try:
                 yield andamento
             finally:  # também no Ctrl+C
+                parar.set()
+                pintor.join(timeout=5)
                 live.stop()
                 self._terminal.painel_ligado = False
 

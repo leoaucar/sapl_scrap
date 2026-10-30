@@ -269,3 +269,16 @@ def test_ritmo_conta_desde_a_primeira_materia():
     _materias(modelo, relogio, B, 5, 35, intervalo=60 / 35)  # 35 por minuto
     # faltam 30 matérias a 35/min: menos de 1 minuto (antes dava ~30 min)
     assert modelo.restante() < 60
+
+
+def test_painel_e_redesenhado_por_uma_thread_propria():
+    import time
+
+    tela = status.Tela(ao_vivo=True, console=_console())
+    with tela.acompanhar(titulo='Projeto x') as andamento:
+        andamento.comecar(3)
+        nomes = {t.name for t in threading.enumerate()}
+        time.sleep(1.2)  # pelo menos dois desenhos
+    assert 'painel' in nomes
+    assert 'painel' not in {t.name for t in threading.enumerate()}  # parou junto
+    assert 'Projeto x' in tela.console.export_text()

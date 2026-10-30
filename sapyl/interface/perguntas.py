@@ -23,6 +23,9 @@ Leitor = Callable[[str], str]
 Validador = Callable[[str], str | None]
 
 VARIAVEL_MENUS = 'SAPYL_MENUS'
+# Dicas dos menus (no lugar das do questionary, em inglês)
+DICA_ESCOLHER = '(setas e Enter)'
+DICA_MARCAR = '(setas; espaço marca; Enter confirma; nada marcado = todos)'
 
 SIM = ('s', 'sim', '1')
 NAO = ('n', 'não', 'nao', '2')
@@ -179,7 +182,10 @@ class PerguntasMenu:
         import questionary
 
         escolhas = [questionary.Choice(o.rotulo, value=o.valor) for o in opcoes]
-        return self._perguntar(questionary.select(texto, choices=escolhas, **self._es))
+        pergunta = questionary.select(
+            texto, choices=escolhas, instruction=DICA_ESCOLHER, **self._es
+        )
+        return self._perguntar(pergunta)
 
     def sim_nao(self, texto: str, padrao: bool = False) -> bool:
         """`Sim` / `Não` com as setas; o cursor começa no `padrao`."""
@@ -187,7 +193,9 @@ class PerguntasMenu:
 
         escolhas = [questionary.Choice('Sim', value=True), questionary.Choice('Não', value=False)]
         inicial = escolhas[0] if padrao else escolhas[1]
-        pergunta = questionary.select(texto, choices=escolhas, default=inicial, **self._es)
+        pergunta = questionary.select(
+            texto, choices=escolhas, default=inicial, instruction=DICA_ESCOLHER, **self._es
+        )
         return bool(self._perguntar(pergunta))
 
     def marcar(self, texto: str, opcoes: Sequence[Opcao], atalhos: Sequence[Atalho]) -> list[str]:
@@ -198,8 +206,10 @@ class PerguntasMenu:
         if atalhos:
             escolhas.append(questionary.Separator())
         escolhas += [questionary.Choice(o.rotulo, value=o.valor) for o in opcoes]
-        dica = ' (espaço marca, Enter confirma; nada marcado = todos)'
-        marcados = self._perguntar(questionary.checkbox(texto + dica, choices=escolhas, **self._es))
+        pergunta = questionary.checkbox(
+            texto, choices=escolhas, instruction=DICA_MARCAR, **self._es
+        )
+        marcados = self._perguntar(pergunta)
         return _juntar(list(marcados or []), opcoes, atalhos)
 
     def texto(self, texto: str, validar: Validador) -> str:

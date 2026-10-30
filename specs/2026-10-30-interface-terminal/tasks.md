@@ -74,7 +74,7 @@ Rules for every task (same as earlier specs):
 
 ## Phase D: Docs and validation
 
-- [ ] **T09 Documentation and version**
+- [x] **T09 Documentation and version**
   - README ("Como usar", "Retomar um projeto", "Resumo e log",
     `SAPYL_MENUS=0`), project page, version 0.4.0.
   - Tests: `test_site.py` / `test_instalacao.py` still pass.

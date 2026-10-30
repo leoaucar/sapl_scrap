@@ -202,9 +202,9 @@ def test_boas_vindas_e_resumo_com_o_nome_sapyl(projeto_tmp, cliente, sessao, sap
     with caplog.at_level(logging.INFO, logger='sapyl'):
         assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
     saida = capsys.readouterr().out
-    assert saida.startswith('SAPyL: Raspador do Sistema de Apoio Legislativo (versão 0.3.0)')
+    assert saida.startswith('SAPyL: Raspador do Sistema de Apoio Legislativo (versão 0.4.0)')
     resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
-    assert '===== Resumo (SAPyL 0.3.0) =====' in resumo
+    assert '===== Resumo (SAPyL 0.4.0) =====' in resumo
 
 
 # --- Palavras mudadas na retomada (FR-23) -----------------------------------

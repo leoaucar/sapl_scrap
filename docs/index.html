@@ -210,8 +210,8 @@
         <p><strong>Nenhuma matéria vazia em silêncio.</strong> Toda linha tem <code>status</code>
           (<code>ok</code> ou <code>erro</code>) e, quando falha, o motivo.</p>
         <p><strong>Respeito aos servidores.</strong> No máximo 35 requisições por minuto em cada site.</p>
-        <p><strong>Retomada.</strong> Se parar no meio, rode de novo e escolha “retomar”: nada do que
-          já foi feito é refeito.</p>
+        <p><strong>Retomada.</strong> Se parar no meio, rode de novo e escolha “Retomar um
+          projeto”: nada do que já foi feito é refeito.</p>
       </div>
 
       <h3 class="subsecao" id="resultado">O que você recebe</h3>
@@ -293,14 +293,18 @@ saneamento basico</code></pre>
         <li>
           <h3>Rode o programa</h3>
           <pre><code>sapyl</code></pre>
-          <p>Ele faz algumas perguntas no terminal, a primeira é o que fazer:</p>
+          <p>Ele mostra um menu no terminal; escolha com as setas e <kbd>Enter</kbd>:</p>
           <ul class="menu-programa">
-            <li><kbd>1</kbd> Novo projeto ou retomar um projeto</li>
-            <li><kbd>2</kbd> Atualizar um projeto (raspa de novo as matérias do resultado)</li>
-            <li><kbd>3</kbd> Autoria e tramitação (acrescenta autores e o último trâmite)</li>
+            <li>Novo projeto</li>
+            <li>Retomar um projeto (da lista, com a situação de cada um)</li>
+            <li>Atualizar um projeto (raspa de novo as matérias do resultado)</li>
+            <li>Autoria e tramitação (acrescenta autores e o último trâmite)</li>
+            <li>Ajuda e Sair</li>
           </ul>
-          <p>Num projeto novo, você dá um nome e escolhe se quer restringir a Sul e Sudeste,
-            limitar o número de casas para testar e baixar os PDFs.</p>
+          <p>Num projeto novo, ele mostra as suas palavras-chave, pede um nome, os estados
+            (marcados numa lista) e se é para baixar os PDFs. Antes de começar, um resumo do que
+            vai ser feito: dá para mudar as respostas ou cancelar. Durante a execução, uma barra
+            mostra as casas concluídas e o tempo restante.</p>
         </li>
         <li>
           <h3>Abra o resultado</h3>
@@ -314,7 +318,7 @@ saneamento basico</code></pre>
         <h3>Quanto tempo leva?</h3>
         <p>Cada site do SAPL aceita no máximo <strong>35 requisições por minuto</strong>, e o
           SAPyL respeita esse limite. Uma casa com 1 000 matérias leva cerca de 30 minutos. Se a
-          execução parar, rode de novo, digite o mesmo nome e escolha <em>retomar</em>.</p>
+          execução parar, rode de novo e escolha <em>Retomar um projeto</em>.</p>
         <p>O SAPyL trabalha em <strong>até 8 casas ao mesmo tempo</strong>. Como quase todas
           ficam no mesmo servidor do Interlegis, elas dividem um limite de
           <strong>120 requisições por minuto</strong> por servidor: uma busca em todas as casas

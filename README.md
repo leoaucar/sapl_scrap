@@ -143,34 +143,58 @@ sapyl
 
 (ou `python -m sapyl`, ou ainda `python programa.py` na raiz do repositório)
 
-O programa faz perguntas no terminal. Responda digitando o número da opção
-(respostas inválidas são pedidas de novo):
+O programa mostra um menu no terminal. Escolha com as setas e `Enter`; nas
+listas de marcar (os estados), a barra de espaço marca e `Enter` confirma.
 
-1. **O que você quer fazer?** `1` novo projeto ou retomar um projeto, `2`
-   atualizar um projeto (veja [Atualizar um projeto](#atualizar-um-projeto)),
-   `3` autoria e tramitação (veja [Autoria e tramitação](#autoria-e-tramitação)).
-2. **Nome do projeto**: é criada a pasta `<nome>_proj/`. Se o nome já existe,
-   o programa oferece **retomar** esse projeto ou escolher outro nome; um
+1. **O que você quer fazer?** Novo projeto, Retomar um projeto, Atualizar um
+   projeto (veja [Atualizar um projeto](#atualizar-um-projeto)), Autoria e
+   tramitação (veja [Autoria e tramitação](#autoria-e-tramitação)), Ajuda
+   (resumo de tudo isto) ou Sair.
+2. **Palavras-chave:** num projeto novo, o programa lê o arquivo de
+   palavras-chave e mostra as buscas em texto simples, antes de qualquer
+   pergunta. Se o arquivo (ou a planilha de casas) não existe ou está errado,
+   ele diz qual arquivo procurou, em que pasta, e como corrigir, sem criar
+   nada.
+3. **Nome do projeto:** a pasta será `<nome>_proj/`. Se o nome já existe, o
+   programa oferece **retomar** esse projeto ou escolher outro nome; um
    projeto existente nunca é sobrescrito.
-3. **Usar a mesma tabela de casas do último projeto?** (só aparece se já existe
-   `arquivos_csv/casas_resultado.csv`) `1` reaproveita a tabela, sem testar os
-   sites de novo; `2` testa quais sites estão no ar.
-4. **Restringir a busca a Sul e Sudeste?** `1` limita a RJ, SP, RS, SC, MG,
-   ES e PR; `2` busca em todo o país.
-5. **Limitar a busca para teste?** `1` todas as casas, `2` as 50 primeiras,
-   `3` as 50 últimas, `4` apenas 10 casas (bom para um primeiro teste).
-6. **Baixar os textos originais (PDFs)?** `1` sim, `2` não.
+4. **Lista de casas** (só aparece se já existe
+   `arquivos_csv/casas_resultado.csv`): usar a lista já testada (com a data
+   do teste e quantas casas estavam no ar) ou testar os sites de novo (até
+   ~15 min).
+5. **Estados:** marque os estados numa lista. Os atalhos *Todos os estados* e
+   *Sul e Sudeste* (RJ, SP, RS, SC, MG, ES e PR) ficam no topo; nada marcado
+   vale como todos.
+6. **Quantas casas:** todas as dos estados escolhidos ou um **teste com 10
+   casas** (bom para conferir as palavras-chave antes de uma busca completa).
+7. **Baixar os textos originais (PDFs)?** Cerca de 10 MB por matéria; uma
+   execução completa pode passar de 100 GB.
+8. **Confirmação:** um resumo do projeto (estados, casas, palavras, número de
+   buscas, PDFs). *Começar*, *Mudar respostas* (volta ao passo 4) ou
+   *Cancelar* (nada é criado).
 
 As respostas ficam salvas no projeto (`config.json`); ao retomar, nada é
 perguntado de novo.
 
-> Comece com a opção `4` (10 casas) para conferir se as palavras-chave estão
-> boas antes de uma busca completa.
+> Comece com o teste de 10 casas para conferir se as palavras-chave estão boas
+> antes de uma busca completa.
+
+**Sem as setas.** Quando a entrada não vem de um terminal (por exemplo, as
+respostas num arquivo: `sapyl < respostas.txt`), as mesmas perguntas aparecem
+numeradas: digite o número da opção, `s` ou `n` nas perguntas de sim ou não, e
+as siglas dos estados separadas por vírgula ou espaço (`SP, RJ`, ou
+`sul-sudeste`; Enter para todos). O menu principal fica `1` Novo projeto,
+`2` Retomar, `3` Atualizar, `4` Autoria e tramitação, `5` Ajuda, `6` Sair. Se
+os menus com as setas não funcionarem no seu terminal, rode
+`SAPYL_MENUS=0 sapyl` (no PowerShell: `$env:SAPYL_MENUS=0; sapyl`) para usar
+as perguntas numeradas.
 
 ### Retomar um projeto
 
-Rode `sapyl`, escolha `1` na primeira pergunta, digite o nome do
-projeto e escolha `1- retomar este projeto`. O programa:
+Rode `sapyl`, escolha **Retomar um projeto** e o projeto na lista. A lista
+mostra a situação de cada um (*concluído*, *concluído com falhas*,
+*interrompido* ou *não iniciado*), a data da última execução e o número de
+matérias no resultado. Depois de um resumo, escolha *Continuar*. O programa:
 
 - não refaz as buscas que terminaram (e refaz as que ficaram incompletas);
 - não raspa de novo as matérias com `status = ok`;
@@ -228,16 +252,31 @@ requisição em andamento), e a retomada continua de onde parou.
 
 ### Resumo e log
 
+Durante a execução, o terminal mostra um painel que se atualiza sozinho: uma
+barra com as casas concluídas, o tempo da execução e uma **estimativa do
+tempo restante** (calculada depois do primeiro minuto, pelas matérias raspadas
+por minuto), as contagens do projeto (buscas, matérias, PDFs) e uma linha para
+cada casa em andamento, com a etapa (`buscando 2/3`, `matérias 45/120`,
+`PDFs 3/40`). Acima do painel aparecem só as linhas de começo e fim de cada
+casa (`[sapl.x.leg.br] Concluída: 3 buscas, 120 matérias (2 com erro)`), os
+avisos e os erros. A linha de cada matéria, página de busca e PDF vai só para
+o log. Com as perguntas numeradas, no lugar do painel aparece uma linha de
+progresso a cada minuto, com o tempo restante.
+
 No fim de cada execução aparece um resumo: casas pesquisadas, buscas
 incompletas, matérias encontradas, únicas, raspadas e com erro, downloads, o
 tempo da execução, o limite usado em cada servidor (e se foi reduzido) e o
-caminho do resultado. Se houve falhas, ele lembra de retomar o projeto. A
-última linha mostra o log desta execução.
+caminho do resultado. Depois vêm os **próximos passos**: abrir o resultado
+numa planilha, como tentar de novo o que falhou (se houve falhas) e o log
+desta execução. Se o resultado tem matérias, o programa oferece buscar logo a
+**autoria e a tramitação** delas (veja [Autoria e
+tramitação](#autoria-e-tramitação)).
 
-Durante a execução, cada linha começa com a casa a que se refere
-(`[sapl.x.leg.br] Matéria 3 de 120: …`), e a cada minuto aparece uma linha
-de progresso geral (casas concluídas, em andamento e na fila; matérias
-raspadas e com erro).
+Se algo der errado, a mensagem diz o que fazer, sem o "traceback" do Python:
+arquivo de entrada faltando, `config.json` estragado, pasta sem permissão ou
+disco cheio. Num erro inesperado, os detalhes vão para o log da execução (ou
+para um `sapyl_erro_<data_hora>.log` na pasta, se o erro vier antes de
+existir um projeto).
 
 Cada execução (novo projeto, retomada, atualização) tem o seu próprio log em
 `<nome>_proj/logs/<nome>_<aaaa-mm-dd_hhmmss>_<modo>.log`, com tudo o que
@@ -298,8 +337,9 @@ Para atualizar os dados de matérias já encontradas (por exemplo, depois de
 filtrar manualmente as relevantes no `_resultado_final.csv`):
 
 1. Rode `sapyl`.
-2. Escolha `2` (atualizar um projeto).
-3. Digite o nome do projeto (com ou sem `_proj`).
+2. Escolha **Atualizar um projeto**.
+3. Escolha o projeto na lista (só aparecem os que têm resultado final),
+   responda às perguntas e confirme.
 
 O resultado é salvo como `<nome>_resultado_final_ATUALIZADO_<dd_mm_aaaa>.csv`
 e os downloads, se pedidos, em `downloads<dd_mm_aaaa>/`. A atualização também
@@ -316,14 +356,15 @@ arquivo atualizado e dos downloads.
 
 ## Autoria e tramitação
 
-A opção `3` do menu acrescenta a uma planilha as colunas `Autoria` (os autores
+A opção **Autoria e tramitação** do menu acrescenta a uma planilha as colunas `Autoria` (os autores
 da matéria) e `Tramite` (a tramitação mais recente: data, unidade local,
 unidade de destino e status).
 
-1. Rode `sapyl` e escolha `3`.
-2. Digite o **nome de um projeto** (usa o resultado final mais recente dele,
-   inclusive um `_ATUALIZADO_`) ou o **caminho de um CSV** qualquer com a
-   coluna `Link Materia`.
+1. Rode `sapyl` e escolha **Autoria e tramitação** (ou aceite a oferta do fim
+   de um projeto novo, retomado ou atualizado).
+2. Escolha um **projeto** na lista (usa o resultado final mais recente dele,
+   inclusive um `_ATUALIZADO_`) ou *Outro arquivo CSV…* e digite o **caminho
+   de um CSV** qualquer com a coluna `Link Materia`.
 
 A planilha de entrada não é alterada. O resultado vai para
 `<entrada>_autoria_tramitacao.csv`, ao lado dela, com as colunas
@@ -331,8 +372,8 @@ A planilha de entrada não é alterada. O resultado vai para
 `fonte_autoria` (`api` ou `html`). Os dados vêm da API do SAPL, ou das páginas
 da matéria nas casas sem API; as duas fontes dão o mesmo texto.
 
-Se a execução parar no meio, rode de novo, escolha `3` e digite a mesma
-entrada: só o que falta (ou falhou) é buscado de novo.
+Se a execução parar no meio, rode de novo, escolha **Autoria e tramitação** e
+a mesma entrada: só o que falta (ou falhou) é buscado de novo.
 
 ## Testes
 
@@ -355,8 +396,11 @@ O código fica no pacote `sapyl/`. `programa.py`, na raiz, é só um atalho.
 
 | Arquivo                 | Função                                                        |
 |-------------------------|---------------------------------------------------------------|
-| `sapyl/interface/principal.py` | Comando `sapyl`; etapas: novo/retomar/atualizar        |
-| `sapyl/interface/entrada.py`   | Perguntas com validação, escolha do projeto            |
+| `sapyl/interface/principal.py` | Comando `sapyl`; menu e fluxos: novo/retomar/atualizar/autoria |
+| `sapyl/interface/perguntas.py` | Perguntas: menus com as setas ou opções numeradas      |
+| `sapyl/interface/entrada.py`   | Escolha do projeto ou do arquivo, com a situação       |
+| `sapyl/interface/status.py`    | Andamento, painel ao vivo e tempo restante             |
+| `sapyl/interface/ajuda.py`     | Texto da opção Ajuda                                   |
 | `sapyl/colunas.py`      | Nomes das colunas e das etapas (lista única)                  |
 | `sapyl/padroes.py`      | Limites e valores padrão; confere o `paralelo` do config.json |
 | `sapyl/cliente_http.py` | Cliente HTTP único: limite por site e por servidor, 429, retentativas, log |
@@ -369,7 +413,7 @@ O código fica no pacote `sapyl/`. `programa.py`, na raiz, é só um atalho.
 | `sapyl/tabela.py`       | Monta a planilha final                                        |
 | `sapyl/downloads.py`    | Baixa os textos originais                                     |
 | `sapyl/estado.py`       | Progresso em disco, para retomar                              |
-| `sapyl/projeto.py`      | Pasta e arquivos do projeto                                   |
+| `sapyl/projeto.py`      | Pasta e arquivos do projeto; situação de cada projeto         |
 | `sapyl/registro.py`     | Log e resumo final                                            |
 | `sapyl/autoria.py`      | Autoria e tramitação                                          |
 

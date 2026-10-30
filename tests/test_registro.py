@@ -97,7 +97,7 @@ def test_resumo_depois_de_retomada_conta_o_projeto_inteiro(tmp_path):
 def test_log_comeca_com_nome_e_versao(tmp_path):
     caminho = registro.configurar(tmp_path, 'p')
     primeira = open(caminho, encoding='utf-8').readline()
-    assert 'DEBUG sapyl SAPyL: Raspador do Sistema de Apoio Legislativo 0.3.0' in primeira
+    assert 'DEBUG sapyl SAPyL: Raspador do Sistema de Apoio Legislativo 0.4.0' in primeira
 
 
 # --- Um log por execução (FR-26) --------------------------------------------

@@ -7,7 +7,9 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from sapyl.casas import importar_casas
 from sapyl.interface import principal
+from sapyl.interface.perguntas import PerguntasTexto
 from sapyl.palavras import importar_palavras, preparar_termos
 from tests.apoio import roteiro
 
@@ -81,7 +83,8 @@ def test_git_nao_guarda_dados_gerados_nem_de_pesquisa():
 def test_sem_tabela_geral_nao_oferece_reaproveitar(projeto_tmp):
     # clone novo: não existe arquivos_csv/casas_resultado.csv
     assert not (projeto_tmp / 'arquivos_csv' / 'casas_resultado.csv').exists()
-    ler = roteiro('2', '1', '2')  # Sul/Sudeste não, todas as casas, sem downloads
-    config = principal.perguntar_configuracao(projeto_tmp, ler)
-    assert principal.PERGUNTA_TABELA not in ler.perguntas
-    assert config['reusar_tabela'] is False
+    ler = roteiro('', '1', 'n')  # todos os estados, todas as casas, sem downloads
+    planilha = importar_casas(projeto_tmp / 'arquivos_csv' / 'casas_legislativas.xlsx')
+    respostas = principal.perguntar_configuracao(projeto_tmp, PerguntasTexto(ler), planilha)
+    assert len(ler.perguntas) == 3 and 'Lista de casas' not in ler.perguntas[0]
+    assert respostas.reusar_tabela is False and respostas.casas == 3

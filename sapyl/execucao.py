@@ -7,8 +7,13 @@ threads compartilham.
 
 - Cada linha do log escrita durante a tarefa de uma casa começa com
   `[<host>] ` (veja `registro.casa_atual`).
+- Com `anunciar`, uma linha (só no log) quando cada casa começa e outra, no
+  terminal, quando termina: `✓ <host>: <ao_terminar(casa)>` (ex.: as
+  contagens da casa).
 - A cada `a_cada` segundos, uma linha de progresso geral: casas concluídas,
   em andamento e na fila, mais o texto de `progresso()` (ex.: matérias).
+  Ela vai com a marca `registro.PROGRESSO`, para a interface poder deixá-la
+  de fora do terminal quando mostra o painel de progresso.
 - Ctrl+C: liga o evento `parar` (o cliente não faz mais requisições e as
   esperas acabam), descarta as casas que não começaram, espera as que estão
   em andamento pararem (no máximo o tempo de uma requisição) e repassa o
@@ -58,6 +63,8 @@ def por_casa(
     parar: threading.Event,
     progresso: Callable[[], str] | None = None,
     a_cada: float = PROGRESSO_A_CADA,
+    anunciar: bool = False,
+    ao_terminar: Callable[[str], str] | None = None,
 ) -> list[T]:
     """Roda `tarefa(casa)` para cada casa, até `n` ao mesmo tempo (veja o módulo).
 
@@ -77,8 +84,20 @@ def por_casa(
         with trava:
             ativas[0] += 1
         try:
-            with registro.casa_atual(nome_da_casa(casa)):
-                return tarefa(casa)
+            host = nome_da_casa(casa)
+            with registro.casa_atual(host):
+                if anunciar:
+                    log.debug('Começando', extra={registro.EVENTO_CASA: 'inicio'})
+                resultado = tarefa(casa)
+            if anunciar:
+                detalhe = ao_terminar(casa) if ao_terminar else ''
+                log.info(
+                    '✓ %s' + (': %s' if detalhe else '%s'),
+                    host,
+                    detalhe,
+                    extra={registro.EVENTO_CASA: 'fim', registro.HOST: host},
+                )
+            return resultado
         finally:
             with trava:
                 ativas[0] -= 1
@@ -112,7 +131,7 @@ def por_casa(
                     falhas.append((casa_do[futuro], erro))
             if time.monotonic() >= proximo:
                 proximo = time.monotonic() + a_cada
-                log.info(_linha_de_progresso(futuros, progresso))
+                log.info(_linha_de_progresso(futuros, progresso), extra={registro.PROGRESSO: True})
     except KeyboardInterrupt:
         executor.shutdown(wait=False, cancel_futures=True)  # descarta a fila
         with trava:
@@ -139,5 +158,5 @@ def _linha_de_progresso(futuros: list[Future], progresso: Callable[[], str] | No
         f'{len(futuros) - feitas - rodando} na fila'
     )
     if progresso is not None:
-        linha += f'; {progresso()}'
+        linha += f'\n  {progresso()}'
     return linha

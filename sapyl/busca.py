@@ -125,10 +125,27 @@ def buscar_casa(
     ]
     achados: list[Linha] = []
     if pendentes:
-        log.info('Busca em %s: %d palavra(s)', casa, len(pendentes))
-    for palavra in pendentes:
+        registro.andamento(
+            log,
+            registro.BUSCA,
+            0,
+            len(pendentes),
+            'Busca em %s: %d palavra(s)',
+            casa,
+            len(pendentes),
+        )
+    for i, palavra in enumerate(pendentes, start=1):
         n = buscar_palavra(casa, palavra, cliente, estado, paginas, base, achados)
-        log.info('  %s: %d página(s)', palavra, n)
+        registro.andamento(
+            log,
+            registro.BUSCA,
+            i,
+            len(pendentes),
+            '  %s: %d página(s)',
+            palavra,
+            n,
+            status=estado.status(ETAPA_BUSCA, chave_busca(casa, palavra)),
+        )
     return achados
 
 
@@ -158,6 +175,6 @@ def buscar(
                 casa_atual, n_casa = casa, n_casa + 1
                 log.info('Busca na casa %d de %d: %s', n_casa, total_casas, casa)
             paginas = buscar_palavra(casa, palavra, cliente, estado, arquivo, finais.get(casa))
-            log.info('  %s: %d página(s)', palavra, paginas)
+            log.debug('  %s: %d página(s)', palavra, paginas)
     finally:
         arquivo.fechar()

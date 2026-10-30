@@ -2,7 +2,7 @@
 
 **Raspador do Sistema de Apoio Legislativo**
 
-Acompanhe, num só lugar, o que está tramitando em dezenas de câmaras e
+Acompanhe, num só lugar, o que está tramitando nas centenas de câmaras e
 assembleias brasileiras que usam o SAPL. Software livre (AGPL-3.0).
 
 [![testes](https://github.com/leoaucar/sapyl/actions/workflows/tests.yml/badge.svg)](https://github.com/leoaucar/sapyl/actions/workflows/tests.yml)
@@ -23,13 +23,19 @@ Versões anteriores a 0.2 se chamavam *sapl_scrap*. Veja também
 
 ## Para que serve
 
-Muitas Câmaras Municipais e Assembleias Legislativas publicam seus projetos
-de lei, requerimentos e outras matérias no **SAPL** (Sistema de Apoio ao
-Processo Legislativo, do Interlegis). Cada casa tem o seu site, e não há uma
-busca que junte todas. O SAPyL faz essa busca por você: é feito para
-pesquisadoras e pesquisadores, jornalistas, organizações da sociedade civil e
-qualquer pessoa que queira saber o que está sendo proposto sobre um tema em
-muitas casas legislativas ao mesmo tempo.
+Mais de mil casas legislativas (câmaras municipais e algumas assembleias
+estaduais) estão na lista das que publicam seus projetos de lei,
+requerimentos e outras matérias no **SAPL** (Sistema de Apoio ao Processo
+Legislativo), desenvolvido pelo programa Interlegis do Senado Federal. Cada
+casa tem o seu site, e não há uma busca que junte todas.
+
+O SAPyL faz essa busca unificada e entrega o resultado numa planilha. Serve
+para pesquisar a produção legislativa sobre qualquer assunto (educação, saúde,
+segurança pública, assistência social…) e para dar base a pesquisas
+acadêmicas, ao trabalho de movimentos sociais, de organizações da sociedade
+civil e de jornalistas, e a quem queira saber o que está sendo proposto sobre
+um tema em muitas casas ao mesmo tempo. É software livre e de código aberto:
+use e ajude a melhorar.
 
 O programa pesquisa uma lista de palavras-chave na busca de cada casa legislativa,
 coleta os links das matérias encontradas, obtém os dados de cada matéria (título,
@@ -47,8 +53,8 @@ O que ele garante:
 - **Várias casas ao mesmo tempo.** Até 8 casas são processadas em paralelo,
   com o mesmo resultado de uma casa por vez.
 - **Retomada.** Se a execução parar no meio (Ctrl+C, queda de energia ou de
-  internet), basta rodar de novo e escolher "retomar": o que já foi feito não
-  é refeito, e o que falhou é tentado outra vez.
+  internet), basta rodar de novo e escolher **Retomar um projeto**: o que já
+  foi feito não é refeito, e o que falhou é tentado outra vez.
 - **Sem duplicatas.** Uma matéria encontrada por várias palavras aparece uma
   vez só, com todas as palavras na coluna `Palavras`.
 
@@ -58,30 +64,115 @@ mesmo servidor dividem o limite dele (veja
 [Várias casas ao mesmo tempo](#várias-casas-ao-mesmo-tempo)). Veja
 estimativas e próximos passos no [ROADMAP](ROADMAP.md).
 
-## Requisitos
+## Origem e créditos
 
-- Python 3.10 ou superior
-- Conexão com a internet
+O SAPyL foi criado para apoiar o mapeamento da atuação do ultraconservadorismo
+e da extrema direita nos legislativos em pautas educacionais. Essa pesquisa
+foi uma das frentes do projeto **Gênero e Políticas Educacionais**, realizado
+entre 2023 e 2025 numa parceria entre Ação Educativa, Faculdade de Educação da
+Universidade de São Paulo (FE-USP), Fundação Carlos Chagas (FCC), Geledés –
+Instituto da Mulher Negra e Coletivo Professor@s contra o Escola sem Partido,
+com apoio do Fundo Malala.
 
-## Instalação
+- **Realização:** Ação Educativa
+- **Apoio:** Fundo Malala
+- **Desenvolvimento:** Leonardo Aucar, Renata Aquino e Fernanda Moura (veja
+  [AUTHORS.md](AUTHORS.md))
+
+## Instalação (uma vez só)
+
+Hoje o SAPyL roda pelo **terminal** (a tela de comandos do computador). Não é
+preciso saber programar: basta copiar os comandos abaixo, um de cada vez, e
+apertar `Enter`. Uma versão para baixar e abrir com dois cliques está no
+[ROADMAP](ROADMAP.md).
+
+**1. Instale o Python e o git**
+
+- **Python 3.10 ou mais novo:** <https://www.python.org/downloads/>. No
+  Windows, na primeira tela do instalador, marque **"Add python.exe to
+  PATH"**. No Linux, o Python já vem instalado; no Ubuntu e no Debian,
+  instale também o pacote do ambiente virtual: `sudo apt install python3-venv`.
+- **git** (opcional, facilita atualizar): <https://git-scm.com/downloads>.
+
+**2. Abra o terminal**
+
+- **Windows:** abra o menu Iniciar e procure **PowerShell**.
+- **macOS:** abra o aplicativo **Terminal** (em Aplicativos → Utilitários).
+- **Linux:** abra o **Terminal** (no Ubuntu, `Ctrl+Alt+T`).
+
+**3. Baixe o SAPyL do GitHub**
+
+O código fica em <https://github.com/leoaucar/sapyl>. Há dois jeitos de
+baixar:
+
+- **Sem o git (mais simples):** baixe o ZIP pelo link
+  <https://github.com/leoaucar/sapyl/archive/refs/heads/main.zip> (o mesmo do
+  botão **Baixar** da [página do projeto](https://leoaucar.github.io/sapyl/),
+  ou, no GitHub, botão verde **`<> Code`** → **Download ZIP**). Descompacte o arquivo
+  `sapyl-main.zip` onde quiser guardar o programa (no Windows: botão direito
+  → *Extrair tudo*). A pasta criada se chama **`sapyl-main`**: use esse nome
+  no lugar de `sapyl` nos comandos abaixo e pule a linha do `git clone`.
+- **Com o git:** o comando `git clone` abaixo cria a pasta **`sapyl`** dentro
+  da pasta em que o terminal está (ao abrir, é a sua pasta pessoal).
+
+Não baixe arquivos soltos (como só o `README.md`): o programa precisa da
+pasta inteira.
+
+**4. Instale o SAPyL**
+
+No terminal, entre na pasta do programa e rode os comandos.
+
+Linux e macOS:
 
 ```bash
+git clone https://github.com/leoaucar/sapyl.git   # baixa o código para a pasta sapyl
+cd sapyl                                          # entra na pasta
+python3 -m venv .venv                             # cria o ambiente do programa (.venv)
+source .venv/bin/activate                         # ativa o ambiente
+pip install .                                     # instala o SAPyL dentro dele
+```
+
+Windows (PowerShell):
+
+```powershell
 git clone https://github.com/leoaucar/sapyl.git
 cd sapyl
-
-python3 -m venv .venv
-source .venv/bin/activate        # no Windows: .venv\Scripts\activate
-
+py -m venv .venv
+.venv\Scripts\Activate.ps1
 pip install .
 ```
 
+Se o PowerShell disser que **"a execução de scripts foi desabilitada neste
+sistema"**, rode uma vez o comando abaixo, responda `S` e ative de novo:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+O **ambiente virtual** (`.venv`) é uma pasta dentro de `sapyl/` onde ficam o
+programa e as bibliotecas que ele usa, sem misturar com o resto do
+computador. Ele foi criado uma vez só, mas precisa ser **ativado toda vez que
+você abrir um terminal novo** (veja [Como usar](#como-usar)). Para conferir
+a instalação: `sapyl --version`.
+
+### Atualizar o SAPyL
+
+Seus projetos (`<nome>_proj/`) e as suas palavras-chave (`arquivos_csv/`)
+ficam na pasta do SAPyL e não se perdem numa atualização.
+
+- **Com o git:** na pasta do SAPyL, com o ambiente ativado, rode `git pull` e
+  depois `pip install .`.
+- **Com o ZIP:** baixe o ZIP novo, descompacte numa pasta nova, copie para
+  ela as suas pastas `<nome>_proj/` e o seu `arquivos_csv/palavras_chave.csv`,
+  e faça a instalação (passo 4) de novo na pasta nova.
+
+Para saber a versão instalada: `sapyl --version`.
+
 > O repositório se chamava `sapl_scrap`; os endereços antigos redirecionam
 > para o novo. Quem já tem uma cópia pode atualizar o endereço com
-> `git remote set-url origin https://github.com/leoaucar/sapyl.git`.
-
-Isso instala o comando `sapyl` no ambiente virtual (confira com
-`sapyl --version`). Quem já usava `pip install -r requirements.txt` pode
-continuar: o arquivo agora só instala o programa.
+> `git remote set-url origin https://github.com/leoaucar/sapyl.git`. Quem já
+> usava `pip install -r requirements.txt` pode continuar: o arquivo agora só
+> instala o programa.
 
 ## Preparando os arquivos de entrada
 
@@ -135,42 +226,92 @@ Lista das casas que usam o SAPL. O programa usa as colunas **`UF`** e
 
 ## Como usar
 
-Na raiz do projeto, com o ambiente virtual ativado:
+**Toda vez que for usar**, abra o terminal e:
 
-```bash
-sapyl
-```
+1. **Entre na pasta do SAPyL** (`sapyl`, ou `sapyl-main` se você baixou o
+   ZIP). Por exemplo, se ela está na sua pasta pessoal: `cd sapyl` (Windows:
+   `cd $HOME\sapyl`). Dica: digite `cd ` e arraste a pasta para a janela do
+   terminal, que o caminho aparece sozinho.
+2. **Ative o ambiente:**
+   - Linux e macOS: `source .venv/bin/activate`
+   - Windows (PowerShell): `.venv\Scripts\Activate.ps1`
 
-(ou `python -m sapyl`, ou ainda `python programa.py` na raiz do repositório)
+   Com o ambiente ativado, a linha do terminal começa com **`(.venv)`**.
+3. **Rode o programa:**
 
-O programa faz perguntas no terminal. Responda digitando o número da opção
-(respostas inválidas são pedidas de novo):
+   ```bash
+   sapyl
+   ```
 
-1. **O que você quer fazer?** `1` novo projeto ou retomar um projeto, `2`
-   atualizar um projeto (veja [Atualizar um projeto](#atualizar-um-projeto)),
-   `3` autoria e tramitação (veja [Autoria e tramitação](#autoria-e-tramitação)).
-2. **Nome do projeto**: é criada a pasta `<nome>_proj/`. Se o nome já existe,
-   o programa oferece **retomar** esse projeto ou escolher outro nome; um
+4. Quando terminar, feche o terminal (ou digite `deactivate`).
+
+Se aparecer **`sapyl: command not found`** (Windows: *"O termo 'sapyl' não é
+reconhecido"*), o ambiente não está ativado ou você não está na pasta do
+SAPyL: refaça os passos 1 e 2. Também dá para rodar sem ativar, pelo caminho
+completo: `.venv/bin/sapyl` (Windows: `.venv\Scripts\sapyl.exe`).
+
+Os projetos e a pasta `arquivos_csv/` (palavras-chave e casas) ficam na
+pasta em que você roda o `sapyl`; por isso, rode sempre dentro da pasta do
+SAPyL.
+
+O programa mostra um menu no terminal. Escolha com as setas e `Enter`; nas
+listas de marcar (os estados), a barra de espaço marca e `Enter` confirma.
+
+1. **O que você quer fazer?** Novo projeto, Retomar um projeto, Atualizar um
+   projeto (veja [Atualizar um projeto](#atualizar-um-projeto)), Autoria e
+   tramitação (veja [Autoria e tramitação](#autoria-e-tramitação)), Ajuda
+   (resumo de tudo isto) ou Sair.
+2. **Palavras-chave:** num projeto novo, o programa lê o arquivo de
+   palavras-chave e mostra as buscas em texto simples, antes de qualquer
+   pergunta. Se o arquivo (ou a planilha de casas) não existe ou está errado,
+   ele diz qual arquivo procurou, em que pasta, e como corrigir, sem criar
+   nada.
+3. **Nome do projeto:** a pasta será `<nome>_proj/`. Se o nome já existe, o
+   programa oferece **retomar** esse projeto ou escolher outro nome; um
    projeto existente nunca é sobrescrito.
-3. **Usar a mesma tabela de casas do último projeto?** (só aparece se já existe
-   `arquivos_csv/casas_resultado.csv`) `1` reaproveita a tabela, sem testar os
-   sites de novo; `2` testa quais sites estão no ar.
-4. **Restringir a busca a Sul e Sudeste?** `1` limita a RJ, SP, RS, SC, MG,
-   ES e PR; `2` busca em todo o país.
-5. **Limitar a busca para teste?** `1` todas as casas, `2` as 50 primeiras,
-   `3` as 50 últimas, `4` apenas 10 casas (bom para um primeiro teste).
-6. **Baixar os textos originais (PDFs)?** `1` sim, `2` não.
+4. **Lista de casas** (só aparece se já existe
+   `arquivos_csv/casas_resultado.csv`): usar a lista já testada (com a data
+   do teste e quantas casas estavam no ar) ou testar os sites de novo (até
+   ~15 min).
+5. **Estados:** marque os estados numa lista. Os atalhos *Todos os estados* e
+   *Sul e Sudeste* (RJ, SP, RS, SC, MG, ES e PR) ficam no topo; nada marcado
+   vale como todos.
+6. **Quantas casas:** todas as dos estados escolhidos ou um **teste com 10
+   casas** (bom para conferir as palavras-chave antes de uma busca completa).
+7. **Baixar os textos originais (PDFs)?** Cerca de 10 MB por matéria; uma
+   execução completa pode passar de 100 GB.
+8. **Confirmação:** um resumo do projeto (estados, casas, palavras, número de
+   buscas, PDFs). *Começar*, *Cancelar* (nada é criado) ou *← Voltar*.
+
+Toda pergunta tem **← Voltar**: ele volta uma pergunta, mantendo as respostas
+já dadas (no nome do projeto, volta ao menu). Na lista de estados, ele é o
+primeiro item; no nome, basta deixar vazio e apertar `Enter`. Nas listas de
+projetos, *← Voltar* volta ao menu.
 
 As respostas ficam salvas no projeto (`config.json`); ao retomar, nada é
 perguntado de novo.
 
-> Comece com a opção `4` (10 casas) para conferir se as palavras-chave estão
-> boas antes de uma busca completa.
+> Comece com o teste de 10 casas para conferir se as palavras-chave estão boas
+> antes de uma busca completa.
+
+**Sem as setas.** Quando a entrada não vem de um terminal (por exemplo, as
+respostas num arquivo: `sapyl < respostas.txt`), as mesmas perguntas aparecem
+numeradas: digite o número da opção, `s` ou `n` nas perguntas de sim ou não, e
+as siglas dos estados separadas por vírgula ou espaço (`SP, RJ`, ou
+`sul-sudeste`; Enter para todos). *← Voltar* é a última opção numerada; nas
+outras perguntas, digite `<` para voltar. O menu principal fica `1` Novo projeto,
+`2` Retomar, `3` Atualizar, `4` Autoria e tramitação, `5` Ajuda, `6` Sair. Se
+os menus com as setas não funcionarem no seu terminal, rode
+`SAPYL_MENUS=0 sapyl` (no PowerShell: `$env:SAPYL_MENUS=0; sapyl`) para usar
+as perguntas numeradas.
 
 ### Retomar um projeto
 
-Rode `sapyl`, escolha `1` na primeira pergunta, digite o nome do
-projeto e escolha `1- retomar este projeto`. O programa:
+Rode `sapyl`, escolha **Retomar um projeto** e o projeto na lista. A lista
+mostra os projetos do atualizado mais recentemente para o mais antigo, com a
+situação de cada um (*concluído*, *concluído com falhas*, *interrompido* ou
+*não iniciado*), a data de criação, a da última atualização e o número de
+matérias no resultado. Depois de um resumo, escolha *Continuar*. O programa:
 
 - não refaz as buscas que terminaram (e refaz as que ficaram incompletas);
 - não raspa de novo as matérias com `status = ok`;
@@ -228,16 +369,59 @@ requisição em andamento), e a retomada continua de onde parou.
 
 ### Resumo e log
 
+Depois de *Começar*, o terminal mostra as etapas, separadas por linhas em
+branco:
+
+```
+Projeto val_tui · AC · 23 palavras
+Etapa 1 de 2: testando os sites (22 casas)
+  20 de 22 casas no ar (fora: 2 dns)
+
+Etapa 2 de 2: busca e raspagem (20 casas, até 8 ao mesmo tempo)
+
+✓ sapl.feijo.ac.leg.br: 23 buscas, 12 matérias
+✓ sapl.xapuri.ac.leg.br: 23 buscas, 40 matérias (1 com erro)
+```
+
+Embaixo, um painel que se atualiza sozinho:
+
+```
+Projeto val_tui · AC · 20 casas no ar · 23 palavras
+──────────────────────────────────────────────────
+Casas      ━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━  8 de 20 concluídas (40%)
+Tempo      12 min 30 s · faltam ~25 min (estimativa)
+
+Buscas     380 de 460 completas
+Matérias   612 raspadas · 3 com erro
+PDFs       não pedidos
+
+Em andamento (3)
+  sapl.riobranco.ac.leg.br  matérias  45/1126  ╺━━━━━━━━━━━
+  sapl.cruzeirodosul.ac.leg.br  buscando  12/23  ━━━━━━╺━━━━━
+```
+
+A **estimativa do tempo restante** aparece depois do primeiro minuto,
+calculada pelas matérias raspadas por minuto. Acima do painel ficam só as casas
+concluídas (`✓`), os avisos e os erros; a linha de cada matéria, página de
+busca e PDF, e as falhas esperadas do teste dos sites, vão só para o log. Com
+as perguntas numeradas, no lugar do painel aparece a cada minuto um bloco de
+duas linhas: casas concluídas, em andamento e na fila; depois buscas,
+matérias, PDFs, tempo e tempo restante.
+
 No fim de cada execução aparece um resumo: casas pesquisadas, buscas
 incompletas, matérias encontradas, únicas, raspadas e com erro, downloads, o
 tempo da execução, o limite usado em cada servidor (e se foi reduzido) e o
-caminho do resultado. Se houve falhas, ele lembra de retomar o projeto. A
-última linha mostra o log desta execução.
+caminho do resultado. Depois vêm os **próximos passos**: abrir o resultado
+numa planilha, como tentar de novo o que falhou (se houve falhas) e o log
+desta execução. Se o resultado tem matérias, o programa oferece buscar logo a
+**autoria e a tramitação** delas (veja [Autoria e
+tramitação](#autoria-e-tramitação)).
 
-Durante a execução, cada linha começa com a casa a que se refere
-(`[sapl.x.leg.br] Matéria 3 de 120: …`), e a cada minuto aparece uma linha
-de progresso geral (casas concluídas, em andamento e na fila; matérias
-raspadas e com erro).
+Se algo der errado, a mensagem diz o que fazer, sem o "traceback" do Python:
+arquivo de entrada faltando, `config.json` estragado, pasta sem permissão ou
+disco cheio. Num erro inesperado, os detalhes vão para o log da execução (ou
+para um `sapyl_erro_<data_hora>.log` na pasta, se o erro vier antes de
+existir um projeto).
 
 Cada execução (novo projeto, retomada, atualização) tem o seu próprio log em
 `<nome>_proj/logs/<nome>_<aaaa-mm-dd_hhmmss>_<modo>.log`, com tudo o que
@@ -298,8 +482,9 @@ Para atualizar os dados de matérias já encontradas (por exemplo, depois de
 filtrar manualmente as relevantes no `_resultado_final.csv`):
 
 1. Rode `sapyl`.
-2. Escolha `2` (atualizar um projeto).
-3. Digite o nome do projeto (com ou sem `_proj`).
+2. Escolha **Atualizar um projeto**.
+3. Escolha o projeto na lista (só aparecem os que têm resultado final),
+   responda às perguntas e confirme.
 
 O resultado é salvo como `<nome>_resultado_final_ATUALIZADO_<dd_mm_aaaa>.csv`
 e os downloads, se pedidos, em `downloads<dd_mm_aaaa>/`. A atualização também
@@ -316,14 +501,15 @@ arquivo atualizado e dos downloads.
 
 ## Autoria e tramitação
 
-A opção `3` do menu acrescenta a uma planilha as colunas `Autoria` (os autores
+A opção **Autoria e tramitação** do menu acrescenta a uma planilha as colunas `Autoria` (os autores
 da matéria) e `Tramite` (a tramitação mais recente: data, unidade local,
 unidade de destino e status).
 
-1. Rode `sapyl` e escolha `3`.
-2. Digite o **nome de um projeto** (usa o resultado final mais recente dele,
-   inclusive um `_ATUALIZADO_`) ou o **caminho de um CSV** qualquer com a
-   coluna `Link Materia`.
+1. Rode `sapyl` e escolha **Autoria e tramitação** (ou aceite a oferta do fim
+   de um projeto novo, retomado ou atualizado).
+2. Escolha um **projeto** na lista (usa o resultado final mais recente dele,
+   inclusive um `_ATUALIZADO_`) ou *Outro arquivo CSV…* e digite o **caminho
+   de um CSV** qualquer com a coluna `Link Materia`.
 
 A planilha de entrada não é alterada. O resultado vai para
 `<entrada>_autoria_tramitacao.csv`, ao lado dela, com as colunas
@@ -331,8 +517,8 @@ A planilha de entrada não é alterada. O resultado vai para
 `fonte_autoria` (`api` ou `html`). Os dados vêm da API do SAPL, ou das páginas
 da matéria nas casas sem API; as duas fontes dão o mesmo texto.
 
-Se a execução parar no meio, rode de novo, escolha `3` e digite a mesma
-entrada: só o que falta (ou falhou) é buscado de novo.
+Se a execução parar no meio, rode de novo, escolha **Autoria e tramitação** e
+a mesma entrada: só o que falta (ou falhou) é buscado de novo.
 
 ## Testes
 
@@ -355,8 +541,11 @@ O código fica no pacote `sapyl/`. `programa.py`, na raiz, é só um atalho.
 
 | Arquivo                 | Função                                                        |
 |-------------------------|---------------------------------------------------------------|
-| `sapyl/interface/principal.py` | Comando `sapyl`; etapas: novo/retomar/atualizar        |
-| `sapyl/interface/entrada.py`   | Perguntas com validação, escolha do projeto            |
+| `sapyl/interface/principal.py` | Comando `sapyl`; menu e fluxos: novo/retomar/atualizar/autoria |
+| `sapyl/interface/perguntas.py` | Perguntas: menus com as setas ou opções numeradas      |
+| `sapyl/interface/entrada.py`   | Escolha do projeto ou do arquivo, com a situação       |
+| `sapyl/interface/status.py`    | Andamento, painel ao vivo e tempo restante             |
+| `sapyl/interface/ajuda.py`     | Texto da opção Ajuda                                   |
 | `sapyl/colunas.py`      | Nomes das colunas e das etapas (lista única)                  |
 | `sapyl/padroes.py`      | Limites e valores padrão; confere o `paralelo` do config.json |
 | `sapyl/cliente_http.py` | Cliente HTTP único: limite por site e por servidor, 429, retentativas, log |
@@ -369,7 +558,7 @@ O código fica no pacote `sapyl/`. `programa.py`, na raiz, é só um atalho.
 | `sapyl/tabela.py`       | Monta a planilha final                                        |
 | `sapyl/downloads.py`    | Baixa os textos originais                                     |
 | `sapyl/estado.py`       | Progresso em disco, para retomar                              |
-| `sapyl/projeto.py`      | Pasta e arquivos do projeto                                   |
+| `sapyl/projeto.py`      | Pasta e arquivos do projeto; situação de cada projeto         |
 | `sapyl/registro.py`     | Log e resumo final                                            |
 | `sapyl/autoria.py`      | Autoria e tramitação                                          |
 

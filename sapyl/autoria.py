@@ -281,7 +281,18 @@ def processar(
                 arquivo.anexar({'chave': k, **linha})
                 erro = linha['erro_autoria_tramitacao']
                 estado.registrar(ETAPA_AUTORIA, k, 'erro' if erro else 'ok', erro)
-                log.info('Autoria e tramitação %d de %d (%s): %s', i, len(itens), k, erro or 'ok')
+                registro.andamento(
+                    log,
+                    registro.AUTORIA,
+                    i,
+                    len(itens),
+                    'Autoria e tramitação %d de %d (%s): %s',
+                    i,
+                    len(itens),
+                    k,
+                    erro or 'ok',
+                    status='erro' if erro else 'ok',
+                )
 
         mapear(da_casa, list(por_casa))
         contagens = estado.contagens(ETAPA_AUTORIA, set(unicas))

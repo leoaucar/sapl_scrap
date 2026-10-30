@@ -252,23 +252,30 @@ atualizar um projeto.
 Spec [`specs/2026-10-30-interface-terminal/`](specs/2026-10-30-interface-terminal/)
 (revisão de 30/10/2026):
 
-- [ ] Menus com as setas do teclado (`questionary`), com as mesmas perguntas
+- [x] Menus com as setas do teclado (`questionary`), com as mesmas perguntas
       numeradas quando o terminal não é interativo
-- [ ] Menu principal: novo projeto, retomar (escolhendo da lista), atualizar,
+- [x] Menu principal: novo projeto, retomar (escolhendo da lista), atualizar,
       autoria e tramitação, ajuda, sair
-- [ ] Situação de cada projeto na lista (concluído, com falhas, interrompido,
+- [x] Situação de cada projeto na lista (concluído, com falhas, interrompido,
       não iniciado), sem fazer requisições
-- [ ] Estados escolhidos numa lista (com o atalho Sul e Sudeste) e "todas as
+- [x] Estados escolhidos numa lista (com o atalho Sul e Sudeste) e "todas as
       casas ou teste com 10"; aviso do tamanho dos PDFs
-- [ ] Palavras-chave lidas e mostradas antes de criar o projeto; arquivo
+- [x] Palavras-chave lidas e mostradas antes de criar o projeto; arquivo
       ausente ou errado gera uma mensagem clara, sem traceback e sem pasta
       vazia
-- [ ] Tela de confirmação antes de começar (casas, buscas, PDFs): começar,
+- [x] Tela de confirmação antes de começar (casas, buscas, PDFs): começar,
       mudar as respostas ou cancelar
-- [ ] Terminal mais limpo durante a execução: barra de progresso, casas em
+- [x] Terminal mais limpo durante a execução: barra de progresso, casas em
       andamento e tempo restante estimado (`rich`); o detalhe vai só para o log
-- [ ] Resumo com os próximos passos e a oferta de buscar autoria e tramitação
+- [x] Resumo com os próximos passos e a oferta de buscar autoria e tramitação
       do resultado logo em seguida
+- [x] Depois do primeiro uso: *← Voltar* em cada pergunta, saída da execução
+      organizada em etapas e painel em seções, listas de projetos do mais
+      recente para o mais antigo (com as datas de criação e de atualização)
+
+> **Situação:** implementada e no `main` em 30/10/2026 (versão 0.4.0). A
+> validação nos sites reais com a pessoa (itens V1–V8 do `validation.md` da
+> spec) ainda está pendente; o merge foi feito antes dela, a pedido.
 
 ### Fase 2c: Fluxo de trabalho e novas opções
 O que a revisão da Fase 2b encontrou no fluxo de trabalho e ficou para depois
@@ -306,6 +313,36 @@ Decidir na spec o que vai para a Fase 7.
       arquivos se acumulam
 - [ ] **Autoria e tramitação:** onde fica a saída (ao lado da entrada) e o
       nome do arquivo
+
+### Fase 2d: Instalação fácil (versões para baixar)
+Hoje é preciso instalar o Python, usar o terminal e ativar um ambiente
+virtual a cada uso, o que afasta quem nunca programou. O objetivo é baixar um
+arquivo, abrir com dois cliques e chegar direto ao menu.
+
+- [ ] **Executáveis prontos** para Windows (`.exe`), Linux e macOS, com o
+      Python e as bibliotecas dentro, gerados com **PyInstaller** (ou
+      similar; conferir a licença, compatível com AGPL-3.0)
+- [ ] **Versão para Linux** num formato fácil de rodar (AppImage, ou um
+      `.tar.gz` com o executável) e, se valer a pena, um pacote `.deb`
+- [ ] **Publicação automática** nas *Releases* do GitHub: o CI gera os
+      arquivos dos três sistemas a cada nova versão (tag), com as somas de
+      verificação (SHA-256)
+- [ ] **Arquivos de entrada junto com o programa:** a planilha de casas e os
+      exemplos de palavras-chave vêm no pacote; o programa cria (ou pede) uma
+      pasta de trabalho para os projetos, em vez de depender de rodar dentro
+      da pasta do código (liga com o item "rodar o `sapyl` de qualquer pasta"
+      da Fase 2c)
+- [ ] **Abrir com dois cliques:** o executável abre uma janela de terminal
+      com o menu; no fim, a janela espera um `Enter` antes de fechar, para dar
+      tempo de ler o resumo
+- [ ] **Avisos do sistema:** documentar o que fazer quando o Windows
+      (SmartScreen) ou o macOS (Gatekeeper) avisam que o programa não é
+      reconhecido; avaliar assinar os executáveis
+- [ ] **Alternativa para quem já tem Python:** instalar com um comando só
+      (`pipx install sapyl` ou `uv tool install sapyl`), sem criar e ativar o
+      ambiente à mão; avaliar publicar no PyPI
+- [ ] Página do projeto e README com um botão "Baixar" por sistema, mantendo
+      a instalação pelo código para quem quiser
 
 ### Fase 3: Saída em banco SQL e armazenamento de documentos
 - [ ] Gravar os resultados em **SQLite** (padrão, um arquivo `.db` por projeto)

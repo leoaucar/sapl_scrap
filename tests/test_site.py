@@ -14,6 +14,17 @@ from sapyl.palavras import preparar_termos
 DOCS = Path(__file__).resolve().parent.parent / 'docs'
 REPOSITORIO = 'https://github.com/leoaucar/sapyl'
 SECOES = ['o-que-e', 'como-funciona', 'resultado', 'instalar', 'usar', 'tempo', 'citar']
+SITES_DOS_CREDITOS = (
+    'https://acaoeducativa.org.br/',
+    'https://malala.org/',
+    'https://www.fe.usp.br/',
+    'https://www.fcc.org.br/',
+    'https://www.geledes.org.br/',
+    'https://profscontraoesp.org/',
+    'https://www12.senado.leg.br/interlegis',
+)
+# Onde baixar o Python e o git (instalação)
+SITES_DA_INSTALACAO = ('https://www.python.org/downloads/', 'https://git-scm.com/downloads')
 # Nomes que saíram nesta versão e não podem voltar na página
 REMOVIDOS = ['autoria_e_tramit.py', 'palavras_chave_res.csv', 'sapl_scrap', 'requirements.txt']
 
@@ -80,7 +91,10 @@ def test_links_para_o_repositorio_e_ancoras_validas(pagina):
     _, leitor = pagina
     assert REPOSITORIO in leitor.links
     externos = [h for h in leitor.links if h.startswith('http')]
-    assert all(h.startswith(REPOSITORIO) for h in externos), externos
+    # Fora o repositório, só os sites das organizações dos créditos e o Interlegis
+    permitidos = (REPOSITORIO, *SITES_DOS_CREDITOS, *SITES_DA_INSTALACAO)
+    assert all(h.startswith(permitidos) for h in externos), externos
+    assert set(SITES_DOS_CREDITOS) <= set(externos)
     ancoras = [h[1:] for h in leitor.links if h.startswith('#')]
     assert [a for a in ancoras if a not in leitor.ids] == []
 
@@ -126,3 +140,10 @@ def test_estimativa_de_tempo():
         'cerca de 29 minutos',
         'cerca de 2 horas',
     ]
+
+
+def test_botao_de_baixar_o_zip(pagina):
+    texto, leitor = pagina
+    zip_ = f'{REPOSITORIO}/archive/refs/heads/main.zip'
+    assert leitor.links.count(zip_) == 2  # no topo e no passo da instalação
+    assert 'Baixar o SAPyL (ZIP)' in texto and 'sapyl-main' in texto

@@ -24,6 +24,10 @@ from tests.apoio import (
     RelogioFalso,
     SessaoFalsa,
     ler_fixture,
+    respostas_atualizar,
+    respostas_autoria,
+    respostas_novo_projeto,
+    respostas_retomar,
     roteiro,
     sapl_fase1,
 )
@@ -89,8 +93,8 @@ def _rodar(raiz, nome, casas_ao_mesmo_tempo, monkeypatch, respostas=None):
     monkeypatch.setattr(padroes, 'CASAS_AO_MESMO_TEMPO', casas_ao_mesmo_tempo)
     cliente, sessao, threads = _cliente()
     # depois do primeiro projeto, aparece a pergunta de reaproveitar a tabela de casas
-    reusar = ('2',) if (raiz / 'arquivos_csv' / 'casas_resultado.csv').exists() else ()
-    respostas = respostas or ('1', nome, *reusar, '2', '1', '1')
+    reusar = '2' if (raiz / 'arquivos_csv' / 'casas_resultado.csv').exists() else None
+    respostas = respostas or respostas_novo_projeto(nome, tabela=reusar, pdfs='s')
     codigo = programa.main(roteiro(*respostas), cliente, raiz)
     return codigo, sessao, threads
 
@@ -167,7 +171,8 @@ def test_interrompida_com_oito_e_retomada_da_o_mesmo_resultado(raiz, monkeypatch
     assert ok_antes
     assert not (pasta / 'partes_links_totais.csv').exists()  # refeita na retomada
     monkeypatch.setattr(materias, 'raspar_materia', original)
-    codigo, sessao, _ = _rodar(raiz, 'partes', 8, monkeypatch, ('1', 'partes', '1'))
+    # a lista de projetos, do mais recente: partes (o interrompido), inteira
+    codigo, sessao, _ = _rodar(raiz, 'partes', 8, monkeypatch, respostas_retomar('1'))
     assert codigo == 0
 
     inteira = raiz / 'inteira_proj'
@@ -189,8 +194,9 @@ def test_atualizacao_e_autoria_com_uma_e_oito_casas(raiz, monkeypatch):
     """FR-4: o modo atualização e a autoria e tramitação usam o mesmo grupo de casas."""
     for nome, n in (('um', 1), ('oito', 8)):
         assert _rodar(raiz, nome, n, monkeypatch)[0] == 0
-        assert _rodar(raiz, nome, n, monkeypatch, ('2', nome, '1'))[0] == 0
-        codigo, _, threads = _rodar(raiz, nome, n, monkeypatch, ('3', nome))
+        # a lista, do mais recente: o projeto que acabou de rodar está na posição 1
+        assert _rodar(raiz, nome, n, monkeypatch, respostas_atualizar('s'))[0] == 0
+        codigo, _, threads = _rodar(raiz, nome, n, monkeypatch, respostas_autoria())
         assert codigo == 0
         casas_threads = len({t for t in threads if t.startswith('casa')})
         assert casas_threads == 1 if n == 1 else casas_threads > 1
@@ -213,7 +219,7 @@ def test_autoria_interrompida_com_oito_e_retomada(raiz, monkeypatch):
     from sapyl import autoria
 
     assert _rodar(raiz, 'p', 8, monkeypatch)[0] == 0
-    assert _rodar(raiz, 'p', 8, monkeypatch, ('3', 'p'))[0] == 0
+    assert _rodar(raiz, 'p', 8, monkeypatch, respostas_autoria())[0] == 0
     saida = raiz / 'p_proj' / 'p_resultado_final_autoria_tramitacao.csv'
     inteira = ler_final(saida)
     for arquivo in (raiz / 'p_proj').glob('p_resultado_final_autoria_tramitacao*'):
@@ -230,9 +236,9 @@ def test_autoria_interrompida_com_oito_e_retomada(raiz, monkeypatch):
         return original(link, *args)
 
     monkeypatch.setattr(autoria, 'raspar_autoria', cair)
-    assert _rodar(raiz, 'p', 8, monkeypatch, ('3', 'p'))[0] == 1
+    assert _rodar(raiz, 'p', 8, monkeypatch, respostas_autoria())[0] == 1
     monkeypatch.setattr(autoria, 'raspar_autoria', original)
-    codigo, sessao, _ = _rodar(raiz, 'p', 8, monkeypatch, ('3', 'p'))
+    codigo, sessao, _ = _rodar(raiz, 'p', 8, monkeypatch, respostas_autoria())
     assert codigo == 0
     assert ler_final(saida).equals(inteira)
     feitas = len([u for u in sessao.pedidos if '/api/materia/autoria/' in u or '/autoria' in u])

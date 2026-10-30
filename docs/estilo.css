@@ -772,6 +772,31 @@ pre {
   opacity: 0.8;
 }
 
+.rodape__creditos {
+  margin-bottom: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.rodape__creditos p {
+  margin: 0.25rem auto;
+}
+
+.creditos {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 1.25rem 0;
+}
+
+.creditos dt {
+  font-weight: 700;
+}
+
+.creditos dd {
+  margin: 0;
+}
+
 /* --- Telas maiores ------------------------------------------------------- */
 
 @media (min-width: 48rem) {

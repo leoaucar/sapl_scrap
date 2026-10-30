@@ -64,3 +64,18 @@ def test_nenhum_modulo_importa_de_uma_camada_acima():
             if _nivel(destino) > _nivel(origem):
                 violacoes.append(f'{relativo}: {modulo}')
     assert violacoes == []
+
+
+BIBLIOTECAS_DE_TERMINAL = ('rich', 'questionary', 'prompt_toolkit')
+
+
+def test_so_a_interface_usa_as_bibliotecas_de_terminal():
+    violacoes = []
+    for arquivo in PACOTE.rglob('*.py'):
+        relativo = arquivo.relative_to(PACOTE)
+        if relativo.parts[0] == 'interface':
+            continue
+        for modulo in _importados(arquivo):
+            if modulo.split('.')[0] in BIBLIOTECAS_DE_TERMINAL:
+                violacoes.append(f'{relativo}: {modulo}')
+    assert violacoes == []

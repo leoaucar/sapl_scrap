@@ -89,7 +89,7 @@ class Fontes:
             )
             return
         if self.de(casa_url) != 'html':
-            log.info(
+            log.debug(
                 'Casa %s sem API de matérias (%s): usando as páginas HTML', host(casa_url), motivo
             )
         self._por_host[host(casa_url)] = 'html'
@@ -175,7 +175,15 @@ def raspar_pendentes(
     para várias casas ao mesmo tempo.
     """
     pendentes = [item for item in links if estado.status(ETAPA_MATERIA, item['chave']) != 'ok']
-    log.info('Matérias: %d a raspar, %d já raspadas', len(pendentes), len(links) - len(pendentes))
+    registro.andamento(
+        log,
+        registro.MATERIAS,
+        0,
+        len(pendentes),
+        'Matérias: %d a raspar, %d já raspadas',
+        len(pendentes),
+        len(links) - len(pendentes),
+    )
     novas = []
     for i, link in enumerate(pendentes, start=1):
         linha = raspar_materia(link, cliente, fontes)
@@ -183,7 +191,18 @@ def raspar_pendentes(
         estado.registrar(ETAPA_MATERIA, link['chave'], linha['status'], linha['erro'])
         novas.append(linha)
         detalhe = linha['Titulo'] if linha['status'] == 'ok' else f'ERRO: {linha["erro"]}'
-        log.info('Matéria %d de %d (%s): %s', i, len(pendentes), link['chave'], detalhe)
+        registro.andamento(
+            log,
+            registro.MATERIAS,
+            i,
+            len(pendentes),
+            'Matéria %d de %d (%s): %s',
+            i,
+            len(pendentes),
+            link['chave'],
+            detalhe,
+            status=linha['status'],
+        )
     return novas
 
 

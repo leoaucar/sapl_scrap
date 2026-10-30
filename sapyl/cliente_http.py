@@ -427,8 +427,15 @@ class ClienteSAPL:
         stream: bool = False,
         timeout: tuple[float, float] | None = None,
         max_tentativas: int | None = None,
+        avisar: bool = True,
     ) -> Resposta:
-        """GET respeitando o limite do site, com retentativas. Nunca lança erro de rede."""
+        """GET respeitando o limite do site, com retentativas. Nunca lança erro de rede.
+
+        Com `avisar=False`, a falha final vai só para o log (DEBUG), não para o
+        terminal: é o caso do teste das casas, em que um site fora do ar é o
+        resultado esperado, não um problema.
+        """
+        avisar_falha = log.warning if avisar else log.debug
         host = urlparse(url).hostname or ''
         servidor = self.servidor(host)
         tentativas = max_tentativas or self.max_tentativas
@@ -449,7 +456,7 @@ class ClienteSAPL:
                 if erro != 'conexao':
                     # certificado inválido ou nome inexistente: tentar de novo não resolve
                     self._registrar(host, url, erro, tentativa, 0, enviada)
-                    log.warning('Falha em %s: %s (sem nova tentativa)', url, erro)
+                    avisar_falha('Falha em %s: %s (sem nova tentativa)', url, erro)
                     return Resposta(url, False, None, erro, tentativa, None)
             else:
                 status = bruta.status_code
@@ -492,7 +499,7 @@ class ClienteSAPL:
             else:
                 self.dormir(espera)
                 self.verificar_parada()
-        log.warning('Falha em %s: %s (%d tentativas)', url, erro, tentativas)
+        avisar_falha('Falha em %s: %s (%d tentativas)', url, erro, tentativas)
         return Resposta(url, False, status, erro, tentativas, None)
 
     @staticmethod

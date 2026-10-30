@@ -34,10 +34,14 @@
         <p class="selo">Dados públicos · Software livre</p>
         <h1>SAPyL</h1>
         <p class="subtitulo">Raspador do Sistema de Apoio Legislativo</p>
-        <p class="chamada">Acompanhe, num só lugar, o que está tramitando em dezenas de câmaras
+        <p class="chamada">Acompanhe, num só lugar, o que está tramitando nas centenas de câmaras
           e assembleias brasileiras que usam o SAPL.</p>
         <div class="acoes">
-          <a class="botao botao--principal" href="https://github.com/leoaucar/sapyl">
+          <a class="botao botao--principal" href="https://github.com/leoaucar/sapyl/archive/refs/heads/main.zip">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Baixar o SAPyL (ZIP)
+          </a>
+          <a class="botao" href="https://github.com/leoaucar/sapyl">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5Z"/></svg>
             Ver no GitHub
           </a>
@@ -159,10 +163,16 @@
 
     <section class="secao" id="o-que-e" aria-labelledby="titulo-o-que-e">
       <h2 id="titulo-o-que-e">O que é</h2>
-      <p class="lead">Muitas Câmaras Municipais e Assembleias Legislativas publicam seus projetos
-        de lei, requerimentos e outras matérias no <strong>SAPL</strong> (Sistema de Apoio ao
-        Processo Legislativo, do Interlegis). Cada casa tem o seu site, e não há uma busca que
-        junte todas. O SAPyL faz essa busca por você e entrega o resultado numa planilha.</p>
+      <p class="lead">Mais de mil casas legislativas (câmaras municipais e algumas assembleias
+        estaduais) estão na lista das que publicam seus projetos de lei, requerimentos e outras
+        matérias no <strong>SAPL</strong> (Sistema de Apoio ao Processo Legislativo), desenvolvido
+        pelo programa <a href="https://www12.senado.leg.br/interlegis">Interlegis</a> do Senado
+        Federal. Cada casa tem o seu site, e não há uma busca que junte todas. O SAPyL faz essa
+        busca unificada e entrega o resultado numa planilha.</p>
+      <p>Dá para pesquisar a produção legislativa sobre qualquer assunto: educação, saúde,
+        segurança pública, assistência social… Os resultados podem e devem servir de base para
+        pesquisas acadêmicas e para o trabalho de movimentos sociais em prol da mudança social.
+        O SAPyL é software livre e de código aberto: use e ajude a melhorar.</p>
 
       <div class="cartoes">
         <article class="cartao cartao--dados">
@@ -180,18 +190,30 @@
         <article class="cartao cartao--casas">
           <svg class="cartao__icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10m4 11V10m6 11V10m4 11V10M2 10l10-6 10 6z"/></svg>
           <h3>Casas legislativas</h3>
-          <p>Uma tabela com centenas de câmaras e assembleias que usam o SAPL. Você escolhe
-            todas, as de Sul e Sudeste ou só algumas para testar.</p>
+          <p>Uma tabela com as câmaras e assembleias que usam o SAPL. Você escolhe os estados
+            e se quer todas as casas ou um teste com 10.</p>
         </article>
       </div>
 
       <h3 class="subsecao">Para quem</h3>
       <ul class="publico">
         <li>Pesquisadoras e pesquisadores</li>
-        <li>Jornalistas</li>
+        <li>Movimentos sociais</li>
         <li>Organizações da sociedade civil</li>
+        <li>Jornalistas</li>
         <li>Quem quer saber o que está sendo proposto sobre um tema em muitas casas ao mesmo tempo</li>
       </ul>
+
+      <h3 class="subsecao" id="origem">Origem</h3>
+      <p>O SAPyL foi criado para apoiar o mapeamento da atuação do ultraconservadorismo e da
+        extrema direita nos legislativos em pautas educacionais. Essa pesquisa foi uma das
+        frentes do projeto <strong>Gênero e Políticas Educacionais</strong>, realizado entre 2023
+        e 2025 numa parceria entre <a href="https://acaoeducativa.org.br/">Ação Educativa</a>,
+        <a href="https://www.fe.usp.br/">Faculdade de Educação da Universidade de São Paulo
+        (FE-USP)</a>, <a href="https://www.fcc.org.br/">Fundação Carlos Chagas (FCC)</a>,
+        <a href="https://www.geledes.org.br/">Geledés – Instituto da Mulher Negra</a> e
+        <a href="https://profscontraoesp.org/">Coletivo Professor@s contra o Escola sem
+        Partido</a>, com apoio do <a href="https://malala.org/">Fundo Malala</a>.</p>
     </section>
 
     <section class="secao" id="como-funciona" aria-labelledby="titulo-como-funciona">
@@ -210,8 +232,8 @@
         <p><strong>Nenhuma matéria vazia em silêncio.</strong> Toda linha tem <code>status</code>
           (<code>ok</code> ou <code>erro</code>) e, quando falha, o motivo.</p>
         <p><strong>Respeito aos servidores.</strong> No máximo 35 requisições por minuto em cada site.</p>
-        <p><strong>Retomada.</strong> Se parar no meio, rode de novo e escolha “retomar”: nada do que
-          já foi feito é refeito.</p>
+        <p><strong>Retomada.</strong> Se parar no meio, rode de novo e escolha “Retomar um
+          projeto”: nada do que já foi feito é refeito.</p>
       </div>
 
       <h3 class="subsecao" id="resultado">O que você recebe</h3>
@@ -236,7 +258,25 @@
 
     <section class="secao" id="instalar" aria-labelledby="titulo-instalar">
       <h2 id="titulo-instalar">Instalar</h2>
-      <p>Você precisa do <strong>Python 3.10 ou mais novo</strong> e do <strong>git</strong>.</p>
+      <p>O SAPyL roda pelo <strong>terminal</strong> (a tela de comandos do computador). Não é
+        preciso saber programar: copie os comandos, um de cada vez, e aperte <kbd>Enter</kbd>.
+        A instalação é feita uma vez só.</p>
+      <ol class="dicas">
+        <li>Instale o <a href="https://www.python.org/downloads/">Python 3.10 ou mais novo</a>
+          (no Windows, marque <em>“Add python.exe to PATH”</em> na primeira tela) e o
+          <a href="https://git-scm.com/downloads">git</a>. No Ubuntu e no Debian, instale também
+          <code>python3-venv</code>.</li>
+        <li>Abra o terminal: no Windows, o <strong>PowerShell</strong> (menu Iniciar); no macOS,
+          o app <strong>Terminal</strong>; no Linux, o <strong>Terminal</strong>.</li>
+        <li>Baixe o SAPyL:
+          <p><a class="botao botao--principal" href="https://github.com/leoaucar/sapyl/archive/refs/heads/main.zip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Baixar o SAPyL (ZIP)</a></p>
+          Descompacte o arquivo <code>sapyl-main.zip</code> onde quiser guardar o programa (no
+          Windows, botão direito → <em>Extrair tudo</em>) e, nos comandos abaixo, entre na
+          pasta <code>sapyl-main</code> e pule a linha do <code>git clone</code>. Quem usa o git
+          pode clonar o repositório: o <code>git clone</code> abaixo cria a pasta
+          <code>sapyl</code> e facilita atualizar.</li>
+        <li>Copie os comandos do seu sistema:</li>
+      </ol>
 
       <div class="abas" data-abas>
         <div class="abas__lista" role="tablist" aria-label="Sistema operacional" hidden>
@@ -250,6 +290,8 @@ cd sapyl
 python3 -m venv .venv
 source .venv/bin/activate
 pip install .</code></pre>
+          <p>Baixa o código, entra na pasta, cria o ambiente do programa (<code>.venv</code>),
+            ativa esse ambiente e instala o SAPyL dentro dele.</p>
         </div>
         <div class="abas__painel" role="tabpanel" id="painel-windows" aria-labelledby="aba-windows">
           <h3 class="abas__titulo">Windows (PowerShell)</h3>
@@ -258,10 +300,18 @@ cd sapyl
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install .</code></pre>
+          <p>Se aparecer <em>“a execução de scripts foi desabilitada neste sistema”</em>, rode uma
+            vez <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>, responda
+            <kbd>S</kbd> e ative de novo.</p>
         </div>
       </div>
-      <p>Pronto: o comando <code>sapyl</code> fica disponível sempre que o ambiente
-        (<code>.venv</code>) estiver ativado. Confira com <code>sapyl --version</code>.</p>
+      <p>Pronto. O <strong>ambiente</strong> (<code>.venv</code>) é a pasta onde ficam o programa
+        e as bibliotecas dele. Ele foi criado uma vez só, mas precisa ser
+        <strong>ativado toda vez</strong> que você abrir um terminal novo (veja abaixo). Sem
+        o git, baixe o ZIP no GitHub (<em>Code → Download ZIP</em>), descompacte e pule o
+        <code>git clone</code>. Para atualizar: <code>git pull</code> e <code>pip install .</code>
+        de novo (ou um ZIP novo, copiando as suas pastas <code>&lt;nome&gt;_proj</code> e
+        <code>arquivos_csv</code>).</p>
     </section>
 
     <section class="secao" id="usar" aria-labelledby="titulo-usar">
@@ -292,15 +342,29 @@ saneamento basico</code></pre>
         </li>
         <li>
           <h3>Rode o programa</h3>
+          <p>Toda vez que for usar: abra o terminal, entre na pasta do SAPyL e ative o
+            ambiente.</p>
+          <pre><code>cd sapyl
+source .venv/bin/activate      # Linux e macOS
+.venv\Scripts\Activate.ps1     # Windows (PowerShell)</code></pre>
+          <p>Com o ambiente ativado, a linha do terminal começa com <code>(.venv)</code>. Então:</p>
           <pre><code>sapyl</code></pre>
-          <p>Ele faz algumas perguntas no terminal, a primeira é o que fazer:</p>
+          <p>Se aparecer <em>“command not found”</em> ou <em>“o termo 'sapyl' não é
+            reconhecido”</em>, o ambiente não está ativado ou você está fora da pasta do
+            SAPyL.</p>
+          <p>Ele mostra um menu no terminal; escolha com as setas e <kbd>Enter</kbd>:</p>
           <ul class="menu-programa">
-            <li><kbd>1</kbd> Novo projeto ou retomar um projeto</li>
-            <li><kbd>2</kbd> Atualizar um projeto (raspa de novo as matérias do resultado)</li>
-            <li><kbd>3</kbd> Autoria e tramitação (acrescenta autores e o último trâmite)</li>
+            <li>Novo projeto</li>
+            <li>Retomar um projeto (da lista, com a situação de cada um)</li>
+            <li>Atualizar um projeto (raspa de novo as matérias do resultado)</li>
+            <li>Autoria e tramitação (acrescenta autores e o último trâmite)</li>
+            <li>Ajuda e Sair</li>
           </ul>
-          <p>Num projeto novo, você dá um nome e escolhe se quer restringir a Sul e Sudeste,
-            limitar o número de casas para testar e baixar os PDFs.</p>
+          <p>Num projeto novo, ele mostra as suas palavras-chave, pede um nome, os estados
+            (marcados numa lista) e se é para baixar os PDFs. Toda pergunta tem
+            <em>← Voltar</em>, que volta uma pergunta sem perder as respostas. Antes de começar,
+            um resumo do que vai ser feito: começar, voltar ou cancelar. Durante a execução, um
+            painel mostra as casas concluídas, as buscas, as matérias e o tempo restante.</p>
         </li>
         <li>
           <h3>Abra o resultado</h3>
@@ -314,7 +378,7 @@ saneamento basico</code></pre>
         <h3>Quanto tempo leva?</h3>
         <p>Cada site do SAPL aceita no máximo <strong>35 requisições por minuto</strong>, e o
           SAPyL respeita esse limite. Uma casa com 1 000 matérias leva cerca de 30 minutos. Se a
-          execução parar, rode de novo, digite o mesmo nome e escolha <em>retomar</em>.</p>
+          execução parar, rode de novo e escolha <em>Retomar um projeto</em>.</p>
         <p>O SAPyL trabalha em <strong>até 8 casas ao mesmo tempo</strong>. Como quase todas
           ficam no mesmo servidor do Interlegis, elas dividem um limite de
           <strong>120 requisições por minuto</strong> por servidor: uma busca em todas as casas
@@ -335,6 +399,11 @@ saneamento basico</code></pre>
         <p>AUCAR, Leonardo Nogueira; AQUINO, Renata; MOURA, Fernanda. <em>SAPyL: Raspador do
           Sistema de Apoio Legislativo</em>. 2023–2026. Software livre (AGPL-3.0).</p>
       </blockquote>
+      <dl class="creditos">
+        <dt>Realização</dt><dd><a href="https://acaoeducativa.org.br/">Ação Educativa</a></dd>
+        <dt>Apoio</dt><dd><a href="https://malala.org/">Fundo Malala</a></dd>
+        <dt>Desenvolvimento</dt><dd>Leonardo Aucar, Renata Aquino e Fernanda Moura</dd>
+      </dl>
       <p>O SAPyL é software livre sob a <a href="https://github.com/leoaucar/sapyl/blob/main/LICENSE">GNU
         Affero General Public License, versão 3</a>. Versões modificadas, inclusive as oferecidas
         como serviço pela rede, devem continuar livres.</p>
@@ -349,8 +418,19 @@ saneamento basico</code></pre>
       <a href="https://github.com/leoaucar/sapyl/issues">Relatar um problema</a>
       <a href="https://github.com/leoaucar/sapyl/blob/main/AUTHORS.md">Autoria</a>
     </nav>
+    <div class="rodape__creditos">
+      <p><strong>Realização</strong> <a href="https://acaoeducativa.org.br/">Ação Educativa</a>
+        · <strong>Apoio</strong> <a href="https://malala.org/">Fundo Malala</a></p>
+      <p><strong>Projeto Gênero e Políticas Educacionais</strong> (2023–2025):
+        <a href="https://acaoeducativa.org.br/">Ação Educativa</a>,
+        <a href="https://www.fe.usp.br/">FE-USP</a>,
+        <a href="https://www.fcc.org.br/">Fundação Carlos Chagas</a>,
+        <a href="https://www.geledes.org.br/">Geledés – Instituto da Mulher Negra</a> e
+        <a href="https://profscontraoesp.org/">Coletivo Professor@s contra o Escola sem Partido</a></p>
+    </div>
     <p class="rodape__nota">Os dados vêm dos sites públicos das casas legislativas que usam o SAPL,
-      sistema desenvolvido pelo Interlegis. O SAPyL não é um produto do Interlegis.</p>
+      sistema desenvolvido pelo <a href="https://www12.senado.leg.br/interlegis">Interlegis</a>
+      (Senado Federal). O SAPyL não é um produto do Interlegis.</p>
   </footer>
 </body>
 </html>

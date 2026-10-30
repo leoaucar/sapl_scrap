@@ -62,14 +62,16 @@ module below `interface` imports `rich` or `questionary`; a new check in
 
 ```python
 class Opcao(NamedTuple):
-    rotulo: str           # text shown
-    valor: str            # value returned
+    rotulo: str  # text shown
+    valor: str  # value returned
+
 
 class Perguntas(Protocol):
     def escolher(self, texto: str, opcoes: Sequence[Opcao]) -> str: ...
     def sim_nao(self, texto: str, padrao: bool = False) -> bool: ...
-    def marcar(self, texto: str, opcoes: Sequence[Opcao],
-               atalhos: Mapping[str, Sequence[str]]) -> list[str]: ...
+    def marcar(
+        self, texto: str, opcoes: Sequence[Opcao], atalhos: Mapping[str, Sequence[str]]
+    ) -> list[str]: ...
     def texto(self, texto: str, validar: Callable[[str], str | None]) -> str: ...
     def mostrar(self, texto: str) -> None: ...
 ```
@@ -286,6 +288,28 @@ blocked, CI on 3.10/pandas 2 and 3.12/pandas 3) keeps passing.
 | Changing the question order breaks the 56 scripted `main()` calls in the tests | One helper for the common answers; migrate tests in the same task as the flow change |
 | Users or scripts typing today's numbers (`2` = update) | Main menu numbering changes (decision §11); README and the menu text show the new numbers; piped scripts are not a supported interface until Phase 7 |
 | Reading large state files for every project in the list is slow | Read only the stage/status columns; measured in validation on the largest local project; cache per menu draw |
+
+## 10a. Amendment (spec FR-23, FR-24), 2026-10-30
+
+- **Voltar as an exception.** `perguntas.Voltar(Exception)`. Each
+  `Perguntas` method takes `voltar: bool = False`; when true, choosing
+  `← Voltar` (or `<` in texto mode, or an empty name in menus mode) raises
+  `Voltar`. Flows are a list of steps run by a small loop: a step that raises
+  `Voltar` moves the index back; going back from the first step leaves the
+  flow (main menu, or the project list for resume/update/authors). Answers
+  live in a dict, so stepping back keeps them. Return types do not change.
+- **Structured counters.** The `contagens` callback returns a list of
+  `(rótulo, texto)` (`Buscas`, `Matérias`, `PDFs`); the texto line joins
+  them. `Andamento` gains `titulo` (header line) and `total_buscas` (active
+  houses × keywords, set after the house test), and the rows in progress
+  carry `feitos/total` for the per-house bar.
+- **Stage lines.** `principal` logs the header block and the stage lines at
+  INFO (blank lines included); `execucao.por_casa` keeps the "Começando"
+  record but at DEBUG; "Concluída" becomes `✓ <host>: …`.
+- Tests: every step of the new-project flow going back and forward in texto
+  mode; the confirmation's Voltar; Voltar in each Perguntas method in both
+  modes; the panel's sections on a recording console; the two-line texto
+  block.
 
 ## 11. Decisions taken in this plan (for review)
 

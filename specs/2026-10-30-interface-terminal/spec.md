@@ -251,6 +251,51 @@ Order of the questions (after the keywords are read and shown, FR-12 and FR-13):
   and exit code 2, no traceback. Unexpected errors end with a short message
   pointing to the log, where the traceback is written; exit code 1.
 
+### 5.7 Amendment after the first use (2026-10-30)
+
+Asked by the user after running the branch, decided with them the same day.
+
+- **FR-23 Voltar (one step back).** Every question in a flow can go back one
+  step, keeping the answers already given:
+  - new project: name → (house list) → states → how many → PDFs →
+    confirmation. *Voltar* on the name returns to the main menu. The
+    confirmation becomes `Começar` / `← Voltar` (back to the PDFs question) /
+    `Cancelar`; *Voltar* replaces *Mudar respostas*.
+  - resume, update and authors: the questions and the confirmation
+    (`Continuar` / `← Voltar` / `Cancelar`) go back to the previous question,
+    then to the project list, then to the main menu.
+  - *menus* mode: `← Voltar` as the last option of every list, as the first
+    item of the states checkbox, and an empty answer in the name field
+    (said in the hint). *texto* mode: the numbered `← Voltar` option, and
+    `<` in the yes/no, states and name questions.
+- **FR-24 Organised run output.** After `Começar`/`Continuar`:
+  - a header block, with blank lines around it: project, states, houses,
+    keywords; then one line per stage (`Etapa 1 de 2: testando os sites (10
+    casas)`, its result, `Etapa 2 de 2: busca e raspagem (…)`); the long
+    "Buscando os termos" line goes to the log only (the keywords were shown
+    in the confirmation);
+  - above the panel only finished houses (`✓ <host>: 23 buscas, 12 matérias
+    (1 com erro)`), warnings and errors; the "Começando" lines go to the log;
+  - the live panel (*menus* mode) in sections, as chosen by the user: a
+    header line (project · states · houses · keywords) and a rule; `Casas`
+    bar with `4 de 10 (40%)`; `Tempo` with elapsed and time left; a blank
+    line; `Buscas` (`92 de 230 completas`), `Matérias`, `PDFs` (`não
+    pedidos` when off); a blank line; `Em andamento (n)` with one row per
+    house: host, stage, `feitos/total` and a small bar;
+  - *texto* mode: the minute line becomes a two-line block (houses and time;
+    then searches, matters, PDFs and time left).
+
+- **FR-25 Project lists, newest first.** The lists of FR-4 and FR-5 are
+  sorted by last update, most recent at the top, and each entry shows its
+  creation date and last-update date: `nome — concluído · criado em
+  28/10/2026 · atualizado em 30/10/2026 14:05 · 1.189 matérias`.
+  - *created*: the earliest run log (`logs/<nome>_<data_hora>_<modo>.log`),
+    else the first row of the state file, else `config.json`'s date;
+  - *last update*: the newest modification among the project's files
+    (results, state, matters, logs, config), so update and authors runs
+    count too;
+  - unknown dates show `?`. Read-only, no request (as FR-4a).
+
 ## 6. Non-functional requirements
 
 - **NFR-1** New dependencies: `questionary` (menus; MIT, with

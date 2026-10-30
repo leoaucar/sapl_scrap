@@ -13,7 +13,17 @@ from sapyl.cliente_http import ClienteSAPL
 from sapyl.interface import principal as programa
 from sapyl.links import raspar_resultados
 from sapyl.tabela import ler_final
-from tests.apoio import FALHA_FASE1, PASTA_FIXTURES, RelogioFalso, SessaoFalsa, roteiro, sapl_fase1
+from tests.apoio import (
+    FALHA_FASE1,
+    PASTA_FIXTURES,
+    RelogioFalso,
+    SessaoFalsa,
+    respostas_atualizar,
+    respostas_autoria,
+    respostas_retomar,
+    roteiro,
+    sapl_fase1,
+)
 
 ORIGEM = PASTA_FIXTURES / 'projeto_fase1' / 'fase1_proj'
 ARQUIVOS = [
@@ -52,7 +62,7 @@ def test_fixture_tem_os_arquivos_da_fase1():
 
 def test_retomada_so_pede_o_que_falhou(copia):
     cliente, sessao = _cliente()
-    assert programa.main(roteiro('1', 'fase1', '1'), cliente, copia) == 0
+    assert programa.main(roteiro(*respostas_retomar()), cliente, copia) == 0
     assert not any('/sistema/search/' in u for u in sessao.pedidos)
     materias = [
         u
@@ -81,7 +91,7 @@ def test_busca_incompleta_de_projeto_antigo_usa_os_dois_arquivos(copia):
     with open(pasta / 'fase1_estado.csv', 'a', encoding='utf-8', newline='') as estado:
         estado.write('busca,"sapl.cascavel.pr.leg.br|""plano+diretor""",incompleta,x,27/10/2026\n')
     cliente, sessao = _cliente()
-    assert programa.main(roteiro('1', 'fase1', '1'), cliente, copia) == 0
+    assert programa.main(roteiro(*respostas_retomar()), cliente, copia) == 0
     buscas = [u for u in sessao.pedidos if '/sistema/search/' in u]
     assert buscas and all('sapl.cascavel.pr.leg.br' in u and 'plano+diretor' in u for u in buscas)
     # o arquivo antigo não é escrito; a busca refeita vai para o arquivo novo
@@ -93,7 +103,7 @@ def test_busca_incompleta_de_projeto_antigo_usa_os_dois_arquivos(copia):
 
 def test_atualizacao_de_projeto_antigo(copia):
     cliente, sessao = _cliente()
-    assert programa.main(roteiro('2', 'fase1', '2'), cliente, copia) == 0
+    assert programa.main(roteiro(*respostas_atualizar('n')), cliente, copia) == 0
     pasta = copia / 'fase1_proj'
     [arquivo] = pasta.glob('fase1_resultado_final_ATUALIZADO_*.csv')
     final = ler_final(arquivo)
@@ -107,7 +117,7 @@ def test_atualizacao_de_projeto_antigo(copia):
 
 def test_autoria_de_projeto_antigo(copia):
     cliente, sessao = _cliente()
-    assert programa.main(roteiro('3', 'fase1'), cliente, copia) == 0
+    assert programa.main(roteiro(*respostas_autoria()), cliente, copia) == 0
     saida = copia / 'fase1_proj' / 'fase1_resultado_final_autoria_tramitacao.csv'
     tabela = ler_final(saida)
     assert len(tabela) == 8

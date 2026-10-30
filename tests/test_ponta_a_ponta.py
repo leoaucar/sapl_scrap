@@ -19,7 +19,17 @@ from sapyl.cliente_http import ClienteSAPL
 from sapyl.estado import Estado
 from sapyl.interface import principal as programa
 from sapyl.tabela import ler_final
-from tests.apoio import RelogioFalso, SaplFalso, SessaoFalsa, ler_fixture, roteiro
+from tests.apoio import (
+    RelogioFalso,
+    SaplFalso,
+    SessaoFalsa,
+    ler_fixture,
+    respostas_atualizar,
+    respostas_autoria,
+    respostas_novo_projeto,
+    respostas_retomar,
+    roteiro,
+)
 
 RB = 'https://sapl.riobranco.ac.leg.br/'
 CV = 'https://sapl.cascavel.pr.leg.br/'
@@ -156,7 +166,7 @@ class Horarios(list):
             self.servidores.append((servidor, horario))
 
 
-NOVO = ('1', 'p', '2', '1', '1')  # projeto novo "p", sem filtro, todas as casas, com downloads
+NOVO = respostas_novo_projeto('p', pdfs='s')  # todos os estados, todas as casas, com PDFs
 
 
 @pytest.fixture
@@ -208,7 +218,7 @@ def test_resumo(execucao):
     assert 'Casas pesquisadas: 2 (0 com alguma busca incompleta; 0 fora do ar' in resumo
     assert '8 únicas, 7 raspadas, 1 com erro' in resumo
     assert 'Downloads: 3 baixados, 2 com erro, 2 sem texto original' in resumo
-    assert 'retomar este projeto' in resumo
+    assert 'escolha "Retomar um projeto" e depois "p"' in resumo
 
 
 def test_limite_de_35_por_minuto_em_cada_site(execucao):
@@ -228,7 +238,7 @@ def test_429_na_busca_foi_esperado_e_refeito(execucao):
 def test_retomada_so_pede_a_materia_que_falhou(execucao, projeto_tmp):
     pasta, sessao, _, _ = execucao
     sessao.pedidos.clear()
-    assert programa.main(roteiro('1', 'p', '1'), sessao_cliente(sessao), projeto_tmp) == 0
+    assert programa.main(roteiro(*respostas_retomar()), sessao_cliente(sessao), projeto_tmp) == 0
     # das matérias, só pede a que falhou; os nomes já consultados vêm do
     # cache do projeto (FR-25), e a casa sem API não tem a API sondada de novo
     assert not any('tipomateria' in u or 'regimetramitacao' in u for u in sessao.pedidos)
@@ -255,7 +265,7 @@ def sessao_cliente(sessao):
 def test_interrompida_e_retomada_da_o_mesmo_resultado(projeto_tmp, monkeypatch):
     # execução sem interrupção, projeto "a"
     cliente, _, _ = montar(projeto_tmp)
-    programa.main(roteiro('1', 'a', '2', '1', '1'), cliente, projeto_tmp)
+    programa.main(roteiro(*respostas_novo_projeto('a', pdfs='s')), cliente, projeto_tmp)
 
     # execução interrompida na 4ª matéria e retomada, projeto "b"
     cliente, _, _ = montar(projeto_tmp)
@@ -269,9 +279,15 @@ def test_interrompida_e_retomada_da_o_mesmo_resultado(projeto_tmp, monkeypatch):
 
     monkeypatch.setattr(materias, 'raspar_materia', cair_na_quarta)
     # a execução "a" criou a tabela geral de casas: aparece a pergunta de reaproveitá-la
-    assert programa.main(roteiro('1', 'b', '2', '2', '1', '1'), cliente, projeto_tmp) == 1
+    assert (
+        programa.main(
+            roteiro(*respostas_novo_projeto('b', tabela='2', pdfs='s')), cliente, projeto_tmp
+        )
+        == 1
+    )
     monkeypatch.setattr(materias, 'raspar_materia', original)
-    assert programa.main(roteiro('1', 'b', '1'), cliente, projeto_tmp) == 0
+    # a lista de projetos, do mais recente: b (o interrompido), a
+    assert programa.main(roteiro(*respostas_retomar('1')), cliente, projeto_tmp) == 0
 
     a = ler_final(projeto_tmp / 'a_proj' / 'a_resultado_final.csv').drop(columns=['raspada_em'])
     b = ler_final(projeto_tmp / 'b_proj' / 'b_resultado_final.csv').drop(columns=['raspada_em'])
@@ -314,7 +330,7 @@ def test_retomada_com_cliente_novo_respeita_o_limite(projeto_tmp, monkeypatch):
         relogio_parede=relogio.agora,
         ao_reservar=horarios.anotar,
     )
-    assert programa.main(roteiro('1', 'p', '1'), segundo, projeto_tmp) == 0
+    assert programa.main(roteiro(*respostas_retomar()), segundo, projeto_tmp) == 0
     for site in {s for s, _ in horarios}:
         tempos = sorted(t for s, t in horarios if s == site)
         for i, t in enumerate(tempos):
@@ -367,7 +383,7 @@ def test_autoria_interrompida_e_retomada(projeto_tmp, monkeypatch):
         return original(link, *args)
 
     monkeypatch.setattr(autoria, 'raspar_autoria', cair_na_terceira)
-    assert programa.main(roteiro('3', 'p'), cliente, projeto_tmp) == 1
+    assert programa.main(roteiro(*respostas_autoria()), cliente, projeto_tmp) == 1
     monkeypatch.setattr(autoria, 'raspar_autoria', original)
 
     # as que terminaram antes do Ctrl+C (com várias casas ao mesmo tempo, a que
@@ -377,7 +393,7 @@ def test_autoria_interrompida_e_retomada(projeto_tmp, monkeypatch):
     estado.fechar()
     assert 1 <= len(feitas) <= 2
     sessao.pedidos.clear()
-    assert programa.main(roteiro('3', 'p'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro(*respostas_autoria()), cliente, projeto_tmp) == 0
     assert not any(f'materia={k.rsplit("/", 1)[1]}' in u for k in feitas for u in sessao.pedidos)
 
     saida = ler_final(projeto_tmp / 'p_proj' / 'p_resultado_final_autoria_tramitacao.csv')
@@ -403,7 +419,7 @@ def test_atualizacao_com_relevante(projeto_tmp):
     final['Anotacao'] = 'ver'
     final.to_csv(caminho, index=False)
 
-    assert programa.main(roteiro('2', 'p', '1', '2'), cliente, projeto_tmp) == 0
+    assert programa.main(roteiro(*respostas_atualizar('s', 'n')), cliente, projeto_tmp) == 0
     [arquivo] = (projeto_tmp / 'p_proj').glob('p_resultado_final_ATUALIZADO_*.csv')
     atualizado = ler_final(arquivo)
     assert sorted(atualizado['sapl_id']) == ['34049', '38415']

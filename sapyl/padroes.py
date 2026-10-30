@@ -41,6 +41,13 @@ class ConfiguracaoInvalida(ValueError):
     """Valor inválido em `paralelo` no config.json do projeto."""
 
 
+class EntradaInvalida(ValueError):
+    """Arquivo de entrada ausente ou errado (palavras-chave, planilha de casas).
+
+    A mensagem já está pronta para a pessoa: o que faltou, onde e como corrigir.
+    """
+
+
 def padroes_paralelo() -> dict[str, int]:
     """Valores padrão de `paralelo` (gravados no config.json de um projeto novo)."""
     return {

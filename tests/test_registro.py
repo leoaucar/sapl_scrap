@@ -69,7 +69,8 @@ def test_resumo_conta_tudo_e_avisa_falhas(tmp_path):
     assert 'Matérias: 4 encontradas, 3 únicas, 2 raspadas, 1 com erro' in texto
     assert 'Downloads: 1 baixados, 0 com erro, 1 sem texto original' in texto
     assert 'Resultado: p/final.csv' in texto
-    assert 'retomar este projeto' in texto
+    assert 'Próximos passos:\n- Abra o resultado numa planilha: p/final.csv' in texto
+    assert '- Houve falhas' in texto and 'escolha "Retomar um projeto"' in texto
 
 
 def test_resumo_sem_falhas_nao_traz_aviso(tmp_path):
@@ -77,7 +78,7 @@ def test_resumo_sem_falhas_nao_traz_aviso(tmp_path):
     for k in ('h/1', 'h/2', 'h/3'):
         estado.registrar('materia', k, 'ok')
     texto = registro.resumo(estado, _links(), 'f.csv', buscas=[('https://h/', 'completa')])
-    assert 'retomar' not in texto and 'Downloads' not in texto
+    assert 'Houve falhas' not in texto and 'Downloads' not in texto
     # modo atualização: sem buscas
     assert 'Casas' not in registro.resumo(estado, _links(), 'f.csv')
 
@@ -96,7 +97,7 @@ def test_resumo_depois_de_retomada_conta_o_projeto_inteiro(tmp_path):
 def test_log_comeca_com_nome_e_versao(tmp_path):
     caminho = registro.configurar(tmp_path, 'p')
     primeira = open(caminho, encoding='utf-8').readline()
-    assert 'DEBUG sapyl SAPyL: Raspador do Sistema de Apoio Legislativo 0.3.0' in primeira
+    assert 'DEBUG sapyl SAPyL: Raspador do Sistema de Apoio Legislativo 0.4.0' in primeira
 
 
 # --- Um log por execução (FR-26) --------------------------------------------
@@ -141,7 +142,7 @@ def test_resumo_termina_com_o_log_desta_execucao(tmp_path):
     estado = Estado(tmp_path / 'e.csv')
     texto = registro.resumo(estado, [], 'f.csv')
     estado.fechar()
-    assert texto.splitlines()[-1] == f'Log desta execução: {caminho}'
+    assert texto.splitlines()[-1] == f'- Log desta execução: {caminho}'
 
 
 # --- Tempo, casas ao mesmo tempo e servidores no resumo (FR-14) --------------
@@ -177,3 +178,66 @@ def test_resumos_mostram_as_linhas_da_execucao(tmp_path):
     assert extra[0] in texto and texto.index(extra[0]) < texto.index('Resultado:')
     texto = registro.resumo_autoria(Counter(ok=1), tmp_path / 's.csv', execucao=extra)
     assert extra[0] in texto
+
+
+# --- Terminal mais limpo (FR-19) -------------------------------------------
+
+
+def test_andamento_e_debug_com_o_registro(caplog):
+    with caplog.at_level(logging.DEBUG, logger='sapyl'):
+        registro.andamento(
+            registro.logger('materias'), registro.MATERIAS, 3, 9, 'Matéria %d', 3, status='ok'
+        )
+    [linha] = caplog.records
+    assert linha.levelno == logging.DEBUG and linha.getMessage() == 'Matéria 3'
+    assert linha.andamento == ('materias', 3, 9, 'ok')
+
+
+def test_linhas_de_item_so_no_arquivo(tmp_path, capsys):
+    registro.configurar(tmp_path, 'p')
+    log = registro.logger('materias')
+    registro.andamento(log, registro.MATERIAS, 1, 2, 'Matéria 1 de 2: título')
+    log.info('Concluída')
+    erro = capsys.readouterr().err
+    assert 'Concluída' in erro and 'Matéria 1 de 2' not in erro
+    texto = next((tmp_path / 'logs').iterdir()).read_text(encoding='utf-8')
+    assert 'DEBUG sapyl.materias Matéria 1 de 2: título' in texto and 'Concluída' in texto
+
+
+def test_configurar_com_o_terminal_da_interface(tmp_path, capsys):
+    class Guardar(logging.Handler):
+        def __init__(self):
+            super().__init__(logging.DEBUG)
+            self.mensagens = []
+
+        def emit(self, record):
+            self.mensagens.append(record.getMessage())
+
+    guardar = Guardar()
+    registro.configurar(tmp_path, 'p', terminal=guardar)
+    registro.andamento(registro.logger(), registro.PDFS, 1, 1, 'Download 1')
+    assert guardar.mensagens[-1] == 'Download 1' and capsys.readouterr().err == ''
+    quantas = len(guardar.mensagens)
+    registro.configurar(tmp_path, 'p')  # troca: o handler antigo sai
+    registro.logger().info('depois')
+    assert len(guardar.mensagens) == quantas
+
+
+def test_proximos_passos_com_o_caminho_dado():
+    linhas = registro.proximos_passos('r.csv', True, 'escolha "X" e depois "p"', None)
+    assert linhas == [
+        '',
+        'Próximos passos:',
+        '- Abra o resultado numa planilha: r.csv',
+        '- Houve falhas (veja as colunas de status e o log). Para tentar de novo só o que '
+        'falhou, escolha "X" e depois "p".',
+    ]
+
+
+def test_resumo_da_autoria_com_proximos_passos():
+    from collections import Counter
+
+    texto = registro.resumo_autoria(Counter(ok=2, erro=1), 'a.csv', caminho_log='l.log')
+    assert '- Abra o resultado numa planilha: a.csv' in texto
+    assert '"Autoria e tramitação" e a mesma entrada' in texto
+    assert texto.endswith('- Log desta execução: l.log')

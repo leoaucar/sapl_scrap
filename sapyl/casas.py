@@ -1,4 +1,4 @@
-"""Lista de casas legislativas: leitura, teste de quais estão no ar, filtros.
+"""Lista de casas legislativas: leitura, teste de quais estão no ar, filtros por estado e limite.
 
 A tabela de casas (`casas_resultado.csv`) tem as colunas
 `url, ativa, motivo, uf`. Tabelas antigas, com as colunas `0` (url) e `1`
@@ -6,6 +6,8 @@ A tabela de casas (`casas_resultado.csv`) tem as colunas
 """
 
 import os
+import zipfile
+from collections.abc import Iterable
 from pathlib import Path
 
 import pandas as pd
@@ -14,21 +16,18 @@ from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_CASAS
 from sapyl.links import endereco_final, host
-from sapyl.padroes import Mapear, em_sequencia
+from sapyl.padroes import EntradaInvalida, Mapear, em_sequencia
 
 # Estados usados quando a busca é restrita a Sul e Sudeste
 ESTADOS_SUL_SUDESTE = ['RJ', 'SP', 'RS', 'SC', 'MG', 'ES', 'PR']
 
-# Opções do menu de limite de casas (para testes)
-OPCOES_LIMITE = {
-    '1': 'todas as casas',
-    '2': '50 primeiras casas',
-    '3': '50 últimas casas',
-    '4': 'apenas 10 casas',
-}
-PERGUNTA_LIMITE = 'Deseja limitar sua busca para teste?\n' + ''.join(
-    f'{k}- {v}\n' for k, v in OPCOES_LIMITE.items()
-)
+# Valores de `limite` no config.json: todas as casas, ou um teste com 10.
+# '2' (50 primeiras) e '3' (50 últimas) só existem em projetos antigos.
+LIMITE_TODAS = '1'
+LIMITE_TESTE = '4'
+CASAS_NO_TESTE = 10
+
+COLUNAS_PLANILHA = ('UF', 'URL do serviço')
 
 log = registro.logger('casas')
 
@@ -39,8 +38,28 @@ def _com_barra(url: object) -> str:
 
 
 def importar_casas(planilha: str | Path) -> pd.DataFrame:
-    """Lê a planilha de casas e devolve um DataFrame com `url` e `uf`."""
-    df = pd.read_excel(planilha)
+    """Lê a planilha de casas e devolve um DataFrame com `url` e `uf`.
+
+    Planilha ausente, ilegível ou sem as colunas `UF` e `URL do serviço` vira
+    `EntradaInvalida`, com a mensagem para a pessoa.
+    """
+    planilha = Path(planilha)
+    if not planilha.is_file():
+        raise EntradaInvalida(
+            f'Não encontrei a planilha de casas legislativas {planilha.resolve()}. '
+            'Rode o sapyl na pasta que tem a pasta arquivos_csv/ (a do repositório traz '
+            'a planilha casas_legislativas.xlsx).'
+        )
+    try:
+        df = pd.read_excel(planilha)
+    except (OSError, ValueError, zipfile.BadZipFile) as erro:
+        raise EntradaInvalida(f'Não consegui ler a planilha {planilha}: {erro}') from erro
+    faltam = [c for c in COLUNAS_PLANILHA if c not in df.columns]
+    if faltam:
+        raise EntradaInvalida(
+            f'A planilha {planilha} não tem a(s) coluna(s) {", ".join(faltam)}; '
+            'o programa usa as colunas UF e URL do serviço.'
+        )
     df = df[df['URL do serviço'].notna()]
     return pd.DataFrame(
         {
@@ -52,7 +71,7 @@ def importar_casas(planilha: str | Path) -> pd.DataFrame:
 
 def testar_casa(url: str, cliente: ClienteSAPL) -> tuple[bool, str, str]:
     """(no ar, motivo, url_final) de uma casa: uma requisição à página inicial."""
-    resposta = cliente.get(url, timeout=(5, 5), max_tentativas=2)
+    resposta = cliente.get(url, timeout=(5, 5), max_tentativas=2, avisar=False)
     resposta.fechar()
     final = ''
     if resposta.ok and resposta.bruta is not None:
@@ -78,7 +97,16 @@ def testar_casas(
         posicao.setdefault(url, i)
 
     def testar(url: str) -> tuple[bool, str, str]:
-        log.info('Testando casa %d de %d: %s', posicao[url], len(urls), url)
+        registro.andamento(
+            log,
+            registro.TESTE,
+            posicao[url],
+            len(urls),
+            'Testando casa %d de %d: %s',
+            posicao[url],
+            len(urls),
+            url,
+        )
         return testar_casa(url, cliente)
 
     resultados = mapear(testar, urls)
@@ -128,20 +156,29 @@ def salvar_tabela_casas(casas: pd.DataFrame, caminho: str | Path) -> None:
     casas.reindex(columns=COLUNAS_CASAS, fill_value='').to_csv(caminho, index=False)
 
 
-def filtrar_sul_sudeste(casas: pd.DataFrame) -> pd.DataFrame:
-    """Só as casas dos estados de ESTADOS_SUL_SUDESTE."""
-    return casas[casas['uf'].isin(ESTADOS_SUL_SUDESTE)].reset_index(drop=True)
+def ufs(casas: pd.DataFrame) -> list[str]:
+    """As UFs da tabela, em ordem alfabética, sem repetir nem vazias."""
+    return sorted({str(u) for u in casas['uf'] if str(u).strip()})
+
+
+def filtrar_estados(casas: pd.DataFrame, estados: Iterable[str]) -> pd.DataFrame:
+    """Só as casas dos `estados` (siglas); lista vazia = todas."""
+    estados = {e.strip().upper() for e in estados}
+    if not estados:
+        return casas.reset_index(drop=True)
+    return casas[casas['uf'].isin(estados)].reset_index(drop=True)
 
 
 def limitar_casas(casas: pd.DataFrame, opcao: str) -> pd.DataFrame:
-    """Aplica a opção do menu de limite (veja OPCOES_LIMITE)."""
+    """Aplica `limite` do config.json: '1' todas, '4' as 10 primeiras (teste);
+    '2' e '3' (50 primeiras, 50 últimas) só em projetos antigos."""
     opcao = str(opcao)
     if opcao == '2':
         casas = casas[:50]
     elif opcao == '3':
         casas = casas[-50:]
-    elif opcao == '4':
-        casas = casas[:10]
+    elif opcao == LIMITE_TESTE:
+        casas = casas[:CASAS_NO_TESTE]
     elif opcao != '1':
         raise ValueError(f'Opção de limite inválida: {opcao}')
     return casas.reset_index(drop=True)

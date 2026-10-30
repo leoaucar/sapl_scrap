@@ -2,8 +2,14 @@
 
 Uso: sapyl (depois de `pip install .`), python -m sapyl ou python programa.py
 
+Menu principal: novo projeto, retomar, atualizar, autoria e tramitação,
+ajuda, sair. As perguntas são menus com as setas num terminal interativo, ou
+opções numeradas (veja `perguntas.py`).
+
 Fluxo de um projeto novo (ou retomado):
-  1. pasta `<nome>_proj/` e configuração (perguntas, salvas em config.json)
+  0. palavras-chave e planilha de casas conferidas antes de qualquer pergunta;
+     depois das perguntas, uma tela de confirmação (começar, mudar, cancelar)
+  1. pasta `<nome>_proj/` e configuração (respostas, salvas em config.json)
   2. casas legislativas: tabela reaproveitada ou URLs testadas de novo
   3. para cada casa, várias ao mesmo tempo (`paralelo` no config.json):
      busca das palavras (páginas gravadas na hora), links das matérias sem
@@ -13,16 +19,21 @@ Fluxo de um projeto novo (ou retomado):
   5. tabela final `<nome>_resultado_final.csv` (a mesma de uma casa por vez)
   6. resumo
 
-Cada etapa registra o progresso em `<nome>_estado.csv`; rodar de novo e
-escolher "retomar" continua de onde parou e tenta de novo o que falhou.
+Cada etapa registra o progresso em `<nome>_estado.csv`; "Retomar um projeto"
+continua de onde parou e tenta de novo o que falhou.
 
 No modo "atualizar", as matérias de um `_resultado_final.csv` existente são
 raspadas de novo, com saída em arquivos `_ATUALIZADO_<data>`.
 """
 
+import errno
 import sys
 import time
+import traceback
+from collections import Counter
 from collections.abc import Callable, Sequence
+from contextlib import ExitStack
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -40,17 +51,27 @@ from sapyl.colunas import (
     COLUNAS_PAGINAS,
     ETAPA_BUSCA,
     ETAPA_MATERIA,
+    ETAPA_PDF,
     Linha,
 )
 from sapyl.downloads import baixar_da_casa, preencher_downloads
 from sapyl.estado import ArquivoCSV, Cache, Estado
+from sapyl.interface import ajuda, status
 from sapyl.interface.entrada import (
-    Leitor,
     abrir_ou_criar,
+    em_passos,
     escolher_entrada_autoria,
-    escolher_projeto_existente,
-    perguntar_opcao,
-    perguntar_sim_nao,
+    escolher_projeto,
+    rotulo_do_projeto,
+)
+from sapyl.interface.perguntas import (
+    Atalho,
+    Leitor,
+    Opcao,
+    Perguntas,
+    PerguntasMenu,
+    Voltar,
+    criar_perguntas,
 )
 from sapyl.links import (
     agrupar_por_casa,
@@ -62,7 +83,8 @@ from sapyl.links import (
     salvar_links,
 )
 from sapyl.materias import Fontes, raspar_pendentes
-from sapyl.palavras import importar_palavras, preparar_termos
+from sapyl.padroes import EntradaInvalida
+from sapyl.palavras import descrever, importar_palavras, ler_palavras, preparar_termos
 from sapyl.tabela import (
     COLUNA_RELEVANTE,
     colunas_extras,
@@ -75,34 +97,71 @@ from sapyl.tabela import (
 )
 
 BOAS_VINDAS = f'{registro.NOME} (versão {__version__})\n'
-PERGUNTA_MODO = (
-    'O que você quer fazer?\n'
-    '1- novo projeto ou retomar um projeto\n'
-    '2- atualizar um projeto\n'
-    '3- autoria e tramitação\n'
+PERGUNTA_MODO = 'O que você quer fazer?'
+OPCOES_MODO = [
+    Opcao('Novo projeto', 'novo'),
+    Opcao('Retomar um projeto', 'retomar'),
+    Opcao('Atualizar um projeto', 'atualizar'),
+    Opcao('Autoria e tramitação', 'autoria'),
+    Opcao('Ajuda', 'ajuda'),
+    Opcao('Sair', 'sair'),
+]
+PERGUNTA_ESTADOS = 'Em quais estados buscar?'
+ATALHOS_ESTADOS = [
+    Atalho('Todos os estados', 'todos', ()),
+    Atalho('Sul e Sudeste', 'sul-sudeste', tuple(cl.ESTADOS_SUL_SUDESTE)),
+]
+PERGUNTA_QUANTAS = 'Quantas casas?'
+PERGUNTA_RELEVANTES = 'Atualizar só as matérias marcadas como relevantes (coluna Relevante)?'
+PERGUNTA_DOWNLOAD = (
+    'Baixar os textos originais (PDFs)? Cerca de 10 MB por matéria; uma execução '
+    'completa pode passar de 100 GB.'
 )
-PERGUNTA_TABELA = 'Deseja usar a mesma tabela de casas do último projeto? 1- sim, 2- não\n'
-PERGUNTA_SUL = 'Deseja restringir a busca a Sul e Sudeste? 1- sim, 2- não\n'
-PERGUNTA_RELEVANTES = (
-    'Atualizar só as matérias marcadas como relevantes (coluna Relevante)? 1- sim, 2- não\n'
-)
-PERGUNTA_DOWNLOAD = 'Deseja baixar os textos originais (PDFs)? 1- sim, 2- não\n'
+COMECAR, CANCELAR = 'comecar', 'cancelar'
+OPCOES_CONFIRMAR_NOVO = [Opcao('Começar', COMECAR), Opcao('Cancelar', CANCELAR)]
+CONTINUAR = 'continuar'
+OPCOES_CONTINUAR = [Opcao('Continuar', CONTINUAR), Opcao('Cancelar', CANCELAR)]
+MENSAGEM_CANCELADO = 'Cancelado. Nada foi feito.'
 # Horários das requisições recentes de cada site, compartilhados entre
 # execuções e projetos (veja cliente_http). Fica na pasta de trabalho.
 ARQUIVO_HISTORICO = '.sapl_historico.json'
-MENSAGEM_INTERROMPIDO_AUTORIA = (
-    '\nExecução interrompida. Para continuar de onde parou, rode o programa de novo, '
-    'escolha 3 e digite a mesma entrada.'
-)
-MENSAGEM_INTERROMPIDO = (
-    '\nExecução interrompida. Para continuar de onde parou, rode o programa '
-    'de novo, digite o mesmo nome de projeto e escolha "retomar".'
-)
 
 MENSAGEM_CONFIG_INVALIDA = (
     '\nConfiguração inválida em {erro}\n'
-    'Corrija o valor (ou apague a chave "paralelo" para usar os padrões) e rode de novo.'
+    'Corrija o arquivo e rode de novo. Na chave "paralelo", apagá-la volta aos valores padrão.'
 )
+
+
+@dataclass
+class Contexto:
+    """O que a mensagem de interrupção precisa saber: o modo e o projeto (ou a entrada)."""
+
+    modo: str | None = None
+    nome: str | None = None
+    cancelado: bool = False
+    tela: status.Tela = field(default_factory=status.Tela)
+    # resultado final da execução e o projeto dele (para oferecer a autoria, FR-21a)
+    resultado: tuple[Path, gp.Projeto] | None = None
+
+
+def como_retomar(modo: str | None, nome: str) -> str:
+    """`rode o sapyl, escolha "Retomar um projeto" e depois "<nome>"` (conforme o modo)."""
+    if modo == 'autoria':
+        return f'rode o sapyl, escolha "Autoria e tramitação" e de novo "{nome}"'
+    if modo == 'atualizar':
+        return f'rode o sapyl no mesmo dia, escolha "Atualizar um projeto" e depois "{nome}"'
+    return f'rode o sapyl, escolha "Retomar um projeto" e depois "{nome}"'
+
+
+def mensagem_interrompido(contexto: Contexto) -> str:
+    """O que fazer para continuar, com o caminho no menu (FR-17)."""
+    if contexto.nome is None:
+        return '\nInterrompido. Nada foi iniciado.'
+    return (
+        '\nExecução interrompida. Para continuar de onde parou, '
+        f'{como_retomar(contexto.modo, contexto.nome)}.'
+    )
+
 
 log = registro.logger()
 
@@ -111,20 +170,144 @@ def _pasta_csv(raiz: str | Path) -> Path:
     return Path(raiz) / 'arquivos_csv'
 
 
-def perguntar_configuracao(raiz: str | Path, entrada: Leitor = input) -> dict[str, Any]:
-    """Perguntas de um projeto novo. Devolve o dict salvo em config.json."""
+def estados_da_config(config: dict[str, Any]) -> list[str]:
+    """Estados do projeto: `estados` (lista vazia = todos), ou o `sul_sudeste` antigo."""
+    if 'estados' in config:
+        return list(config['estados'] or [])
+    return list(cl.ESTADOS_SUL_SUDESTE) if config.get('sul_sudeste') else []
+
+
+def texto_das_palavras(palavras: Sequence[str]) -> str:
+    """Lista numerada das buscas em palavras (nunca na sintaxe do SAPL)."""
+    linhas = [f'Palavras-chave ({len(palavras)} busca{"s" if len(palavras) != 1 else ""}):']
+    linhas += [f'  {i}. {descrever(p)}' for i, p in enumerate(palavras, start=1)]
+    return '\n'.join(linhas)
+
+
+def _numero(n: int) -> str:
+    return f'{n:,}'.replace(',', '.')
+
+
+@dataclass
+class Respostas:
+    """Respostas das perguntas de um projeto novo (antes de confirmar)."""
+
+    reusar_tabela: bool
+    estados: list[str]
+    limite: str
+    downloads: bool
+    casas: int  # quantas casas entram (no ar, se a tabela é reaproveitada)
+
+
+def perguntar_configuracao(
+    raiz: str | Path,
+    perguntas: Perguntas,
+    planilha: pd.DataFrame,
+    voltar: bool = False,
+    confirmar: Callable[[Respostas], None] | None = None,
+) -> Respostas:
+    """Lista de casas, estados, quantas casas e PDFs (FR-6 a FR-9), um passo de cada vez.
+
+    `← Voltar` repete a pergunta anterior, com as respostas guardadas; no
+    primeiro passo, lança `Voltar` (com `voltar`). `confirmar(respostas)` é
+    um último passo (a tela de confirmação), que também pode voltar.
+    """
     tabela_global = _pasta_csv(raiz) / 'casas_resultado.csv'
-    reusar = tabela_global.exists() and perguntar_sim_nao(PERGUNTA_TABELA, entrada)
-    sul_sudeste = perguntar_sim_nao(PERGUNTA_SUL, entrada)
-    limite = perguntar_opcao(cl.PERGUNTA_LIMITE, list(cl.OPCOES_LIMITE), entrada)
-    downloads = perguntar_sim_nao(PERGUNTA_DOWNLOAD, entrada)
-    palavras = preparar_termos(importar_palavras(_pasta_csv(raiz)))
+    testadas = None
+    if tabela_global.exists():
+        testadas = cl.ler_tabela_casas(tabela_global, _pasta_csv(raiz) / 'casas_legislativas.xlsx')
+    r = Respostas(False, [], cl.LIMITE_TODAS, False, 0)
+
+    def base() -> pd.DataFrame:
+        return testadas[testadas['ativa']] if r.reusar_tabela and testadas is not None else planilha
+
+    def tabela() -> None:
+        assert testadas is not None
+        data = datetime.fromtimestamp(tabela_global.stat().st_mtime).strftime('%d/%m/%Y')
+        no_ar = int(testadas['ativa'].sum())
+        r.reusar_tabela = (
+            perguntas.escolher(
+                'Lista de casas legislativas',
+                [
+                    Opcao(
+                        f'Usar a lista já testada (de {data}, {_numero(no_ar)} casas no ar)', 's'
+                    ),
+                    Opcao('Testar os sites de novo (pode levar até ~15 min)', 'n'),
+                ],
+                voltar=voltar,
+            )
+            == 's'
+        )
+
+    def estados() -> None:
+        opcoes_ufs = [Opcao(uf, uf) for uf in cl.ufs(base())]
+        marcados = perguntas.marcar(
+            PERGUNTA_ESTADOS, opcoes_ufs, ATALHOS_ESTADOS, voltar=voltar or testadas is not None
+        )
+        r.estados = [] if len(marcados) == len(opcoes_ufs) else marcados  # todos = todos
+
+    def quantas() -> None:
+        total = len(cl.filtrar_estados(base(), r.estados))
+        r.limite = perguntas.escolher(
+            PERGUNTA_QUANTAS,
+            [
+                Opcao(f'Todas as casas dos estados escolhidos ({_numero(total)})', cl.LIMITE_TODAS),
+                Opcao(
+                    f'Teste com {cl.CASAS_NO_TESTE} casas (bom para conferir as palavras)',
+                    cl.LIMITE_TESTE,
+                ),
+            ],
+            voltar=True,
+        )
+        r.casas = total if r.limite == cl.LIMITE_TODAS else min(total, cl.CASAS_NO_TESTE)
+
+    def pdfs() -> None:
+        r.downloads = perguntas.sim_nao(PERGUNTA_DOWNLOAD, voltar=True)
+
+    passos: list[Callable[[], object]] = [estados, quantas, pdfs]
+    if testadas is not None:
+        passos.insert(0, tabela)
+    if confirmar is not None:
+        passos.append(lambda: confirmar(r))
+    em_passos(passos)
+    return r
+
+
+def texto_de_confirmacao(
+    projeto: gp.Projeto, palavras: Sequence[str], r: Respostas, paralelo: dict[str, int]
+) -> str:
+    """Resumo do projeto novo antes de começar (FR-15)."""
+    if r.reusar_tabela:
+        casas = f'{_numero(r.casas)} no ar (lista já testada)'
+        buscas = _numero(r.casas * len(palavras))
+    else:
+        casas = f'{_numero(r.casas)} (o programa testa quais estão no ar antes de buscar)'
+        buscas = f'até {_numero(r.casas * len(palavras))}'
+    if r.limite == cl.LIMITE_TESTE:
+        casas += ', teste'
+    return '\n'.join(
+        [
+            '',
+            f'Projeto: {projeto.nome} (pasta {projeto.pasta.name}/)',
+            'Estados: ' + (', '.join(r.estados) if r.estados else 'todos'),
+            f'Casas: {casas}',
+            texto_das_palavras(palavras),
+            f'Buscas: {buscas} (casas × palavras)',
+            'PDFs: ' + ('sim (cerca de 10 MB por matéria)' if r.downloads else 'não'),
+            f'Casas ao mesmo tempo: {paralelo["casas_ao_mesmo_tempo"]}',
+            '',
+        ]
+    )
+
+
+def configuracao_nova(palavras: list[str], r: Respostas) -> dict[str, Any]:
+    """O dict salvo em config.json de um projeto novo."""
     return {
         'palavras': palavras,
-        'reusar_tabela': reusar,
-        'sul_sudeste': sul_sudeste,
-        'limite': limite,
-        'downloads': downloads,
+        'reusar_tabela': r.reusar_tabela,
+        'estados': r.estados,
+        'limite': r.limite,
+        'downloads': r.downloads,
         padroes.CHAVE_PARALELO: padroes.padroes_paralelo(),
     }
 
@@ -195,16 +378,45 @@ def sobre_a_execucao(cliente: ClienteSAPL, paralelo: dict[str, int], inicio: flo
 
 
 def mapeador(
-    cliente: ClienteSAPL, paralelo: dict[str, int], progresso: Callable[[], str] | None = None
+    cliente: ClienteSAPL,
+    paralelo: dict[str, int],
+    progresso: Callable[[], str] | None = None,
+    anunciar: bool = True,
+    ao_terminar: Callable[[str], str] | None = None,
 ) -> padroes.Mapear:
-    """`mapear(tarefa, casas)` que roda até `casas_ao_mesmo_tempo` casas ao mesmo tempo."""
+    """`mapear(tarefa, casas)` que roda até `casas_ao_mesmo_tempo` casas ao mesmo tempo.
+
+    Com `anunciar`, cada casa tem uma linha no começo e outra no fim (o teste
+    das casas não anuncia: seriam duas linhas por casa da lista).
+    """
 
     def mapear(tarefa: Callable[[str], Any], casas: Sequence[str]) -> list[Any]:
         return execucao.por_casa(
-            casas, tarefa, paralelo['casas_ao_mesmo_tempo'], cliente.parar, progresso
+            casas,
+            tarefa,
+            paralelo['casas_ao_mesmo_tempo'],
+            cliente.parar,
+            progresso,
+            anunciar=anunciar,
+            ao_terminar=ao_terminar,
         )
 
     return mapear
+
+
+def texto_das_casas_no_ar(casas: pd.DataFrame) -> str:
+    """`8 de 10 casas no ar (fora: 1 dns, 1 HTTP 500)`."""
+    no_ar = int(casas['ativa'].sum())
+    texto = f'{_numero(no_ar)} de {_numero(len(casas))} casas no ar'
+    motivos = Counter(str(m) or '?' for m in casas.loc[~casas['ativa'], 'motivo'])
+    if motivos:
+        texto += ' (fora: ' + ', '.join(f'{n} {m}' for m, n in motivos.most_common()) + ')'
+    return texto
+
+
+def _vai_reusar(config: dict[str, Any], raiz: str | Path) -> bool:
+    """Se a tabela geral de casas vai ser reaproveitada (sem testar os sites)."""
+    return bool(config.get('reusar_tabela')) and (_pasta_csv(raiz) / 'casas_resultado.csv').exists()
 
 
 def preparar_casas(
@@ -227,17 +439,16 @@ def preparar_casas(
         casas = cl.ler_tabela_casas(tabela_global, planilha)
     else:
         casas = cl.importar_casas(planilha)
-    if config['sul_sudeste']:
-        casas = cl.filtrar_sul_sudeste(casas)
-    casas = cl.limitar_casas(casas, config['limite'])
+    estados = estados_da_config(config)
+    casas = cl.limitar_casas(cl.filtrar_estados(casas, estados), config['limite'])
     if not testadas:
-        log.info('Testando %d casas legislativas', len(casas))
+        log.info('Etapa 1 de 2: testando os sites (%d casas)', len(casas))
         casas = cl.testar_casas(casas, cliente, mapear)
         # A tabela geral só é trocada quando todas as casas foram testadas
-        if not config['sul_sudeste'] and config['limite'] == '1':
+        if not estados and config['limite'] == cl.LIMITE_TODAS:
             cl.salvar_tabela_casas(casas, tabela_global)
     cl.salvar_tabela_casas(casas, projeto.casas)
-    log.info('Casas: %d, das quais %d no ar', len(casas), int(casas['ativa'].sum()))
+    log.info('  %s\n', texto_das_casas_no_ar(casas))
     return casas
 
 
@@ -287,8 +498,44 @@ def progresso_das_materias(estado: Estado) -> str:
     return f'matérias: {contagem.get("ok", 0)} raspadas, {contagem.get("erro", 0)} com erro'
 
 
+def contagens_do_projeto(
+    estado: Estado,
+    total_buscas: int | None = None,
+    buscas: bool = True,
+    downloads: bool = False,
+) -> list[tuple[str, str]]:
+    """Contagens do projeto todo (do estado), para o progresso: buscas, matérias, PDFs.
+
+    `total_buscas` (casas no ar × palavras), quando se sabe, vira `92 de 230`.
+    """
+    linhas = []
+    if buscas:
+        completas = _numero(estado.contagens(ETAPA_BUSCA).get('completa', 0))
+        de = f' de {_numero(total_buscas)}' if total_buscas else ''
+        linhas.append(('Buscas', f'{completas}{de} completas'))
+    materias = estado.contagens(ETAPA_MATERIA)
+    linhas.append(
+        (
+            'Matérias',
+            f'{_numero(materias.get("ok", 0))} raspadas · '
+            f'{_numero(materias.get("erro", 0))} com erro',
+        )
+    )
+    if downloads:
+        pdfs = estado.contagens(ETAPA_PDF)
+        texto = f'{_numero(pdfs.get("ok", 0))} baixados · {_numero(pdfs.get("erro", 0))} com erro'
+    else:
+        texto = 'não pedidos'
+    linhas.append(('PDFs', texto))
+    return linhas
+
+
 def executar_projeto(
-    projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
+    projeto: gp.Projeto,
+    config: dict[str, Any],
+    cliente: ClienteSAPL,
+    raiz: str | Path,
+    tela: status.Tela | None = None,
 ) -> str:
     """Executa (ou retoma) um projeto do começo ao fim. Devolve o texto do resumo.
 
@@ -299,10 +546,29 @@ def executar_projeto(
     paralelo = ler_paralelo(projeto, config)
     inicio = preparar_cliente(cliente, paralelo)
     estado = Estado(projeto.estado)
-    try:
-        casas = preparar_casas(projeto, config, cliente, raiz, mapeador(cliente, paralelo))
-        palavras = config['palavras']
+    tela = tela or status.Tela()
+    palavras = config['palavras']
+    total_buscas: list[int] = []
+
+    def contagens() -> list[tuple[str, str]]:
+        total = total_buscas[0] if total_buscas else None
+        return contagens_do_projeto(estado, total, downloads=config['downloads'])
+
+    estados = ', '.join(estados_da_config(config)) or 'todos os estados'
+    etapas = 1 if projeto.casas.exists() or _vai_reusar(config, raiz) else 2
+    log.info('\nProjeto %s · %s · %d palavras', projeto.nome, estados, len(palavras))
+    with ExitStack() as pilha:
+        pilha.callback(estado.fechar)
+        andamento = pilha.enter_context(tela.acompanhar(contagens))
+        andamento.titulo = f'Projeto {projeto.nome} · {estados} · {len(palavras)} palavras'
+        teste = mapeador(cliente, paralelo, andamento.progresso, anunciar=False)
+        casas = preparar_casas(projeto, config, cliente, raiz, teste)
         ativas = list(casas[casas['ativa']]['url'])
+        total_buscas.append(len(ativas) * len(palavras))
+        andamento.titulo = (
+            f'Projeto {projeto.nome} · {estados} · {len(ativas)} casas no ar · '
+            f'{len(palavras)} palavras'
+        )
         refazer_links = bool(buscas_pendentes(casas, palavras, estado))
         refazer_links = refazer_links or not projeto.links.exists()
         if refazer_links:
@@ -329,21 +595,27 @@ def executar_projeto(
             raspagem.da_casa(links_casa)
 
         log.info(
-            'Casas a processar: %d, até %d ao mesmo tempo',
+            '%s: busca e raspagem (%d casas, até %d ao mesmo tempo)\n',
+            f'Etapa {etapas} de {etapas}' if etapas > 1 else 'Etapa única',
             len(fila),
             paralelo['casas_ao_mesmo_tempo'],
         )
+        andamento.comecar(len(fila))
+        mapear = mapeador(
+            cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
+        )
         try:
-            mapeador(cliente, paralelo, lambda: progresso_das_materias(estado))(pipeline, fila)
+            mapear(pipeline, fila)
         finally:
             raspagem.fechar()
             if paginas is not None:
                 paginas.fechar()
+        log.info('\nMontando a planilha final')
         if refazer_links:
             brutos = links_das_buscas(projeto.paginas, projeto.cru)
             links = deduplicar_links(ordenar_por_casa(brutos, casas['url']))
             salvar_links(links, projeto.links)
-            log.info('Links de matérias: %d encontrados, %d únicos', len(brutos), len(links))
+            log.info('  Links de matérias: %d encontrados, %d únicos', len(brutos), len(links))
         else:
             links = ler_links(projeto.links)
         final = montar_final(projeto.materias, links)
@@ -363,32 +635,83 @@ def executar_projeto(
             casas_inativas=int((~casas['ativa']).sum()),
             downloads=config['downloads'],
             execucao=sobre_a_execucao(cliente, paralelo, inicio),
+            como_retomar=como_retomar('retomar', projeto.nome),
         )
-    finally:
-        estado.fechar()
 
 
 def executar_atualizacao(
-    raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = input, hoje: str | None = None
-) -> str:
+    raiz: str | Path,
+    cliente: ClienteSAPL,
+    perguntas: Perguntas,
+    hoje: str | None = None,
+    contexto: Contexto | None = None,
+) -> str | None:
     """Modo atualização: raspa de novo as matérias de um resultado final existente.
 
     As colunas acrescentadas à mão no resultado (ex.: `Relevante`, anotações)
     passam para o arquivo novo. Se houver a coluna `Relevante`, pergunta se é
-    para atualizar só as matérias marcadas.
+    para atualizar só as matérias marcadas. Devolve o resumo, ou None se a
+    pessoa voltou ao menu ou cancelou (`contexto.nome` diz qual dos dois).
     """
-    base = escolher_projeto_existente(raiz, entrada)
-    paralelo = ler_paralelo(base)
-    tabela = ler_final(base.final)
-    so_relevantes = COLUNA_RELEVANTE in tabela.columns and perguntar_sim_nao(
-        PERGUNTA_RELEVANTES, entrada
-    )
-    downloads = perguntar_sim_nao(PERGUNTA_DOWNLOAD, entrada)
-    inicio = preparar_cliente(cliente, paralelo)
+    contexto = contexto or Contexto('atualizar')
     hoje = hoje or datetime.now().strftime('%d_%m_%Y')
-    projeto = gp.Projeto(raiz, base.nome, data=hoje)
-    registro.configurar(projeto.pasta, projeto.nome, 'atualizacao')
-    log.info('Atualizando o projeto %s a partir de %s', projeto.nome, base.final)
+    while True:
+        base = escolher_projeto(raiz, perguntas, 'Qual projeto atualizar?', so_com_resultado=True)
+        if base is None:
+            return None
+        paralelo = ler_paralelo(base)
+        tabela = ler_final(base.final)
+        projeto = gp.Projeto(raiz, base.nome, data=hoje)
+        r: dict[str, Any] = {'relevantes': False, 'downloads': False}
+
+        def relevantes(r: dict[str, Any] = r) -> None:
+            r['relevantes'] = perguntas.sim_nao(PERGUNTA_RELEVANTES, voltar=True)
+
+        def pdfs(r: dict[str, Any] = r) -> None:
+            r['downloads'] = perguntas.sim_nao(PERGUNTA_DOWNLOAD, voltar=True)
+
+        def confirmar(
+            r: dict[str, Any] = r,
+            base: gp.Projeto = base,
+            tabela: pd.DataFrame = tabela,
+            projeto: gp.Projeto = projeto,
+        ) -> None:
+            n = len(filtrar_relevantes(tabela)) if r['relevantes'] else len(tabela)
+            perguntas.mostrar(
+                '\n'.join(
+                    [
+                        '',
+                        f'Projeto: {rotulo_do_projeto(base)}',
+                        f'Matérias a atualizar: {_numero(n)}'
+                        + (' (só as relevantes)' if r['relevantes'] else ''),
+                        'PDFs: ' + ('sim' if r['downloads'] else 'não'),
+                        f'Resultado: {projeto.final.name}',
+                        '',
+                    ]
+                )
+            )
+            r['escolha'] = perguntas.escolher(
+                'Começar a atualização?', OPCOES_CONTINUAR, voltar=True
+            )
+
+        passos = [pdfs, confirmar]
+        if COLUNA_RELEVANTE in tabela.columns:
+            passos.insert(0, relevantes)
+        try:
+            em_passos(passos)
+        except Voltar:
+            continue  # de volta à lista de projetos
+        break
+    so_relevantes, downloads = r['relevantes'], r['downloads']
+    contexto.nome = base.nome
+    if r['escolha'] == CANCELAR:
+        contexto.cancelado = True
+        return None
+    inicio = preparar_cliente(cliente, paralelo)
+    registro.configurar(
+        projeto.pasta, projeto.nome, 'atualizacao', terminal=contexto.tela.terminal()
+    )
+    log.info('\nAtualizando o projeto %s a partir de %s', projeto.nome, base.final.name)
     extras = colunas_extras(tabela)
     if extras:
         log.info('Colunas acrescentadas mantidas: %s', ', '.join(extras))
@@ -410,98 +733,384 @@ def executar_atualizacao(
         raspagem = Raspagem(cliente, estado, projeto.materias, fontes, pasta)
         grupos = agrupar_por_casa(links)
         fila = [g[0]['Link Casa'] for g in grupos.values()]
-        mapear = mapeador(cliente, paralelo, lambda: progresso_das_materias(estado))
-        try:
-            mapear(lambda casa: raspagem.da_casa(grupos[host(casa)]), fila)
-        finally:
-            raspagem.fechar()
+
+        def contagens() -> list[tuple[str, str]]:
+            return contagens_do_projeto(estado, buscas=False, downloads=downloads)
+
+        titulo = f'Atualização de {base.nome} · {len(fila)} casas · {_numero(len(links))} matérias'
+        log.info('%d matérias em %d casas\n', len(links), len(fila))
+        with contexto.tela.acompanhar(contagens, titulo) as andamento:
+            andamento.comecar(len(fila))
+            mapear = mapeador(
+                cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
+            )
+            try:
+                mapear(lambda casa: raspagem.da_casa(grupos[host(casa)]), fila)
+            finally:
+                raspagem.fechar()
         final = montar_final(projeto.materias, links)
         if downloads:
             final = preencher_downloads(final, estado, str(projeto.downloads))
         salvar_final(juntar_colunas_extras(final, tabela), projeto.final)
+        contexto.resultado = (projeto.final, base)
         return registro.resumo(
             estado,
             links,
             projeto.final,
             downloads=downloads,
             execucao=sobre_a_execucao(cliente, paralelo, inicio),
+            como_retomar=como_retomar('atualizar', base.nome),
         )
     finally:
         estado.fechar()
 
 
-def executar_autoria(raiz: str | Path, cliente: ClienteSAPL, entrada: Leitor = input) -> str:
+def _linhas_do_csv(caminho: Path) -> int:
+    try:
+        return len(pd.read_csv(caminho, usecols=COLUNAS_ORIGEM[:1], dtype=str))
+    except (ValueError, OSError):
+        return 0
+
+
+def executar_autoria(
+    raiz: str | Path,
+    cliente: ClienteSAPL,
+    perguntas: Perguntas,
+    contexto: Contexto | None = None,
+    entrada: tuple[Path, gp.Projeto | None] | None = None,
+) -> str | None:
     """Autoria e tramitação de um projeto (o resultado mais recente) ou de um CSV.
 
     Saída, estado e log ficam ao lado da planilha de entrada (na pasta do
-    projeto, para um projeto). Devolve o texto do resumo.
+    projeto, para um projeto). Com `entrada` (planilha, projeto), não pergunta
+    nada: é a oferta do fim de uma execução, já aceita. Devolve o texto do
+    resumo, ou None se a pessoa voltou ao menu ou cancelou.
     """
-    planilha, projeto = escolher_entrada_autoria(raiz, entrada)
-    paralelo = ler_paralelo(projeto)
+    contexto = contexto or Contexto('autoria')
+    while True:
+        escolha = entrada or escolher_entrada_autoria(raiz, perguntas)
+        if escolha is None:
+            return None
+        planilha, projeto = escolha
+        paralelo = ler_paralelo(projeto)
+        contexto.nome = projeto.nome if projeto is not None else str(planilha)
+        if entrada is not None:
+            break
+        origem = rotulo_do_projeto(projeto) if projeto is not None else str(planilha)
+        n = _numero(_linhas_do_csv(planilha))
+        perguntas.mostrar(
+            '\n'.join(
+                [
+                    '',
+                    f'Entrada: {origem}',
+                    f'Planilha: {planilha.name} ({n} matérias)',
+                    'Cerca de 2 requisições por matéria.',
+                    '',
+                ]
+            )
+        )
+        try:
+            confirmacao = perguntas.escolher('Começar?', OPCOES_CONTINUAR, voltar=True)
+        except Voltar:
+            contexto.nome = None
+            continue  # de volta à escolha da entrada
+        if confirmacao == CANCELAR:
+            contexto.cancelado = True
+            return None
+        break
     inicio = preparar_cliente(cliente, paralelo)
     if projeto is not None:
-        registro.configurar(projeto.pasta, projeto.nome, 'autoria')
+        registro.configurar(
+            projeto.pasta, projeto.nome, 'autoria', terminal=contexto.tela.terminal()
+        )
         casas = cl.ler_tabela_casas(projeto.casas) if projeto.casas.exists() else None
         finais = cl.enderecos_finais(casas) if casas is not None else {}
         fontes = Fontes(Cache(projeto.cache), finais)
     else:
-        registro.configurar(planilha.parent, planilha.stem, 'autoria')
+        registro.configurar(
+            planilha.parent, planilha.stem, 'autoria', terminal=contexto.tela.terminal()
+        )
         fontes = Fontes()
-    log.info('Autoria e tramitação de %s', planilha)
-    saida, contagens = autoria.processar(planilha, cliente, fontes, mapeador(cliente, paralelo))
+    log.info('\nAutoria e tramitação de %s\n', planilha)
+    with contexto.tela.acompanhar(titulo=f'Autoria e tramitação · {planilha.name}') as andamento:
+        mapear = mapeador(
+            cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
+        )
+        saida, contagens = autoria.processar(planilha, cliente, fontes, mapear)
     return registro.resumo_autoria(
-        contagens, saida, execucao=sobre_a_execucao(cliente, paralelo, inicio)
+        contagens,
+        saida,
+        execucao=sobre_a_execucao(cliente, paralelo, inicio),
+        como_retomar=como_retomar('autoria', contexto.nome),
+    )
+
+
+def _executar_e_resumir(
+    projeto: gp.Projeto,
+    config: dict[str, Any],
+    cliente: ClienteSAPL,
+    raiz: str | Path,
+    contexto: Contexto,
+) -> str:
+    log.debug('Buscando os termos: %s', '; '.join(descrever(p) for p in config['palavras']))
+    texto = executar_projeto(projeto, config, cliente, raiz, contexto.tela)
+    contexto.resultado = (projeto.final, projeto)
+    return texto
+
+
+def fluxo_novo(
+    raiz: str | Path, cliente: ClienteSAPL, perguntas: Perguntas, contexto: Contexto
+) -> str | None:
+    """Projeto novo: confere as entradas, pergunta, confirma e executa (FR-6 a FR-15, FR-23).
+
+    Nada é criado em disco antes de "Começar". Um nome que já existe pode ser
+    retomado. `← Voltar` repete a pergunta anterior; no nome, volta ao menu.
+    Devolve o resumo, ou None (menu ou cancelado).
+    """
+    pasta = _pasta_csv(raiz)
+    palavras = preparar_termos(ler_palavras(pasta))
+    planilha = cl.importar_casas(pasta / 'casas_legislativas.xlsx')
+    perguntas.mostrar('\n' + texto_das_palavras(palavras) + '\n')
+    paralelo = padroes.padroes_paralelo()
+    while True:
+        try:
+            projeto, novo = abrir_ou_criar(raiz, perguntas, voltar=True)
+        except Voltar:
+            return None
+        if not novo and gp.carregar_config(projeto) is not None:
+            texto = fluxo_retomar(raiz, cliente, perguntas, contexto, projeto)
+            if texto is None and not contexto.cancelado:
+                continue  # voltou da confirmação: pergunta o nome de novo
+            return texto
+        decisao: dict[str, str] = {}
+
+        def confirmar(
+            r: Respostas, projeto: gp.Projeto = projeto, decisao: dict[str, str] = decisao
+        ) -> None:
+            perguntas.mostrar(texto_de_confirmacao(projeto, palavras, r, paralelo))
+            decisao['escolha'] = perguntas.escolher(
+                'Tudo certo?', OPCOES_CONFIRMAR_NOVO, voltar=True
+            )
+
+        try:
+            respostas = perguntar_configuracao(
+                raiz, perguntas, planilha, voltar=True, confirmar=confirmar
+            )
+        except Voltar:
+            continue
+        if decisao['escolha'] == CANCELAR:
+            contexto.cancelado = True
+            return None
+        break
+    projeto.criar()
+    contexto.nome = projeto.nome
+    registro.configurar(
+        projeto.pasta,
+        projeto.nome,
+        'novo' if novo else 'retomada',
+        terminal=contexto.tela.terminal(),
+    )
+    config = configuracao_nova(palavras, respostas)
+    gp.salvar_config(projeto, config)
+    return _executar_e_resumir(projeto, config, cliente, raiz, contexto)
+
+
+def fluxo_retomar(
+    raiz: str | Path,
+    cliente: ClienteSAPL,
+    perguntas: Perguntas,
+    contexto: Contexto,
+    projeto: gp.Projeto | None = None,
+) -> str | None:
+    """Retoma um projeto da lista (ou o dado). Devolve o resumo, ou None (menu/cancelar).
+
+    O resumo de confirmação vem antes de qualquer mensagem sobre a execução, e
+    o `paralelo` é conferido antes dele (FR-14, FR-16). `← Voltar` na
+    confirmação volta à lista (ou devolve None, com o projeto dado).
+    """
+    dado = projeto is not None
+    while True:
+        if not dado:
+            projeto = escolher_projeto(raiz, perguntas, 'Qual projeto retomar?')
+            if projeto is None:
+                return None
+        assert projeto is not None
+        config = gp.carregar_config(projeto)
+        try:
+            if config is None:
+                # projeto de versão antiga, sem config.json: as perguntas de um projeto novo
+                perguntas.mostrar(
+                    f'O projeto "{projeto.nome}" não tem config.json; responda de novo.'
+                )
+                pasta = _pasta_csv(raiz)
+                palavras = preparar_termos(ler_palavras(pasta))
+                planilha = cl.importar_casas(pasta / 'casas_legislativas.xlsx')
+                perguntas.mostrar(texto_das_palavras(palavras))
+                respostas = perguntar_configuracao(raiz, perguntas, planilha, voltar=True)
+                config = configuracao_nova(palavras, respostas)
+            paralelo = ler_paralelo(projeto, config)
+            perguntas.mostrar(
+                '\n'.join(
+                    [
+                        '',
+                        f'Projeto: {rotulo_do_projeto(projeto)}',
+                        texto_das_palavras(config['palavras']),
+                        'PDFs: ' + ('sim' if config['downloads'] else 'não'),
+                        f'Casas ao mesmo tempo: {paralelo["casas_ao_mesmo_tempo"]}',
+                        '',
+                    ]
+                )
+            )
+            escolha = perguntas.escolher('Continuar este projeto?', OPCOES_CONTINUAR, voltar=True)
+        except Voltar:
+            if dado:
+                return None
+            continue
+        break
+    contexto.nome = projeto.nome
+    if escolha == CANCELAR:
+        contexto.cancelado = True
+        return None
+    if not projeto.config.exists():
+        gp.salvar_config(projeto, config)
+    registro.configurar(projeto.pasta, projeto.nome, 'retomada', terminal=contexto.tela.terminal())
+    log.info('\nRetomando o projeto %s', projeto.nome)
+    avisar_palavras_mudadas(raiz, config['palavras'])
+    return _executar_e_resumir(projeto, config, cliente, raiz, contexto)
+
+
+PERGUNTA_AUTORIA = (
+    'Buscar agora a autoria e a tramitação das {n} matérias do resultado? '
+    'Cerca de 2 requisições por matéria.'
+)
+
+
+def oferecer_autoria(
+    raiz: Path, cliente: ClienteSAPL, perguntas: Perguntas, feito: Contexto, atual: list[Contexto]
+) -> None:
+    """Depois de um resultado final, oferece a autoria e tramitação dele (FR-21a).
+
+    Não pergunta nada se a execução foi a própria autoria ou se o resultado
+    não tem matérias. `atual[0]` passa a ser o contexto da autoria (para a
+    mensagem de interrupção).
+    """
+    if feito.modo == 'autoria' or feito.resultado is None:
+        return
+    final, projeto = feito.resultado
+    n = _linhas_do_csv(final)
+    if not n or not perguntas.sim_nao(PERGUNTA_AUTORIA.format(n=_numero(n)), padrao=False):
+        return
+    atual[0] = Contexto('autoria', tela=feito.tela)
+    texto = executar_autoria(raiz, cliente, perguntas, atual[0], entrada=(final, projeto))
+    if texto is not None:
+        feito.tela.resumo(texto)
+
+
+def _menu(
+    raiz: Path, cliente: ClienteSAPL, perguntas: Perguntas, tela: status.Tela, atual: list
+) -> int:
+    fluxos = {
+        'novo': fluxo_novo,
+        'retomar': fluxo_retomar,
+        'atualizar': lambda r, c, p, ctx: executar_atualizacao(r, c, p, contexto=ctx),
+        'autoria': lambda r, c, p, ctx: executar_autoria(r, c, p, contexto=ctx),
+    }
+    while True:
+        modo = perguntas.escolher(PERGUNTA_MODO, OPCOES_MODO)
+        if modo == 'sair':
+            return 0
+        if modo == 'ajuda':
+            perguntas.mostrar(ajuda.TEXTO)
+            continue
+        contexto = atual[0] = Contexto(modo, tela=tela)
+        texto = fluxos[modo](raiz, cliente, perguntas, contexto)
+        if texto is not None:
+            tela.resumo(texto)
+            oferecer_autoria(raiz, cliente, perguntas, contexto, atual)
+            return 0
+        if contexto.cancelado:
+            perguntas.mostrar(MENSAGEM_CANCELADO)
+            return 0
+
+
+def _erro_inesperado(erro: Exception, raiz: Path, log_antes: str | None) -> str:
+    """Grava o traceback (no log desta execução, ou num arquivo novo) e devolve a mensagem."""
+    caminho = registro.log_atual()
+    if caminho is not None and caminho != log_antes:
+        log.debug('Erro inesperado', exc_info=erro)  # DEBUG: só no arquivo
+    else:
+        agora = datetime.now().strftime('%Y-%m-%d_%H%M%S')
+        caminho = str(raiz / f'sapyl_erro_{agora}.log')
+        detalhes = ''.join(traceback.format_exception(type(erro), erro, erro.__traceback__))
+        Path(caminho).write_text(f'{registro.NOME} {__version__}\n{detalhes}', encoding='utf-8')
+    return (
+        f'\nErro inesperado: {type(erro).__name__}: {erro}\n'
+        f'Os detalhes estão em {caminho}. O que já foi feito está salvo; se for um '
+        'projeto, ele pode ser retomado. Se o erro se repetir, abra um aviso em '
+        'https://github.com/leoaucar/sapyl/issues com esse arquivo.'
     )
 
 
 def main(
     entrada: Leitor = input, cliente: ClienteSAPL | None = None, raiz: str | Path = '.'
 ) -> int:
-    """Pergunta o modo e roda: projeto novo ou retomado, atualização, ou autoria e tramitação.
+    """Menu principal: projeto novo, retomar, atualizar, autoria e tramitação, ajuda, sair.
 
-    Devolve o código de saída: 0; 1 se a execução foi interrompida (ou uma
-    casa parou por um erro inesperado); 2 se o `paralelo` do config.json do
-    projeto tem um valor inválido.
+    Devolve o código de saída: 0 (também ao sair ou cancelar); 1 se a execução
+    foi interrompida, se uma casa parou por um erro inesperado ou num erro
+    inesperado; 2 se um arquivo de entrada, o config.json do projeto ou uma
+    permissão de pasta está errado, ou se o disco encheu (FR-22).
     """
     raiz = Path(raiz)
+    perguntas = criar_perguntas(entrada)
     # O servidor (IP) de cada site, para o limite por servidor (veja cliente_http)
     cliente = cliente or ClienteSAPL(
         historico=str(raiz / ARQUIVO_HISTORICO), servidor_de=resolver_servidor
     )
     print(BOAS_VINDAS)
-    modo = None
+    tela = (
+        status.Tela(ao_vivo=True, console=perguntas.console)
+        if isinstance(perguntas, PerguntasMenu)
+        else status.Tela()
+    )
+    atual = [Contexto(tela=tela)]
+    log_antes = registro.log_atual()
     try:
-        modo = perguntar_opcao(PERGUNTA_MODO, ['1', '2', '3'], entrada)
-        if modo == '2':
-            texto = executar_atualizacao(raiz, cliente, entrada)
-        elif modo == '3':
-            texto = executar_autoria(raiz, cliente, entrada)
-        else:
-            projeto, novo = abrir_ou_criar(raiz, entrada)
-            registro.configurar(projeto.pasta, projeto.nome, 'novo' if novo else 'retomada')
-            config = None if novo else gp.carregar_config(projeto)
-            if config is None:
-                config = perguntar_configuracao(raiz, entrada)
-                gp.salvar_config(projeto, config)
-            else:
-                log.info('Retomando o projeto %s', projeto.nome)
-                avisar_palavras_mudadas(raiz, config['palavras'])
-            log.info('Buscando os termos: %s', ', '.join(config['palavras']))
-            texto = executar_projeto(projeto, config, cliente, raiz)
+        return _menu(raiz, cliente, perguntas, tela, atual)
     except (KeyboardInterrupt, EOFError):
         # Ctrl+C a qualquer momento, ou Ctrl+D / fim da entrada numa pergunta
-        print(MENSAGEM_INTERROMPIDO_AUTORIA if modo == '3' else MENSAGEM_INTERROMPIDO)
+        print(mensagem_interrompido(atual[0]))
         return 1
+    except EntradaInvalida as erro:
+        print(f'\n{erro}')
+        return 2
     except padroes.ConfiguracaoInvalida as erro:
         print(MENSAGEM_CONFIG_INVALIDA.format(erro=erro))
         return 2
     except execucao.FalhaNasCasas as erro:
         # As outras casas terminaram e estão no estado; a retomada refaz só estas
         log.error(str(erro))
-        print(MENSAGEM_INTERROMPIDO_AUTORIA if modo == '3' else MENSAGEM_INTERROMPIDO)
+        print(mensagem_interrompido(atual[0]))
         return 1
-    log.info(texto)
-    return 0
+    except PermissionError as erro:
+        onde = erro.filename or 'um arquivo da pasta de trabalho'
+        print(
+            f'\nSem permissão para gravar ou ler {onde}. Confira as permissões da pasta '
+            '(ou rode o sapyl numa pasta sua) e rode de novo.'
+        )
+        return 2
+    except OSError as erro:
+        if erro.errno != errno.ENOSPC:
+            print(_erro_inesperado(erro, raiz, log_antes))
+            return 1
+        print(
+            f'\nO disco encheu ao gravar {erro.filename or "os arquivos do projeto"}. '
+            'Libere espaço e retome o projeto: nada do que já foi gravado se perde.'
+        )
+        return 2
+    except Exception as erro:
+        print(_erro_inesperado(erro, raiz, log_antes))
+        return 1
 
 
 USO = 'Uso: sapyl [--version]\nSem argumentos, o programa faz as perguntas no terminal.'

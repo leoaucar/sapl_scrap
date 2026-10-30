@@ -7,7 +7,11 @@ Todas as mensagens passam pelo logger `sapyl`:
   limite de requisições). O `<nome>.log` de projetos antigos fica como está.
 
 Com várias casas ao mesmo tempo, cada linha escrita durante o trabalho de uma
-casa começa com `[<host>] ` (veja `casa_atual`). As linhas de requisição
+casa começa com `[<host>] ` (veja `casa_atual`).
+
+As linhas de cada item (matéria, PDF, palavra buscada, casa testada) são
+DEBUG: vão só para o arquivo. Elas levam um registro de andamento (veja
+`andamento`), que a interface usa para mostrar o progresso no terminal. As linhas de requisição
 (`sapyl.http`) não ganham o prefixo: já começam pelo host, e o formato delas é
 o que os scripts de validação leem.
 """
@@ -42,6 +46,16 @@ MODOS = ('novo', 'retomada', 'atualizacao', 'autoria')
 # Arquivo de log da execução atual (o resumo mostra o caminho)
 _log_atual: str | None = None
 
+# Atributos extras das linhas de log (veja `andamento` e `execucao.por_casa`):
+# ANDAMENTO = (etapa, feitos, total, status do item ou None);
+# EVENTO_CASA = 'inicio' ou 'fim' de uma casa; PROGRESSO = linha de progresso geral.
+ANDAMENTO = 'andamento'
+EVENTO_CASA = 'casa_evento'
+HOST = 'host_da_casa'  # host da casa, quando a linha não é escrita dentro de `casa_atual`
+PROGRESSO = 'progresso'
+# Etapas do andamento
+TESTE, BUSCA, MATERIAS, PDFS, AUTORIA = 'teste', 'busca', 'materias', 'pdfs', 'autoria'
+
 
 class _Contagens(Protocol):
     """O que o resumo usa do estado do projeto (`sapyl.estado.Estado`)."""
@@ -60,6 +74,11 @@ def casa_atual(host: str) -> Iterator[None]:
         _contexto.casa = anterior
 
 
+def casa_desta_thread() -> str:
+    """Host da casa em que a thread atual está trabalhando, ou '' (veja `casa_atual`)."""
+    return getattr(_contexto, 'casa', '')
+
+
 class _PrefixoCasa(logging.Filter):
     """Preenche `%(casa)s` com `[<host>] ` (ou vazio) para os formatos daqui."""
 
@@ -68,6 +87,24 @@ class _PrefixoCasa(logging.Filter):
         http = record.name == f'{LOGGER}.http'
         record.casa = f'[{casa}] ' if casa and not http else ''
         return True
+
+
+def andamento(
+    logger_: logging.Logger,
+    etapa: str,
+    feitos: int,
+    total: int,
+    mensagem: str,
+    *args: object,
+    status: str | None = None,
+) -> None:
+    """Linha DEBUG (só no arquivo) com o andamento de uma etapa da casa atual.
+
+    `feitos` de `total` itens da `etapa` (`TESTE`, `BUSCA`, `MATERIAS`, `PDFS`,
+    `AUTORIA`); `status` é o resultado do item que acabou (`ok`, `erro`...) ou
+    None quando a linha só anuncia o total.
+    """
+    logger_.debug(mensagem, *args, extra={ANDAMENTO: (etapa, feitos, total, status)})
 
 
 def caminho_do_log(pasta: str | Path, nome: str, modo: str, agora: datetime | None = None) -> Path:
@@ -84,11 +121,17 @@ def caminho_do_log(pasta: str | Path, nome: str, modo: str, agora: datetime | No
 
 
 def configurar(
-    pasta: str | Path, nome: str, modo: str = 'novo', agora: datetime | None = None
+    pasta: str | Path,
+    nome: str,
+    modo: str = 'novo',
+    agora: datetime | None = None,
+    terminal: logging.Handler | None = None,
 ) -> str:
     """Liga o log no terminal e num arquivo novo em `<pasta>/logs/`. Devolve o caminho.
 
-    Pode ser chamada várias vezes: troca os destinos anteriores pelos novos.
+    `terminal`: o destino do terminal (a interface passa o seu); sem ele, um
+    `StreamHandler` no nível INFO. Pode ser chamada várias vezes: troca os
+    destinos anteriores pelos novos.
     """
     global _log_atual
     logger = logging.getLogger(LOGGER)
@@ -98,9 +141,10 @@ def configurar(
             logger.removeHandler(handler)
             handler.close()
 
-    terminal = logging.StreamHandler()
-    terminal.setLevel(logging.INFO)
-    terminal.setFormatter(logging.Formatter(FORMATO_TERMINAL))
+    if terminal is None:
+        terminal = logging.StreamHandler()
+        terminal.setLevel(logging.INFO)
+        terminal.setFormatter(logging.Formatter(FORMATO_TERMINAL))
 
     caminho = str(caminho_do_log(pasta, nome, modo, agora))
     os.makedirs(os.path.dirname(caminho), exist_ok=True)
@@ -116,6 +160,31 @@ def configurar(
     logger.debug('%s %s: início da execução (%s)', NOME, __version__, modo)
     _log_atual = caminho
     return caminho
+
+
+def log_atual() -> str | None:
+    """Caminho do log da última `configurar`, ou None se ainda não houve nenhuma."""
+    return _log_atual
+
+
+# Como tentar de novo o que falhou (o resumo usa quando não recebe outro texto)
+COMO_RETOMAR = 'rode o sapyl e escolha "Retomar um projeto"'
+COMO_RETOMAR_AUTORIA = 'rode o sapyl, escolha "Autoria e tramitação" e a mesma entrada'
+
+
+def proximos_passos(
+    resultado: str | Path, falhas: bool, como_retomar: str, caminho_log: str | None
+) -> list[str]:
+    """Linhas "Próximos passos" do fim do resumo (FR-21)."""
+    linhas = ['', 'Próximos passos:', f'- Abra o resultado numa planilha: {resultado}']
+    if falhas:
+        linhas.append(
+            '- Houve falhas (veja as colunas de status e o log). Para tentar de novo só o '
+            f'que falhou, {como_retomar}.'
+        )
+    if caminho_log:
+        linhas.append(f'- Log desta execução: {caminho_log}')
+    return linhas
 
 
 def logger(nome: str | None = None) -> logging.Logger:
@@ -166,6 +235,7 @@ def resumo_autoria(
     saida: str | Path,
     caminho_log: str | None = None,
     execucao: list[str] | None = None,
+    como_retomar: str = COMO_RETOMAR_AUTORIA,
 ) -> str:
     """Texto do resumo da autoria e tramitação (`execucao`: veja `linhas_da_execucao`)."""
     total = sum(contagens.values())
@@ -177,14 +247,8 @@ def resumo_autoria(
         *(execucao or []),
         f'Resultado: {saida}',
     ]
-    if contagens.get('erro', 0):
-        linhas.append(
-            'Houve falhas (veja as colunas status_autoria/status_tramitacao). Para tentar de '
-            'novo só o que falhou, rode o programa outra vez, escolha 3 e a mesma entrada.'
-        )
-    caminho_log = caminho_log or _log_atual
-    if caminho_log:
-        linhas.append(f'Log desta execução: {caminho_log}')
+    falhas = contagens.get('erro', 0) > 0
+    linhas += proximos_passos(saida, falhas, como_retomar, caminho_log or _log_atual)
     return '\n'.join(linhas)
 
 
@@ -197,13 +261,15 @@ def resumo(
     downloads: bool = False,
     caminho_log: str | None = None,
     execucao: list[str] | None = None,
+    como_retomar: str = COMO_RETOMAR,
 ) -> str:
     """Texto do resumo do fim da execução, contado a partir do estado do projeto.
 
     `buscas`: lista de (casa, status) das buscas do projeto (None no modo
     atualização, que não faz buscas). Como tudo vem do estado, o resumo é o
     do projeto inteiro, também depois de uma retomada. A última linha mostra
-    o log desta execução (`caminho_log`, ou o da última `configurar`).
+    o log desta execução (`caminho_log`, ou o da última `configurar`), depois
+    dos próximos passos (`como_retomar` diz como tentar de novo o que falhou).
     `execucao`: linhas sobre tempo e servidores (veja `linhas_da_execucao`).
     """
     chaves = {link['chave'] for link in links}
@@ -236,13 +302,5 @@ def resumo(
         falhas = falhas or pdfs.get('erro', 0) > 0
     linhas += execucao or []
     linhas.append(f'Resultado: {caminho_final}')
-    if falhas:
-        linhas.append(
-            'Houve falhas (veja as colunas status/erro e o log desta execução). '
-            'Para tentar de novo só o que falhou, rode o programa outra vez '
-            'e escolha retomar este projeto.'
-        )
-    caminho_log = caminho_log or _log_atual
-    if caminho_log:
-        linhas.append(f'Log desta execução: {caminho_log}')
+    linhas += proximos_passos(caminho_final, falhas, como_retomar, caminho_log or _log_atual)
     return '\n'.join(linhas)

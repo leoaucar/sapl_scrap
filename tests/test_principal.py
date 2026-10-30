@@ -362,7 +362,7 @@ def test_ctrl_c_na_autoria_explica_como_retomar(projeto_tmp, cliente, capsys):
 def test_projeto_novo_grava_os_padroes_de_paralelo(projeto_tmp, cliente, sessao, sapl):
     assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
     config = json.loads((projeto_tmp / 'teste_proj' / 'config.json').read_text(encoding='utf-8'))
-    assert config['paralelo'] == {'casas_ao_mesmo_tempo': 8, 'limite_por_servidor': 120}
+    assert config['paralelo'] == {'casas_ao_mesmo_tempo': 8, 'limite_por_servidor': 150}
 
 
 def test_projeto_antigo_sem_paralelo_usa_os_padroes(projeto_tmp, cliente, sessao, sapl):
@@ -416,8 +416,8 @@ def test_resumo_mostra_tempo_casas_e_servidores(projeto_tmp, sessao, relogio, sa
         assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
     resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
     assert '(até 8 casas ao mesmo tempo)' in resumo and 'Tempo: ' in resumo
-    # o limite do config.json (120) vale, não o do cliente criado
-    assert 'Servidor 10.0.0.1 (3 casas): até 120 requisições por minuto' in resumo
+    # o limite do config.json (150) vale, não o do cliente criado
+    assert 'Servidor 10.0.0.1 (3 casas): até 150 requisições por minuto' in resumo
 
 
 def test_resumo_mostra_limite_reduzido(projeto_tmp, sessao, relogio, sapl, caplog):
@@ -429,7 +429,7 @@ def test_resumo_mostra_limite_reduzido(projeto_tmp, sessao, relogio, sapl, caplo
     with caplog.at_level(logging.INFO, logger='sapyl'):
         assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
     resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
-    assert 'Servidor srv (3 casas): limite reduzido de 120 para 60' in resumo
+    assert 'Servidor srv (3 casas): limite reduzido de 150 para 75' in resumo
     assert any('Servidor srv sobrecarregado' in r.getMessage() for r in caplog.records)
 
 

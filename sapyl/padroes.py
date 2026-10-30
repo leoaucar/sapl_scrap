@@ -24,7 +24,9 @@ JANELA_SEGUNDOS = 60.0
 MARGEM_SEGUNDOS = 1.0
 
 # Teto inicial por servidor (requisições por minuto, somando as casas dele)
-LIMITE_POR_SERVIDOR = 120
+# 150 desde a v0.4.0: validado em 30/10/2026 (spec 2026-10-30, validation.md §4);
+# 175 deixou as respostas lentas 1,55 vez mais lentas (29/10/2026)
+LIMITE_POR_SERVIDOR = 150
 # O teto nunca cai abaixo disto: uma casa na velocidade máxima
 PISO_POR_SERVIDOR = LIMITE_POR_SITE
 # 429 de casas diferentes do mesmo servidor dentro deste tempo reduzem o teto

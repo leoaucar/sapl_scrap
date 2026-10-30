@@ -47,7 +47,7 @@ O que ele garante:
 - **Nenhuma matéria vazia em silêncio.** Toda linha tem `status` (`ok` ou
   `erro`) e, quando falha, o motivo na coluna `erro`.
 - **Respeito aos servidores.** No máximo 35 requisições por minuto em cada
-  site (o limite do SAPL), e no máximo 120 por minuto somando todas as casas
+  site (o limite do SAPL), e no máximo 150 por minuto somando todas as casas
   que ficam no mesmo servidor; quando o site pede para esperar (`HTTP 429`), o
   programa espera e tenta de novo.
 - **Várias casas ao mesmo tempo.** Até 8 casas são processadas em paralelo,
@@ -321,17 +321,18 @@ casas).
 
 Quase todas as casas ficam no **mesmo servidor** do Interlegis (o mesmo
 endereço IP). Por isso, além do limite de cada site, há um limite por
-servidor: no máximo 120 requisições por minuto, somando todas as casas dele.
+servidor: no máximo 150 requisições por minuto, somando todas as casas dele.
 Se casas diferentes do mesmo servidor começam a receber `HTTP 429`, o
 programa avisa no log e reduz esse limite pela metade até o fim da execução
 (nunca abaixo de 35). Nada se perde: as requisições esperam e são feitas de
 novo.
 
-Esses valores foram medidos nos sites reais (outubro de 2026). Com 50 casas
-e 23 palavras, o limite de 120 por minuto foi atingido e mantido sem nenhum
-`HTTP 429`. Com 175, a execução ficou 19 % mais rápida, mas as respostas mais
-lentas do servidor demoraram 1,5 vez mais, um sinal de sobrecarga: por isso o
-padrão ficou em 120. O ganho do paralelismo aparece quando muitas casas têm
+Esses valores foram medidos nos sites reais (outubro de 2026), com 50 casas
+e 23 palavras. Com 150 por minuto (o padrão desde a versão 0.4.0), o limite
+foi mantido por 14 minutos sem nenhum `HTTP 429`, as respostas não ficaram
+mais lentas que com 120 e a execução foi 11 % mais rápida. Com 175, as
+respostas mais lentas do servidor demoraram 1,5 vez mais, um sinal de
+sobrecarga: por isso o padrão não passou de 150. O ganho do paralelismo aparece quando muitas casas têm
 trabalho ao mesmo tempo. Se quase todas as matérias são de uma casa só (por
 exemplo, uma capital grande), a execução leva o tempo dessa casa, como numa
 casa por vez.
@@ -339,7 +340,7 @@ casa por vez.
 Os valores ficam no `config.json` do projeto, na chave `paralelo`:
 
 ```json
-"paralelo": {"casas_ao_mesmo_tempo": 8, "limite_por_servidor": 120}
+"paralelo": {"casas_ao_mesmo_tempo": 8, "limite_por_servidor": 150}
 ```
 
 Só mude se tiver um motivo (por exemplo, um aviso do Interlegis). Para mudar,

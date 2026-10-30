@@ -79,30 +79,98 @@ com apoio do Fundo Malala.
 - **Desenvolvimento:** Leonardo Aucar, Renata Aquino e Fernanda Moura (veja
   [AUTHORS.md](AUTHORS.md))
 
-## Requisitos
+## Instalação (uma vez só)
 
-- Python 3.10 ou superior
-- Conexão com a internet
+Hoje o SAPyL roda pelo **terminal** (a tela de comandos do computador). Não é
+preciso saber programar: basta copiar os comandos abaixo, um de cada vez, e
+apertar `Enter`. Uma versão para baixar e abrir com dois cliques está no
+[ROADMAP](ROADMAP.md).
 
-## Instalação
+**1. Instale o Python e o git**
+
+- **Python 3.10 ou mais novo:** <https://www.python.org/downloads/>. No
+  Windows, na primeira tela do instalador, marque **"Add python.exe to
+  PATH"**. No Linux, o Python já vem instalado; no Ubuntu e no Debian,
+  instale também o pacote do ambiente virtual: `sudo apt install python3-venv`.
+- **git** (opcional, facilita atualizar): <https://git-scm.com/downloads>.
+
+**2. Abra o terminal**
+
+- **Windows:** abra o menu Iniciar e procure **PowerShell**.
+- **macOS:** abra o aplicativo **Terminal** (em Aplicativos → Utilitários).
+- **Linux:** abra o **Terminal** (no Ubuntu, `Ctrl+Alt+T`).
+
+**3. Baixe o SAPyL do GitHub**
+
+O código fica em <https://github.com/leoaucar/sapyl>. Há dois jeitos de
+baixar:
+
+- **Sem o git (mais simples):** abra o endereço acima, clique no botão verde
+  **`<> Code`** e depois em **Download ZIP**. Descompacte o arquivo
+  `sapyl-main.zip` onde quiser guardar o programa (no Windows: botão direito
+  → *Extrair tudo*). A pasta criada se chama **`sapyl-main`**: use esse nome
+  no lugar de `sapyl` nos comandos abaixo e pule a linha do `git clone`.
+- **Com o git:** o comando `git clone` abaixo cria a pasta **`sapyl`** dentro
+  da pasta em que o terminal está (ao abrir, é a sua pasta pessoal).
+
+Não baixe arquivos soltos (como só o `README.md`): o programa precisa da
+pasta inteira.
+
+**4. Instale o SAPyL**
+
+No terminal, entre na pasta do programa e rode os comandos.
+
+Linux e macOS:
 
 ```bash
+git clone https://github.com/leoaucar/sapyl.git   # baixa o código para a pasta sapyl
+cd sapyl                                          # entra na pasta
+python3 -m venv .venv                             # cria o ambiente do programa (.venv)
+source .venv/bin/activate                         # ativa o ambiente
+pip install .                                     # instala o SAPyL dentro dele
+```
+
+Windows (PowerShell):
+
+```powershell
 git clone https://github.com/leoaucar/sapyl.git
 cd sapyl
-
-python3 -m venv .venv
-source .venv/bin/activate        # no Windows: .venv\Scripts\activate
-
+py -m venv .venv
+.venv\Scripts\Activate.ps1
 pip install .
 ```
 
+Se o PowerShell disser que **"a execução de scripts foi desabilitada neste
+sistema"**, rode uma vez o comando abaixo, responda `S` e ative de novo:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+O **ambiente virtual** (`.venv`) é uma pasta dentro de `sapyl/` onde ficam o
+programa e as bibliotecas que ele usa, sem misturar com o resto do
+computador. Ele foi criado uma vez só, mas precisa ser **ativado toda vez que
+você abrir um terminal novo** (veja [Como usar](#como-usar)). Para conferir
+a instalação: `sapyl --version`.
+
+### Atualizar o SAPyL
+
+Seus projetos (`<nome>_proj/`) e as suas palavras-chave (`arquivos_csv/`)
+ficam na pasta do SAPyL e não se perdem numa atualização.
+
+- **Com o git:** na pasta do SAPyL, com o ambiente ativado, rode `git pull` e
+  depois `pip install .`.
+- **Com o ZIP:** baixe o ZIP novo, descompacte numa pasta nova, copie para
+  ela as suas pastas `<nome>_proj/` e o seu `arquivos_csv/palavras_chave.csv`,
+  e faça a instalação (passo 4) de novo na pasta nova.
+
+Para saber a versão instalada: `sapyl --version`.
+
 > O repositório se chamava `sapl_scrap`; os endereços antigos redirecionam
 > para o novo. Quem já tem uma cópia pode atualizar o endereço com
-> `git remote set-url origin https://github.com/leoaucar/sapyl.git`.
-
-Isso instala o comando `sapyl` no ambiente virtual (confira com
-`sapyl --version`). Quem já usava `pip install -r requirements.txt` pode
-continuar: o arquivo agora só instala o programa.
+> `git remote set-url origin https://github.com/leoaucar/sapyl.git`. Quem já
+> usava `pip install -r requirements.txt` pode continuar: o arquivo agora só
+> instala o programa.
 
 ## Preparando os arquivos de entrada
 
@@ -156,13 +224,33 @@ Lista das casas que usam o SAPL. O programa usa as colunas **`UF`** e
 
 ## Como usar
 
-Na raiz do projeto, com o ambiente virtual ativado:
+**Toda vez que for usar**, abra o terminal e:
 
-```bash
-sapyl
-```
+1. **Entre na pasta do SAPyL** (`sapyl`, ou `sapyl-main` se você baixou o
+   ZIP). Por exemplo, se ela está na sua pasta pessoal: `cd sapyl` (Windows:
+   `cd $HOME\sapyl`). Dica: digite `cd ` e arraste a pasta para a janela do
+   terminal, que o caminho aparece sozinho.
+2. **Ative o ambiente:**
+   - Linux e macOS: `source .venv/bin/activate`
+   - Windows (PowerShell): `.venv\Scripts\Activate.ps1`
 
-(ou `python -m sapyl`, ou ainda `python programa.py` na raiz do repositório)
+   Com o ambiente ativado, a linha do terminal começa com **`(.venv)`**.
+3. **Rode o programa:**
+
+   ```bash
+   sapyl
+   ```
+
+4. Quando terminar, feche o terminal (ou digite `deactivate`).
+
+Se aparecer **`sapyl: command not found`** (Windows: *"O termo 'sapyl' não é
+reconhecido"*), o ambiente não está ativado ou você não está na pasta do
+SAPyL: refaça os passos 1 e 2. Também dá para rodar sem ativar, pelo caminho
+completo: `.venv/bin/sapyl` (Windows: `.venv\Scripts\sapyl.exe`).
+
+Os projetos e a pasta `arquivos_csv/` (palavras-chave e casas) ficam na
+pasta em que você roda o `sapyl`; por isso, rode sempre dentro da pasta do
+SAPyL.
 
 O programa mostra um menu no terminal. Escolha com as setas e `Enter`; nas
 listas de marcar (os estados), a barra de espaço marca e `Enter` confirma.

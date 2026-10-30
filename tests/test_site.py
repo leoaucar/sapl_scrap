@@ -23,6 +23,8 @@ SITES_DOS_CREDITOS = (
     'https://profscontraoesp.org/',
     'https://www12.senado.leg.br/interlegis',
 )
+# Onde baixar o Python e o git (instalação)
+SITES_DA_INSTALACAO = ('https://www.python.org/downloads/', 'https://git-scm.com/downloads')
 # Nomes que saíram nesta versão e não podem voltar na página
 REMOVIDOS = ['autoria_e_tramit.py', 'palavras_chave_res.csv', 'sapl_scrap', 'requirements.txt']
 
@@ -90,7 +92,7 @@ def test_links_para_o_repositorio_e_ancoras_validas(pagina):
     assert REPOSITORIO in leitor.links
     externos = [h for h in leitor.links if h.startswith('http')]
     # Fora o repositório, só os sites das organizações dos créditos e o Interlegis
-    permitidos = (REPOSITORIO, *SITES_DOS_CREDITOS)
+    permitidos = (REPOSITORIO, *SITES_DOS_CREDITOS, *SITES_DA_INSTALACAO)
     assert all(h.startswith(permitidos) for h in externos), externos
     assert set(SITES_DOS_CREDITOS) <= set(externos)
     ancoras = [h[1:] for h in leitor.links if h.startswith('#')]

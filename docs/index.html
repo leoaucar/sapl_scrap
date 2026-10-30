@@ -254,7 +254,23 @@
 
     <section class="secao" id="instalar" aria-labelledby="titulo-instalar">
       <h2 id="titulo-instalar">Instalar</h2>
-      <p>Você precisa do <strong>Python 3.10 ou mais novo</strong> e do <strong>git</strong>.</p>
+      <p>O SAPyL roda pelo <strong>terminal</strong> (a tela de comandos do computador). Não é
+        preciso saber programar: copie os comandos, um de cada vez, e aperte <kbd>Enter</kbd>.
+        A instalação é feita uma vez só.</p>
+      <ol class="dicas">
+        <li>Instale o <a href="https://www.python.org/downloads/">Python 3.10 ou mais novo</a>
+          (no Windows, marque <em>“Add python.exe to PATH”</em> na primeira tela) e o
+          <a href="https://git-scm.com/downloads">git</a>. No Ubuntu e no Debian, instale também
+          <code>python3-venv</code>.</li>
+        <li>Abra o terminal: no Windows, o <strong>PowerShell</strong> (menu Iniciar); no macOS,
+          o app <strong>Terminal</strong>; no Linux, o <strong>Terminal</strong>.</li>
+        <li>Baixe o SAPyL do <a href="https://github.com/leoaucar/sapyl">GitHub</a>. Sem o git:
+          botão verde <strong>&lt;&gt; Code</strong> → <strong>Download ZIP</strong>, descompacte
+          (no Windows, botão direito → <em>Extrair tudo</em>) e entre na pasta
+          <code>sapyl-main</code>, pulando a linha do <code>git clone</code>. Com o git, o
+          <code>git clone</code> abaixo cria a pasta <code>sapyl</code>.</li>
+        <li>Copie os comandos do seu sistema:</li>
+      </ol>
 
       <div class="abas" data-abas>
         <div class="abas__lista" role="tablist" aria-label="Sistema operacional" hidden>
@@ -268,6 +284,8 @@ cd sapyl
 python3 -m venv .venv
 source .venv/bin/activate
 pip install .</code></pre>
+          <p>Baixa o código, entra na pasta, cria o ambiente do programa (<code>.venv</code>),
+            ativa esse ambiente e instala o SAPyL dentro dele.</p>
         </div>
         <div class="abas__painel" role="tabpanel" id="painel-windows" aria-labelledby="aba-windows">
           <h3 class="abas__titulo">Windows (PowerShell)</h3>
@@ -276,10 +294,18 @@ cd sapyl
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install .</code></pre>
+          <p>Se aparecer <em>“a execução de scripts foi desabilitada neste sistema”</em>, rode uma
+            vez <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>, responda
+            <kbd>S</kbd> e ative de novo.</p>
         </div>
       </div>
-      <p>Pronto: o comando <code>sapyl</code> fica disponível sempre que o ambiente
-        (<code>.venv</code>) estiver ativado. Confira com <code>sapyl --version</code>.</p>
+      <p>Pronto. O <strong>ambiente</strong> (<code>.venv</code>) é a pasta onde ficam o programa
+        e as bibliotecas dele. Ele foi criado uma vez só, mas precisa ser
+        <strong>ativado toda vez</strong> que você abrir um terminal novo (veja abaixo). Sem
+        o git, baixe o ZIP no GitHub (<em>Code → Download ZIP</em>), descompacte e pule o
+        <code>git clone</code>. Para atualizar: <code>git pull</code> e <code>pip install .</code>
+        de novo (ou um ZIP novo, copiando as suas pastas <code>&lt;nome&gt;_proj</code> e
+        <code>arquivos_csv</code>).</p>
     </section>
 
     <section class="secao" id="usar" aria-labelledby="titulo-usar">
@@ -310,7 +336,16 @@ saneamento basico</code></pre>
         </li>
         <li>
           <h3>Rode o programa</h3>
+          <p>Toda vez que for usar: abra o terminal, entre na pasta do SAPyL e ative o
+            ambiente.</p>
+          <pre><code>cd sapyl
+source .venv/bin/activate      # Linux e macOS
+.venv\Scripts\Activate.ps1     # Windows (PowerShell)</code></pre>
+          <p>Com o ambiente ativado, a linha do terminal começa com <code>(.venv)</code>. Então:</p>
           <pre><code>sapyl</code></pre>
+          <p>Se aparecer <em>“command not found”</em> ou <em>“o termo 'sapyl' não é
+            reconhecido”</em>, o ambiente não está ativado ou você está fora da pasta do
+            SAPyL.</p>
           <p>Ele mostra um menu no terminal; escolha com as setas e <kbd>Enter</kbd>:</p>
           <ul class="menu-programa">
             <li>Novo projeto</li>

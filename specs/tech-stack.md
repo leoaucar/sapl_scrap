@@ -68,6 +68,7 @@ Order as in the ROADMAP.
 
 | Spec                         | Additions                                              |
 |------------------------------|--------------------------------------------------------|
+| Easy install (Phase 2d)      | PyInstaller (or similar) executables for Windows, Linux, macOS; GitHub Releases built by CI; optional `pipx`/`uv tool` + PyPI |
 | SQL output and documents     | SQLite by default, PostgreSQL optional, via SQLAlchemy; documents in the project folder by hash, or MongoDB (GridFS) / S3-compatible storage (MinIO, S3) |
 | Keyword suggestions          | NLTK RSLP stemmer, scikit-learn (TF-IDF); optional embeddings or an LLM API |
 | Web UI                       | FastAPI or Flask + plain HTML/CSS/JS                   |

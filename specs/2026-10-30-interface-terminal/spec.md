@@ -296,6 +296,13 @@ Asked by the user after running the branch, decided with them the same day.
     count too;
   - unknown dates show `?`. Read-only, no request (as FR-4a).
 
+- **FR-7 amended (2026-10-30, bug found by the user):** in *menus* mode, Enter
+  with nothing checked is refused with a message ("marque com a barra de
+  espaço…"); "all states" is the explicit *Todos os estados* item. The user
+  had moved the cursor to RJ and pressed Enter without Space, and the project
+  silently ran on all states (the 10-house test took Acre). *texto* mode
+  keeps Enter = all, which the prompt states in words.
+
 ## 6. Non-functional requirements
 
 - **NFR-1** New dependencies: `questionary` (menus; MIT, with

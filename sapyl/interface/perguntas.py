@@ -25,7 +25,10 @@ Validador = Callable[[str], str | None]
 VARIAVEL_MENUS = 'SAPYL_MENUS'
 # Dicas dos menus (no lugar das do questionary, em inglês)
 DICA_ESCOLHER = '(setas e Enter)'
-DICA_MARCAR = '(setas; espaço marca; Enter confirma; nada marcado = todos)'
+DICA_MARCAR = '(setas; ESPAÇO marca; Enter confirma)'
+NADA_MARCADO = (
+    'Nada marcado: marque com a barra de espaço (ou marque "Todos os estados") e depois Enter.'
+)
 
 SIM = ('s', 'sim', '1')
 NAO = ('n', 'não', 'nao', '2')
@@ -262,6 +265,8 @@ class PerguntasMenu:
         """Lista de marcar (espaço marca, Enter confirma), com os atalhos no topo.
 
         Com `voltar`, o primeiro item é `← Voltar`: marcado, volta (o resto é ignorado).
+        Enter sem nada marcado não vale: é fácil achar que o cursor numa opção a
+        escolhe, sem apertar a barra de espaço. Para todas, marca-se o atalho.
         """
         import questionary
 
@@ -273,7 +278,11 @@ class PerguntasMenu:
             escolhas.append(questionary.Separator())
         escolhas += [questionary.Choice(o.rotulo, value=o.valor) for o in opcoes]
         pergunta = questionary.checkbox(
-            texto, choices=escolhas, instruction=DICA_MARCAR, **self._es
+            texto,
+            choices=escolhas,
+            instruction=DICA_MARCAR,
+            validate=lambda marcados: True if marcados else NADA_MARCADO,
+            **self._es,
         )
         marcados = list(pergunta.unsafe_ask() or [])
         if _VOLTAR in marcados:

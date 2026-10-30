@@ -141,7 +141,8 @@ def test_menu_marcar_atalho_sul_sudeste(teclas):
 def test_menu_marcar_uma_uf_e_nada_marcado(teclas):
     # Todos, Sul e Sudeste, MG (o separador é pulado)
     assert teclas(BAIXO, BAIXO, ESPACO, ENTER).marcar('E', UFS, ATALHOS) == ['MG']
-    assert teclas(ENTER).marcar('E', UFS, ATALHOS) == []
+    # Enter sem nada marcado não vale; marcar "Todos os estados" dá todas
+    assert teclas(ENTER, ESPACO, ENTER).marcar('E', UFS, ATALHOS) == []
 
 
 def test_menu_texto_com_validador(teclas):
@@ -256,3 +257,10 @@ def test_menu_texto_vazio_volta(teclas):
     with pytest.raises(Voltar):
         teclas(ENTER).texto('Nome', lambda v: 'vazio' if not v else None, voltar=True)
     assert teclas('a', ENTER).texto('Nome', lambda v: None, voltar=True) == 'a'
+
+
+def test_menu_marcar_enter_sem_marcar_nao_escolhe_a_opcao_do_cursor(teclas):
+    """O erro de 30/10: cursor em RJ e Enter sem a barra de espaço virava "todos"."""
+    # Todos, Sul e Sudeste, MG, PR, RJ: o cursor para em RJ, Enter (recusado), espaço, Enter
+    menu = teclas(BAIXO, BAIXO, BAIXO, BAIXO, ENTER, ESPACO, ENTER)
+    assert menu.marcar('Estados', UFS, ATALHOS) == ['RJ']

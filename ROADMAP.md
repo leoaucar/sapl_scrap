@@ -301,6 +301,16 @@ Decidir na spec o que vai para a Fase 7.
 - [ ] **Configurações** no menu (casas ao mesmo tempo, limite por servidor),
       em vez de editar o `config.json`
 
+**Velocidade**
+- [ ] **Casas maiores primeiro:** começar pelas casas com mais trabalho
+      (assembleias e capitais, ou as que trouxeram mais matérias na busca),
+      para a casa mais demorada não ficar sozinha no fim. Na validação de
+      30/10/2026, com 150 por minuto, o servidor ficou no teto por 14 dos
+      17½ minutos e os 3½ finais foram só a Assembleia do AM, limitada aos 35
+      por minuto do site dela; numa execução completa, essa cauda pode passar
+      de uma hora. Aumentar as casas ao mesmo tempo (ex.: 10) não ajuda: 5
+      casas já bastam para chegar ao teto de 150 do servidor
+
 **Interface e página**
 - [ ] **Opção selecionada mais evidente nos menus do terminal:** hoje só a
       seta `»` mostra onde está o cursor. Destacar a linha inteira (cor de

@@ -36,6 +36,7 @@ from sapyl.links import chave, no_endereco, normalizar_link
 from sapyl.materias import Fontes
 from sapyl.materias.api import Consultas
 from sapyl.materias.valores import data_br, esquema_da_casa
+from sapyl.padroes import Mapear, em_sequencia
 
 SUFIXO_SAIDA = '_autoria_tramitacao'
 log = registro.logger('autoria')
@@ -230,7 +231,10 @@ def chave_do_link(link: object) -> str | None:
 
 
 def processar(
-    entrada: str | Path, cliente: ClienteSAPL, fontes: Fontes | None = None
+    entrada: str | Path,
+    cliente: ClienteSAPL,
+    fontes: Fontes | None = None,
+    mapear: Mapear = em_sequencia,
 ) -> tuple[Path, Counter[str]]:
     """Busca autoria e tramitação das matérias de uma planilha e grava uma cópia com elas.
 
@@ -239,6 +243,9 @@ def processar(
     interrompida, rodada de novo, só busca o que falta ou falhou. No fim, a
     linha mais recente de cada matéria é juntada à planilha, pela chave, em
     `<entrada>_autoria_tramitacao.csv`. Devolve (saída, contagens por status).
+
+    As matérias são agrupadas por casa; `mapear` diz como rodar as casas
+    (padrão: uma por vez; o programa roda várias ao mesmo tempo).
     """
     dados = pd.read_csv(entrada, dtype=str, keep_default_na=False)
     dados = dados.drop(columns=[c for c in dados.columns if c.startswith('Unnamed')])
@@ -263,12 +270,20 @@ def processar(
             len(pendentes),
             len(unicas) - len(pendentes),
         )
-        for i, (k, link) in enumerate(pendentes, start=1):
-            linha = raspar_autoria(link, cliente, fontes)
-            arquivo.anexar({'chave': k, **linha})
-            erro = linha['erro_autoria_tramitacao']
-            estado.registrar(ETAPA_AUTORIA, k, 'erro' if erro else 'ok', erro)
-            log.info('Autoria e tramitação %d de %d (%s): %s', i, len(pendentes), k, erro or 'ok')
+        por_casa: dict[str, list[tuple[str, str]]] = {}
+        for k, link in pendentes:
+            por_casa.setdefault(casa_do_link(link), []).append((k, link))
+
+        def da_casa(casa: str) -> None:
+            itens = por_casa[casa]
+            for i, (k, link) in enumerate(itens, start=1):
+                linha = raspar_autoria(link, cliente, fontes)
+                arquivo.anexar({'chave': k, **linha})
+                erro = linha['erro_autoria_tramitacao']
+                estado.registrar(ETAPA_AUTORIA, k, 'erro' if erro else 'ok', erro)
+                log.info('Autoria e tramitação %d de %d (%s): %s', i, len(itens), k, erro or 'ok')
+
+        mapear(da_casa, list(por_casa))
         contagens = estado.contagens(ETAPA_AUTORIA, set(unicas))
     finally:
         arquivo.fechar()

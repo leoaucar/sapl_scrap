@@ -10,6 +10,11 @@ from sapyl.links import chave, normalizar_link
 from sapyl.materias import linha_vazia
 
 
+def ultimas_raspagens(arquivo_materias: str | Path) -> dict[str, Linha]:
+    """{chave: linha mais recente} do arquivo de matérias raspadas."""
+    return {linha['chave']: linha for linha in ler_csv(arquivo_materias, COLUNAS_MATERIAS)}
+
+
 def montar_final(arquivo_materias: str | Path, links: list[Linha]) -> pd.DataFrame:
     """Uma linha por matéria (na ordem de `links`), com a tentativa mais recente.
 
@@ -17,9 +22,7 @@ def montar_final(arquivo_materias: str | Path, links: list[Linha]) -> pd.DataFra
     matéria). Uma matéria da lista que nunca foi raspada aparece com
     `status = erro`, nunca some em silêncio.
     """
-    ultimas = {}
-    for linha in ler_csv(arquivo_materias, COLUNAS_MATERIAS):
-        ultimas[linha['chave']] = linha
+    ultimas = ultimas_raspagens(arquivo_materias)
     linhas = []
     for link in links:
         linha = dict(

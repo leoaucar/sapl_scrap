@@ -57,10 +57,15 @@ def _nomes_das_fixtures(pasta):
     return nomes
 
 
-def montar(projeto_tmp, casa_dns=False):
+def montar(projeto_tmp, casa_dns=False, servidor_de=None):
     """Sessão, relógio e cliente novos, com o SAPL falso das duas casas.
 
     `casa_dns`: põe na planilha uma terceira casa cujo nome não existe mais.
+    `horarios` recebe (host, horário) de cada requisição, na hora em que o
+    cliente a libera (sob a trava dele): é esse horário que conta para os
+    limites, também com várias casas ao mesmo tempo. Com `servidor_de`, o
+    cliente também tem o limite por servidor; `horarios.servidores` recebe
+    (servidor, horário).
     """
     falso = SaplFalso()
     falso.casa(
@@ -115,15 +120,14 @@ def montar(projeto_tmp, casa_dns=False):
 
     relogio, sessao = RelogioFalso(), SessaoFalsa()
     sessao.rota(falso)
-    horarios = []
-    get_original = sessao.get
-
-    def get_com_horario(url, **kwargs):
-        horarios.append((url.split('/')[2], relogio.agora()))
-        return get_original(url, **kwargs)
-
-    sessao.get = get_com_horario
-    cliente = ClienteSAPL(sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir)
+    horarios = Horarios()
+    cliente = ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=relogio.dormir,
+        ao_reservar=horarios.anotar,
+        servidor_de=servidor_de,
+    )
 
     arquivos = projeto_tmp / 'arquivos_csv'
     import pandas as pd
@@ -137,6 +141,19 @@ def montar(projeto_tmp, casa_dns=False):
         sessao.responder(DNS, erro=_erro_dns())
     pd.DataFrame(casas).to_excel(arquivos / 'casas_legislativas.xlsx', index=False)
     return cliente, sessao, horarios
+
+
+class Horarios(list):
+    """(host, horário) das requisições liberadas pelo cliente (veja `montar`)."""
+
+    def __init__(self):
+        super().__init__()
+        self.servidores = []
+
+    def anotar(self, host, servidor, horario):
+        self.append((host, horario))
+        if servidor is not None:
+            self.servidores.append((servidor, horario))
 
 
 NOVO = ('1', 'p', '2', '1', '1')  # projeto novo "p", sem filtro, todas as casas, com downloads
@@ -275,6 +292,7 @@ def test_retomada_com_cliente_novo_respeita_o_limite(projeto_tmp, monkeypatch):
         dormir=relogio.dormir,
         historico=historico,
         relogio_parede=relogio.agora,
+        ao_reservar=horarios.anotar,
     )
     original, chamadas = materias.raspar_materia, []
 
@@ -294,6 +312,7 @@ def test_retomada_com_cliente_novo_respeita_o_limite(projeto_tmp, monkeypatch):
         dormir=relogio.dormir,
         historico=historico,
         relogio_parede=relogio.agora,
+        ao_reservar=horarios.anotar,
     )
     assert programa.main(roteiro('1', 'p', '1'), segundo, projeto_tmp) == 0
     for site in {s for s, _ in horarios}:
@@ -302,11 +321,32 @@ def test_retomada_com_cliente_novo_respeita_o_limite(projeto_tmp, monkeypatch):
             assert sum(1 for u in tempos[i:] if u - t < 60) <= 35, site
 
 
-def _limite_respeitado(horarios):
+def _limite_respeitado(horarios, limite=35, janela=61):
+    """Nenhum site (ou servidor) com mais de `limite` requisições em `janela` segundos."""
     for site in {s for s, _ in horarios}:
         tempos = sorted(t for s, t in horarios if s == site)
         for i, t in enumerate(tempos):
-            assert sum(1 for u in tempos[i:] if u - t < 60) <= 35, site
+            assert sum(1 for u in tempos[i:] if u - t < janela) <= limite, site
+
+
+def test_limites_por_site_e_por_servidor_com_varias_casas(projeto_tmp, monkeypatch):
+    """TR-8: as duas casas no mesmo servidor, com o teto no mínimo (35 por minuto)."""
+    from sapyl import padroes
+
+    monkeypatch.setattr(padroes, 'LIMITE_POR_SERVIDOR', 35)
+    cliente, _, horarios = montar(projeto_tmp, servidor_de=lambda host: '10.0.0.1')
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    _limite_respeitado(horarios)
+    _limite_respeitado(horarios.servidores, limite=35)
+    assert len(horarios.servidores) == len(horarios) > 35
+    # o teto do servidor pesou: alguma janela cheia (35) tem requisições dos dois sites
+    ordem = sorted(horarios, key=lambda h: h[1])
+    cheias = [
+        {s for s, u in ordem[i:] if u - t < 61}
+        for i, (_, t) in enumerate(ordem)
+        if sum(1 for _, u in ordem[i:] if u - t < 61) == 35
+    ]
+    assert any(len(sites) == 2 for sites in cheias)
 
 
 # --- Autoria e tramitação, atualização e DNS (TR-7 da spec 2) ---------------
@@ -330,10 +370,15 @@ def test_autoria_interrompida_e_retomada(projeto_tmp, monkeypatch):
     assert programa.main(roteiro('3', 'p'), cliente, projeto_tmp) == 1
     monkeypatch.setattr(autoria, 'raspar_autoria', original)
 
+    # as que terminaram antes do Ctrl+C (com várias casas ao mesmo tempo, a que
+    # estava em andamento na outra casa pode não ter terminado: é refeita)
+    estado = Estado(projeto_tmp / 'p_proj' / 'p_resultado_final_autoria_tramitacao_estado.csv')
+    feitas = estado.chaves('autoria', 'ok')
+    estado.fechar()
+    assert 1 <= len(feitas) <= 2
     sessao.pedidos.clear()
     assert programa.main(roteiro('3', 'p'), cliente, projeto_tmp) == 0
-    feitas = [lk for lk in chamadas[:2]]
-    assert not any(f'materia={lk.rsplit("/", 1)[1]}' in u for lk in feitas for u in sessao.pedidos)
+    assert not any(f'materia={k.rsplit("/", 1)[1]}' in u for k in feitas for u in sessao.pedidos)
 
     saida = ler_final(projeto_tmp / 'p_proj' / 'p_resultado_final_autoria_tramitacao.csv')
     assert len(saida) == 8

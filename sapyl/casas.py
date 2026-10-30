@@ -14,6 +14,7 @@ from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_CASAS
 from sapyl.links import endereco_final, host
+from sapyl.padroes import Mapear, em_sequencia
 
 # Estados usados quando a busca é restrita a Sul e Sudeste
 ESTADOS_SUL_SUDESTE = ['RJ', 'SP', 'RS', 'SC', 'MG', 'ES', 'PR']
@@ -49,32 +50,42 @@ def importar_casas(planilha: str | Path) -> pd.DataFrame:
     ).reset_index(drop=True)
 
 
-def testar_casas(casas: pd.DataFrame, cliente: ClienteSAPL) -> pd.DataFrame:
+def testar_casa(url: str, cliente: ClienteSAPL) -> tuple[bool, str, str]:
+    """(no ar, motivo, url_final) de uma casa: uma requisição à página inicial."""
+    resposta = cliente.get(url, timeout=(5, 5), max_tentativas=2)
+    resposta.fechar()
+    final = ''
+    if resposta.ok and resposta.bruta is not None:
+        final = endereco_final(getattr(resposta.bruta, 'url', ''), url)
+    if final:
+        log.info('%s redireciona para %s', url, final)
+    return resposta.ok, resposta.erro, final
+
+
+def testar_casas(
+    casas: pd.DataFrame, cliente: ClienteSAPL, mapear: Mapear = em_sequencia
+) -> pd.DataFrame:
     """Testa se o site de cada casa responde. Nenhuma casa sai da lista.
 
-    Devolve COLUNAS_CASAS; `motivo` explica por que a casa está inativa
-    (`HTTP 500`, `timeout`...), e `url_final` guarda o endereço novo quando o
-    site redireciona para outro domínio.
+    Devolve COLUNAS_CASAS, na ordem da tabela; `motivo` explica por que a casa
+    está inativa (`HTTP 500`, `timeout`...), e `url_final` guarda o endereço
+    novo quando o site redireciona para outro domínio. `mapear` diz como rodar
+    os testes (padrão: uma casa por vez; o programa testa várias ao mesmo tempo).
     """
-    linhas = []
-    for i, casa in enumerate(casas.itertuples(index=False), start=1):
-        log.info('Testando casa %d de %d: %s', i, len(casas), casa.url)
-        resposta = cliente.get(casa.url, timeout=(5, 5), max_tentativas=2)
-        resposta.fechar()
-        final = ''
-        if resposta.ok and resposta.bruta is not None:
-            final = endereco_final(getattr(resposta.bruta, 'url', ''), casa.url)
-        if final:
-            log.info('  %s redireciona para %s', casa.url, final)
-        linhas.append(
-            {
-                'url': casa.url,
-                'ativa': resposta.ok,
-                'motivo': resposta.erro,
-                'uf': casa.uf,
-                'url_final': final,
-            }
-        )
+    urls = list(casas['url'])
+    posicao = {}
+    for i, url in enumerate(urls, start=1):
+        posicao.setdefault(url, i)
+
+    def testar(url: str) -> tuple[bool, str, str]:
+        log.info('Testando casa %d de %d: %s', posicao[url], len(urls), url)
+        return testar_casa(url, cliente)
+
+    resultados = mapear(testar, urls)
+    linhas = [
+        {'url': url, 'ativa': ok, 'motivo': motivo, 'uf': uf, 'url_final': final}
+        for url, uf, (ok, motivo, final) in zip(urls, casas['uf'], resultados, strict=True)
+    ]
     return pd.DataFrame(linhas, columns=COLUNAS_CASAS)
 
 

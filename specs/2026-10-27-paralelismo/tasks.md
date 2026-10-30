@@ -13,7 +13,7 @@ Rules for every task (same as spec 2):
 
 ## Phase A: Foundations (no behaviour change)
 
-- [ ] **T01 Defaults and settings** (FR-15, FR-16, TR-7)
+- [x] **T01 Defaults and settings** (FR-15, FR-16, TR-7)
   - `sapyl/padroes.py` with every limit and default; `cliente_http` imports
     from it and keeps its old names as aliases. Add `padroes` to layer 1 in
     `test_camadas.py`.
@@ -21,13 +21,13 @@ Rules for every task (same as spec 2):
     `main` validates it on every run and exits with code 2 on a bad value.
   - Tests: `test_padroes.py`; new project saves the defaults; an old project
     without `paralelo` runs with them; a bad value stops before any request.
-- [ ] **T02 Thread-safe files and test helpers** (FR-10, TR-6)
+- [x] **T02 Thread-safe files and test helpers** (FR-10, TR-6)
   - Locks in `ArquivoCSV`, `Estado`, `Cache`; `SessaoFalsa` and
     `RelogioFalso` get locks.
   - `test_concorrencia.py` (first part): 16 threads appending to one
     `ArquivoCSV`, registering in one `Estado` and saving to one `Cache`; every
     row read back intact, none lost.
-- [ ] **T03 Client ready for threads** (plan §4)
+- [x] **T03 Client ready for threads** (plan §4)
   - Lock around windows, blocks and history; per-thread sessions when none is
     injected; `parar` event, interruptible waits and `Interrompido`;
     `janela_segundos` / `margem_segundos` arguments; `ao_reservar` hook.
@@ -36,58 +36,70 @@ Rules for every task (same as spec 2):
 
 ## Phase B: Server ceiling
 
-- [ ] **T04 Server windows and history** (FR-6, FR-7, TR-1)
+- [x] **T04 Server windows and history** (FR-6, FR-7, TR-1)
   - `servidor_de` argument, `resolver_servidor()`, per-server window with the
     stricter-of-two rule, `servidores` in the history file.
   - Tests (fake clock): 3 hosts on one server with ceiling 70: the 71st
     request in a window waits; hosts without a server have only the site
     limit; history round trip; an old history file without `servidores`
     loads; `resolver_servidor` caches and maps a DNS failure to `None`.
-- [ ] **T05 Adaptive slow-down** (FR-8, TR-3)
+- [x] **T05 Adaptive slow-down** (FR-8, TR-3)
   - Tests: 429 from 2 hosts of one server within 10 min halves the ceiling
     once and logs it; 429s from 1 host do not; the floor is 35; `reducoes`
     lists the change.
 
 ## Phase C: The pool and the flows
 
-- [ ] **T06 `execucao.por_casa`** (FR-1, FR-2, FR-12, FR-13)
+- [x] **T06 `execucao.por_casa`** (FR-1, FR-2, FR-12, FR-13)
   - Pool, input-order results, per-house errors reported at the end, Ctrl+C
     handling, `[host]` log prefix, periodic progress line. Add `execucao` to
     layer 6.
   - `test_execucao.py` (TR-5 unit part).
-- [ ] **T07 Availability test in parallel** (FR-3)
+- [x] **T07 Availability test in parallel** (FR-3)
   - Tests: same table as sequential, in table order; DNS-failing house still
     one attempt.
-- [ ] **T08 New/resume pipeline per house** (FR-1, FR-9, FR-11)
+- [x] **T08 New/resume pipeline per house** (FR-1, FR-9, FR-11)
   - `busca.buscar_casa`, links grouped per house, matters and downloads per
     house, links file rebuilt at the end, `downloads.preencher_downloads`.
   - Tests: 1 vs 8 workers give identical final tables (except `raspada_em`),
     same state contents, same downloads (TR-4); resume after a partial run;
     spec 2 project resumes.
-- [ ] **T09 Update mode and authors/procedure on the pool** (FR-4)
+- [x] **T09 Update mode and authors/procedure on the pool** (FR-4)
   - Tests: 1 vs 8 workers equivalence for both; resume of option 3 under
     workers.
-- [ ] **T10 Summary additions** (FR-14)
+- [x] **T10 Summary additions** (FR-14)
   - Elapsed time, workers, per-server ceiling and reductions.
 
 ## Phase D: Concurrency proof, end-to-end, docs
 
-- [ ] **T11 Limits under threads and end-to-end** (TR-2, TR-5, TR-8)
+- [x] **T11 Limits under threads and end-to-end** (TR-2, TR-5, TR-8)
   - `test_concorrencia.py` (second part): real threads, 0.2 s window, several
     hosts on one server; from `ao_reservar` times, no host above its limit
     and no server above its ceiling in any window.
   - `test_ponta_a_ponta.py` with 8 workers: limits per site and per server,
     interruption in the middle and resume.
-- [ ] **T12 Docs** (NFR-4)
+- [x] **T12 Docs** (NFR-4)
   - README (parallel run, `paralelo` in `config.json`, server ceiling and
     why), tech-stack, ROADMAP (Phase 2 ticks, new time estimate, the 1 404
     houses / shared servers finding), project site "Quanto tempo leva?".
 
 ## Phase E: Validation and merge
 
-- [ ] **T13 Update `validation.md`** to match what was built.
-- [ ] **T14 Run validation** (including the ramp), set the final defaults from
+- [x] **T13 Update `validation.md`** to match what was built.
+- [x] **T14 Run validation** (including the ramp), set the final defaults from
   its numbers, record the results, fix what fails, then merge into `main`.
+
+## Issues found in validation
+
+- [x] **T15 DNS failure of a site that already answered is retried** (V1)
+  - In `par_seq` (2026-10-29 18:41) this machine lost DNS for a minute: every
+    request after it failed at once with `dns`, which is never retried, and
+    the rest of the run (9 houses) was lost in one second. Now a `dns` error
+    from a site that already answered in this run counts as `conexao`
+    (retried with 5/15/45 s waits). A site that never answered keeps one
+    attempt.
+  - Tests: `test_cliente_http.py` (retried after an earlier answer; unchanged
+    for a site that never answered).
 
 ## Traceability
 

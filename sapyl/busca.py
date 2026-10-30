@@ -8,6 +8,9 @@ hora, em `<nome>_paginas_busca.csv` (o HTML não é guardado).
 Uma busca que falha no meio (429 insistente, 5xx, timeout...) fica marcada
 como `incompleta` no estado e aparece no resumo; ao retomar o projeto, ela é
 refeita. Buscas `completa` não são repetidas.
+
+`buscar_casa` faz as buscas de uma casa (usada por casa, várias ao mesmo
+tempo); `buscar` faz as de todas, uma casa por vez.
 """
 
 from pathlib import Path
@@ -17,7 +20,7 @@ import pandas as pd
 
 from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
-from sapyl.colunas import COLUNAS_PAGINAS, ETAPA_BUSCA
+from sapyl.colunas import COLUNAS_PAGINAS, ETAPA_BUSCA, Linha
 from sapyl.estado import ArquivoCSV, Estado
 from sapyl.links import links_da_pagina
 
@@ -56,11 +59,14 @@ def buscar_palavra(
     estado: Estado,
     paginas: ArquivoCSV,
     base: str | None = None,
+    achados: list[Linha] | None = None,
 ) -> int:
     """Busca uma palavra numa casa, página a página. Devolve o nº de páginas gravadas.
 
     `base`: endereço para as requisições, se o site da casa redireciona (veja
     `url_final`). A casa continua identificada pelo endereço original.
+    `achados`: se dada, recebe os links de matérias encontrados (como
+    `links.raspar_paginas` os leria do arquivo).
     """
     chave = chave_busca(casa, palavra)
     base = base or casa
@@ -69,15 +75,21 @@ def buscar_palavra(
         url = url_busca(base, palavra, pagina)
         resposta = cliente.get(url)
         if resposta.ok:
+            encontrados = links_da_pagina(resposta.texto, casa, [base])
             paginas.anexar(
                 {
                     'Casa': casa,
                     'Palavra': palavra,
                     'Pagina': pagina,
-                    'links': ' '.join(links_da_pagina(resposta.texto, casa, [base])),
+                    'links': ' '.join(encontrados),
                     'link': url,
                 }
             )
+            if achados is not None:
+                achados += [
+                    {'Link Materia': link, 'Link Casa': casa, 'Palavras': palavra}
+                    for link in encontrados
+                ]
             pagina += 1
             continue
         if resposta.status == 404 and pagina > 1:
@@ -95,6 +107,38 @@ def buscar_palavra(
     return pagina - 1
 
 
+def buscar_casa(
+    casa: str,
+    palavras: list[str],
+    cliente: ClienteSAPL,
+    estado: Estado,
+    paginas: ArquivoCSV,
+    base: str | None = None,
+) -> list[Linha]:
+    """Faz as buscas ainda não `completa` de uma casa. Devolve os links achados agora.
+
+    Os links vêm na ordem das palavras e das páginas, com repetições (use
+    `links.deduplicar_links`).
+    """
+    pendentes = [
+        p for p in palavras if estado.status(ETAPA_BUSCA, chave_busca(casa, p)) != 'completa'
+    ]
+    achados: list[Linha] = []
+    if pendentes:
+        log.info('Busca em %s: %d palavra(s)', casa, len(pendentes))
+    for palavra in pendentes:
+        n = buscar_palavra(casa, palavra, cliente, estado, paginas, base, achados)
+        log.info('  %s: %d página(s)', palavra, n)
+    return achados
+
+
+def enderecos_de_busca(casas: pd.DataFrame) -> dict[str, str]:
+    """{url da casa: url_final} das casas cujo site redireciona."""
+    if 'url_final' not in casas.columns:
+        return {}
+    return {u: f for u, f in zip(casas['url'], casas['url_final'], strict=True) if f}
+
+
 def buscar(
     casas: pd.DataFrame,
     palavras: list[str],
@@ -103,9 +147,7 @@ def buscar(
     arquivo_paginas: str | Path,
 ) -> None:
     """Faz as buscas pendentes. `casas`: DataFrame com `url`, `ativa` e (opcional) `url_final`."""
-    finais = {}
-    if 'url_final' in casas.columns:
-        finais = {u: f for u, f in zip(casas['url'], casas['url_final'], strict=True) if f}
+    finais = enderecos_de_busca(casas)
     pendentes = buscas_pendentes(casas, palavras, estado)
     total_casas = len({c for c, _ in pendentes})
     arquivo = ArquivoCSV(arquivo_paginas, COLUNAS_PAGINAS)

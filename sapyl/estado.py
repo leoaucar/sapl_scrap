@@ -14,6 +14,9 @@ meio por uma queda do programa é ignorada.
 `ArquivoCSV` é o mesmo mecanismo (só acrescentar linhas, com cabeçalho) para
 os arquivos de dados do projeto.
 
+Todas as classes daqui podem ser usadas por várias casas ao mesmo tempo
+(threads): cada gravação é feita inteira, sob uma trava, sem misturar linhas.
+
 `Cache` guarda em `cache.json` o que não muda entre execuções: a fonte de
 cada casa (`api` ou `html`) e os nomes consultados na API (tipos, regimes...).
 """
@@ -21,6 +24,7 @@ cada casa (`api` ou `html`) e os nomes consultados na API (tipos, regimes...).
 import csv
 import json
 import os
+import threading
 from collections import Counter
 from collections.abc import Iterable, Mapping
 from datetime import datetime
@@ -42,6 +46,7 @@ class ArquivoCSV:
     def __init__(self, caminho: str | Path, campos: Iterable[str]) -> None:
         self.caminho = caminho
         self.campos = list(campos)
+        self._trava = threading.Lock()
         novo = not os.path.exists(caminho) or os.path.getsize(caminho) == 0
         if not novo:
             self._consertar_final()
@@ -63,12 +68,15 @@ class ArquivoCSV:
 
     def anexar(self, linha: Mapping[str, object]) -> None:
         """Grava uma linha (colunas que faltam ficam vazias) e manda para o disco."""
-        self._escritor.writerow({c: linha.get(c, '') for c in self.campos})
-        self._arquivo.flush()
+        valores = {c: linha.get(c, '') for c in self.campos}
+        with self._trava:
+            self._escritor.writerow(valores)
+            self._arquivo.flush()
 
     def fechar(self) -> None:
         """Fecha o arquivo."""
-        self._arquivo.close()
+        with self._trava:
+            self._arquivo.close()
 
 
 def ler_csv(caminho: str | Path, campos: list[str]) -> list[Linha]:
@@ -92,6 +100,7 @@ class Estado:
 
     def __init__(self, caminho: str | Path) -> None:
         self.caminho = caminho
+        self._trava = threading.Lock()
         self._ultimo = {}
         for linha in ler_csv(caminho, CAMPOS_ESTADO):
             self._ultimo[(linha['etapa'], linha['chave'])] = (linha['status'], linha['erro'])
@@ -99,10 +108,15 @@ class Estado:
 
     def registrar(self, etapa: str, chave: str, status: str, erro: str = '') -> None:
         """Acrescenta o novo status de (etapa, chave) ao arquivo de estado."""
-        self._arquivo.anexar(
-            {'etapa': etapa, 'chave': chave, 'status': status, 'erro': erro, 'quando': _agora()}
-        )
-        self._ultimo[(etapa, chave)] = (status, erro)
+        with self._trava:
+            self._arquivo.anexar(
+                {'etapa': etapa, 'chave': chave, 'status': status, 'erro': erro, 'quando': _agora()}
+            )
+            self._ultimo[(etapa, chave)] = (status, erro)
+
+    def _itens(self) -> list[tuple[tuple[str, str], tuple[str, str]]]:
+        with self._trava:
+            return list(self._ultimo.items())
 
     def status(self, etapa: str, chave: str) -> str | None:
         """Último status registrado, ou None se nunca foi registrado."""
@@ -115,15 +129,13 @@ class Estado:
     def chaves(self, etapa: str, status: str | None = None) -> list[str]:
         """Chaves da etapa (só as que estão em `status`, se dado)."""
         return [
-            k
-            for (e, k), (s, _) in self._ultimo.items()
-            if e == etapa and (status is None or s == status)
+            k for (e, k), (s, _) in self._itens() if e == etapa and (status is None or s == status)
         ]
 
     def contagens(self, etapa: str, chaves: Iterable[str] | None = None) -> Counter[str]:
         """Quantas chaves da etapa estão em cada status (só `chaves`, se dado)."""
         contagem = Counter()
-        for (e, k), (s, _) in self._ultimo.items():
+        for (e, k), (s, _) in self._itens():
             if e == etapa and (chaves is None or k in chaves):
                 contagem[s] += 1
         return contagem
@@ -144,6 +156,7 @@ class Cache:
 
     def __init__(self, caminho: str | Path | None = None) -> None:
         self.caminho = Path(caminho) if caminho is not None else None
+        self._trava = threading.Lock()
         self._dados: dict[str, dict[str, str]] = {'fontes': {}, 'nomes': {}}
         if self.caminho is not None and self.caminho.exists():
             self._carregar()
@@ -169,7 +182,8 @@ class Cache:
 
     def fontes(self) -> dict[str, str]:
         """Cópia de {host: 'api' | 'html'}."""
-        return dict(self._dados['fontes'])
+        with self._trava:
+            return dict(self._dados['fontes'])
 
     def fonte(self, host: str) -> str | None:
         """Fonte guardada da casa, ou None se ainda não se sabe."""
@@ -177,9 +191,10 @@ class Cache:
 
     def guardar_fonte(self, host: str, fonte: str) -> None:
         """Grava a fonte da casa ('api' ou 'html')."""
-        if self._dados['fontes'].get(host) != fonte:
-            self._dados['fontes'][host] = fonte
-            self._salvar()
+        with self._trava:
+            if self._dados['fontes'].get(host) != fonte:
+                self._dados['fontes'][host] = fonte
+                self._salvar()
 
     def nome(self, url: str) -> str | None:
         """Nome guardado para a URL da API, ou None."""
@@ -187,6 +202,7 @@ class Cache:
 
     def guardar_nome(self, url: str, nome: str) -> None:
         """Grava um nome obtido (nunca um vazio: consultas que falharam não vão para o disco)."""
-        if nome and self._dados['nomes'].get(url) != nome:
-            self._dados['nomes'][url] = nome
-            self._salvar()
+        with self._trava:
+            if nome and self._dados['nomes'].get(url) != nome:
+                self._dados['nomes'][url] = nome
+                self._salvar()

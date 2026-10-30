@@ -336,3 +336,115 @@ def test_ctrl_c_na_autoria_explica_como_retomar(projeto_tmp, cliente, capsys):
 
     assert programa.main(ler, cliente, projeto_tmp) == 1
     assert 'escolha 3 e digite a mesma entrada' in capsys.readouterr().out
+
+
+# --- `paralelo` no config.json (TR-7) -----------------------------------------
+
+
+def test_projeto_novo_grava_os_padroes_de_paralelo(projeto_tmp, cliente, sessao, sapl):
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    config = json.loads((projeto_tmp / 'teste_proj' / 'config.json').read_text(encoding='utf-8'))
+    assert config['paralelo'] == {'casas_ao_mesmo_tempo': 8, 'limite_por_servidor': 120}
+
+
+def test_projeto_antigo_sem_paralelo_usa_os_padroes(projeto_tmp, cliente, sessao, sapl):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    arquivo = projeto_tmp / 'teste_proj' / 'config.json'
+    config = json.loads(arquivo.read_text(encoding='utf-8'))
+    del config['paralelo']
+    arquivo.write_text(json.dumps(config), encoding='utf-8')
+    assert programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp) == 0
+    assert 'paralelo' not in json.loads(arquivo.read_text(encoding='utf-8'))
+
+
+def _estragar_paralelo(pasta, valor):
+    arquivo = pasta / 'config.json'
+    config = json.loads(arquivo.read_text(encoding='utf-8'))
+    config['paralelo'] = valor
+    arquivo.write_text(json.dumps(config), encoding='utf-8')
+
+
+@pytest.mark.parametrize(
+    'respostas',
+    [('1', 'teste', '1'), ('2', 'teste', '2'), ('3', 'teste')],
+    ids=['retomada', 'atualizacao', 'autoria'],
+)
+def test_valor_invalido_para_antes_de_qualquer_requisicao(
+    projeto_tmp, cliente, sessao, sapl, capsys, respostas
+):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    _estragar_paralelo(projeto_tmp / 'teste_proj', {'limite_por_servidor': 10})
+    sessao.pedidos.clear()
+    capsys.readouterr()
+    assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 2
+    assert sessao.pedidos == []
+    saida = capsys.readouterr().out
+    assert 'config.json' in saida and '"paralelo.limite_por_servidor" = 10' in saida
+    assert 'no mínimo 35' in saida
+
+
+# --- Resumo com tempo e servidores (FR-14) ------------------------------------
+
+
+def test_resumo_mostra_tempo_casas_e_servidores(projeto_tmp, sessao, relogio, sapl, caplog):
+    cliente = ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=relogio.dormir,
+        servidor_de=lambda host: '10.0.0.1',
+        limite_por_servidor=999,
+    )
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
+    assert '(até 8 casas ao mesmo tempo)' in resumo and 'Tempo: ' in resumo
+    # o limite do config.json (120) vale, não o do cliente criado
+    assert 'Servidor 10.0.0.1 (3 casas): até 120 requisições por minuto' in resumo
+
+
+def test_resumo_mostra_limite_reduzido(projeto_tmp, sessao, relogio, sapl, caplog):
+    for casa in (A, 'https://sapl.b.pr.leg.br/'):
+        sapl.falhar(f'{casa}sistema/search/?page=1&q={P}', 429)
+    cliente = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir, servidor_de=lambda h: 'srv'
+    )
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
+    assert 'Servidor srv (3 casas): limite reduzido de 120 para 60' in resumo
+    assert any('Servidor srv sobrecarregado' in r.getMessage() for r in caplog.records)
+
+
+def test_erro_inesperado_numa_casa_nao_perde_as_outras(
+    projeto_tmp, cliente, sessao, sapl, capsys, caplog, monkeypatch
+):
+    from sapyl import materias
+
+    original = materias.raspar_materia
+
+    def quebrar_uma_casa(link, *args):
+        if link['chave'].startswith('sapl.a.ac.leg.br/'):
+            raise OSError('disco cheio')
+        return original(link, *args)
+
+    monkeypatch.setattr(materias, 'raspar_materia', quebrar_uma_casa)
+    with caplog.at_level(logging.ERROR, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 1
+    assert 'escolha "retomar"' in capsys.readouterr().out
+    assert any('1 casa(s) pararam' in r.getMessage() for r in caplog.records)
+    assert any(r.exc_info for r in caplog.records)  # o traceback vai para o log
+    estado = Estado(projeto_tmp / 'teste_proj' / 'teste_estado.csv')
+    assert estado.contagens('busca') == {'completa': 4}  # as buscas das duas casas
+    estado.fechar()
+    monkeypatch.setattr(materias, 'raspar_materia', original)
+    assert programa.main(roteiro('1', 'teste', '1'), cliente, projeto_tmp) == 0
+    final = ler_final(projeto_tmp / 'teste_proj' / 'teste_resultado_final.csv')
+    assert final['sapl_id'].tolist() == ['38415', '43301', '43300', '42263']
+
+
+def test_texto_do_progresso(tmp_path):
+    estado = Estado(tmp_path / 'e.csv')
+    estado.registrar('materia', 'h/1', 'ok')
+    estado.registrar('materia', 'h/2', 'erro', 'x')
+    assert programa.progresso_das_materias(estado) == 'matérias: 1 raspadas, 1 com erro'
+    estado.fechar()

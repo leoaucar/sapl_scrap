@@ -14,6 +14,8 @@ def test_rede_real_bloqueada():
         socket.create_connection(('example.com', 80))
     with pytest.raises(RuntimeError, match='bloqueado'):
         requests.get('http://example.com', timeout=1)
+    with pytest.raises(RuntimeError, match='bloqueado'):
+        socket.gethostbyname('example.com')
 
 
 def test_sessao_falsa_repete_ultima_resposta_e_registra_pedidos(sessao):

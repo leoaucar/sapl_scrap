@@ -142,3 +142,38 @@ def test_resumo_termina_com_o_log_desta_execucao(tmp_path):
     texto = registro.resumo(estado, [], 'f.csv')
     estado.fechar()
     assert texto.splitlines()[-1] == f'Log desta execução: {caminho}'
+
+
+# --- Tempo, casas ao mesmo tempo e servidores no resumo (FR-14) --------------
+
+
+@pytest.mark.parametrize(
+    ('segundos', 'texto'),
+    [(7.4, '7 s'), (65, '1 min 05 s'), (3725.4, '1 h 02 min 05 s'), (0, '0 s')],
+)
+def test_formatar_duracao(segundos, texto):
+    assert registro.formatar_duracao(segundos) == texto
+
+
+def test_linhas_da_execucao():
+    linhas = registro.linhas_da_execucao(
+        3725, 8, [('201.54.51.178', 9, 120, 120), ('201.54.51.179', 1, 120, 60)]
+    )
+    assert linhas == [
+        'Tempo: 1 h 02 min 05 s (até 8 casas ao mesmo tempo)',
+        'Servidor 201.54.51.178 (9 casas): até 120 requisições por minuto',
+        'Servidor 201.54.51.179 (1 casa): limite reduzido de 120 para 60 requisições por minuto '
+        '(429 de mais de uma casa)',
+    ]
+
+
+def test_resumos_mostram_as_linhas_da_execucao(tmp_path):
+    from collections import Counter
+
+    extra = ['Tempo: 7 s (até 8 casas ao mesmo tempo)']
+    estado = Estado(tmp_path / 'e.csv')
+    texto = registro.resumo(estado, [], tmp_path / 'f.csv', execucao=extra)
+    estado.fechar()
+    assert extra[0] in texto and texto.index(extra[0]) < texto.index('Resultado:')
+    texto = registro.resumo_autoria(Counter(ok=1), tmp_path / 's.csv', execucao=extra)
+    assert extra[0] in texto

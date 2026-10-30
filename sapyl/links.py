@@ -178,6 +178,31 @@ def links_das_buscas(
     return links
 
 
+def ordenar_por_casa(links: Iterable[Linha], casas: Iterable[str]) -> list[Linha]:
+    """Links agrupados por casa, na ordem de `casas` (URLs da tabela de casas).
+
+    Dentro de cada casa, a ordem de antes se mantém. Casas que não estão em
+    `casas` vão para o fim, na ordem em que apareceram. Com várias casas ao
+    mesmo tempo, as páginas das casas se misturam no arquivo; assim, a lista
+    fica igual à de uma casa por vez.
+    """
+    posicao: dict[str, int] = {}
+    for url in casas:
+        posicao.setdefault(host(url), len(posicao))
+    links = list(links)
+    for item in links:
+        posicao.setdefault(host(item['Link Casa']), len(posicao))
+    return sorted(links, key=lambda item: posicao[host(item['Link Casa'])])
+
+
+def agrupar_por_casa(links: Iterable[Linha]) -> dict[str, list[Linha]]:
+    """{host: links daquela casa}, mantendo a ordem."""
+    grupos: dict[str, list[Linha]] = {}
+    for item in links:
+        grupos.setdefault(host(item['Link Casa']), []).append(item)
+    return grupos
+
+
 def salvar_links(links: list[Linha], caminho: str | Path) -> None:
     """Grava a lista de links únicos (COLUNAS_LINKS), substituindo o arquivo."""
     with open(caminho, 'w', newline='', encoding='utf-8') as arquivo:

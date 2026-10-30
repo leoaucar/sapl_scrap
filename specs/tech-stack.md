@@ -9,7 +9,8 @@ Current stack, and what is planned for later specs. Changing anything in
 |-----------------|------------------------------------------|--------------------------------------------|
 | Language        | Python ≥ 3.10                            | CI on 3.10 (pandas 2) and 3.12 (pandas 3)  |
 | Packaging       | `pyproject.toml` (setuptools ≥ 77)       | Package `sapyl`, command `sapyl`, `python -m sapyl`; version in `sapyl/__init__.py` |
-| HTTP            | `requests` (+ `urllib3`, bundled)        | One shared `Session` per run, in `sapyl/cliente_http.py` only |
+| HTTP            | `requests` (+ `urllib3`, bundled)        | One client per run, in `sapyl/cliente_http.py` only; one `Session` per thread |
+| Concurrency     | Threads: `concurrent.futures.ThreadPoolExecutor`, `threading` | One house per worker (`sapyl/execucao.py`); limits shared in the client under one lock |
 | HTML parsing    | `beautifulsoup4` with `html.parser`      | Explicit parser, no extra dependency       |
 | Tables / output | `pandas` (≥ 2.1, works with 3.x), CSV    | `openpyxl` for reading `.xlsx` inputs      |
 | Project storage | CSV (append-only state), JSON (`config.json`, `cache.json`) | Atomic writes for JSON (temp file + rename) |
@@ -27,18 +28,25 @@ Current stack, and what is planned for later specs. Changing anything in
 Layers from the bottom up; a module imports only from its own layer and the
 ones below (checked by `tests/test_camadas.py`):
 
-1. `registro` (log, summaries), `colunas` (every column list and state stage)
+1. `registro` (log, summaries), `colunas` (every column list and state stage),
+   `padroes` (every limit and default, `paralelo` check)
 2. `cliente_http` (rate limit, retries), `estado` (state file, `Cache`)
 3. `casas`, `palavras`, `links` (keys, canonical links, search pages)
 4. `busca`, `materias/` (`api`, `html`, `valores`, `Fontes`), `autoria`
 5. `tabela` (final table, extra columns, `Relevante`), `downloads`
-6. `projeto` (paths of `<nome>_proj/`)
+6. `projeto` (paths of `<nome>_proj/`), `execucao` (`por_casa`: worker pool,
+   Ctrl+C, progress line)
 7. `interface/` (`entrada`: prompts; `principal`: menu, flows, `executar()`)
 
 ## Target system
 
 - **SAPL** (Interlegis) instances, one per legislative house, list in
-  `arquivos_csv/casas_legislativas.xlsx` (~840 houses).
+  `arquivos_csv/casas_legislativas.xlsx` (1 404 houses; about a third do not
+  resolve in DNS).
+- **Shared servers.** Almost every working house resolves to the same
+  Interlegis address (`201.54.51.178`, a few to `.179`; DNS check on
+  2026-10-27). The client therefore also limits each server (IP), summed over
+  its houses.
 - Endpoints used: `/sistema/search/?page=N&q=…`; the JSON API
   `/api/materia/materialegislativa/<id>/`, `/api/materia/autoria/?materia=<id>`,
   `/api/materia/tramitacao/?materia=<id>` and the name lookups
@@ -48,7 +56,10 @@ ones below (checked by `tests/test_camadas.py`):
   and the PDF links (`/media/…`).
 - Observed limit: 35 requests/min per site, then `HTTP 429` with
   `Retry-After: 60`. The client keeps 35 requests in a 60 s window plus a 1 s
-  margin, shared across runs through `.sapl_historico.json`.
+  margin per site, and `limite_por_servidor` (default 120) per server in the
+  same window; both shared across runs through `.sapl_historico.json`. 429s
+  from two houses of one server within 10 min halve that server's ceiling for
+  the rest of the run (floor 35).
 
 ## Planned (later specs)
 
@@ -56,7 +67,6 @@ Order as in the ROADMAP.
 
 | Spec                         | Additions                                              |
 |------------------------------|--------------------------------------------------------|
-| Parallelism                  | `concurrent.futures.ThreadPoolExecutor`; maybe `httpx`/`asyncio` later |
 | SQL output and documents     | SQLite by default, PostgreSQL optional, via SQLAlchemy; documents in the project folder by hash, or MongoDB (GridFS) / S3-compatible storage (MinIO, S3) |
 | Keyword suggestions          | NLTK RSLP stemmer, scikit-learn (TF-IDF); optional embeddings or an LLM API |
 | Web UI                       | FastAPI or Flask + plain HTML/CSS/JS                   |

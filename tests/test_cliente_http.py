@@ -386,3 +386,326 @@ def test_requisicoes_1_e_36_saem_a_pelo_menos_61_segundos(cliente, sessao, relog
     for i in range(len(horarios) - 35):
         assert horarios[i + 35] - horarios[i] >= 61 - 1e-9
     assert http_sapl.MARGEM_SEGUNDOS == 1.0
+
+
+# --- Pronto para threads (plano §4, T03) -------------------------------------
+
+
+def test_parar_durante_a_espera_lanca_interrompido_na_hora(sessao):
+    import threading
+    import time
+
+    sessao.responder(A, texto='ok')
+    cliente = http_sapl.ClienteSAPL(sessao=sessao, limite_por_minuto=1)
+    cliente.get(A)  # a próxima espera ~61 s, com o relógio de verdade
+    resultado = []
+
+    def segunda():
+        try:
+            cliente.get(A)
+        except http_sapl.Interrompido as erro:
+            resultado.append(erro)
+
+    thread = threading.Thread(target=segunda)
+    inicio = time.monotonic()
+    thread.start()
+    time.sleep(0.05)
+    cliente.parar.set()
+    thread.join(timeout=5)
+    assert not thread.is_alive() and time.monotonic() - inicio < 2
+    assert len(resultado) == 1 and isinstance(resultado[0], KeyboardInterrupt)
+    assert len(sessao.pedidos) == 1
+
+
+def test_parado_nao_faz_requisicao(cliente, sessao):
+    sessao.responder(A, texto='ok')
+    cliente.parar.set()
+    with pytest.raises(http_sapl.Interrompido):
+        cliente.get(A)
+    assert sessao.pedidos == []
+
+
+def test_parar_depois_da_espera_de_erro(sessao, relogio):
+    import requests
+
+    cliente = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=lambda s: cliente.parar.set()
+    )
+    sessao.responder(A, erro=requests.ConnectionError('caiu'))
+    with pytest.raises(http_sapl.Interrompido):
+        cliente.get(A)
+    assert len(sessao.pedidos) == 1
+
+
+def test_evento_parar_compartilhado():
+    import threading
+
+    evento = threading.Event()
+    assert http_sapl.ClienteSAPL(sessao=object(), parar=evento).parar is evento
+
+
+def test_uma_sessao_por_thread_sem_sessao_dada():
+    import threading
+
+    cliente = http_sapl.ClienteSAPL()
+    sessoes = []
+    threads = [threading.Thread(target=lambda: sessoes.append(cliente.sessao)) for _ in range(3)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len({id(s) for s in sessoes}) == 3
+    assert cliente.sessao is cliente.sessao  # a mesma na mesma thread
+    assert cliente.sessao.headers['User-Agent'] == http_sapl.USER_AGENT
+
+
+def test_sessao_dada_vale_para_todas_as_threads(cliente, sessao):
+    import threading
+
+    vistas = []
+    thread = threading.Thread(target=lambda: vistas.append(cliente.sessao))
+    thread.start()
+    thread.join()
+    assert vistas == [sessao] and cliente.sessao is sessao
+
+
+def test_janela_e_margem_configuraveis_e_ao_reservar(sessao, relogio):
+    reservas = []
+    cliente = ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=relogio.dormir,
+        limite_por_minuto=2,
+        janela_segundos=0.2,
+        margem_segundos=0.05,
+        ao_reservar=lambda h, s, t: reservas.append((h, s, t)),
+    )
+    sessao.responder(A, texto='ok')
+    for _ in range(3):
+        cliente.get(A)
+    assert [t for _, _, t in reservas] == [1000.0, 1000.0, pytest.approx(1000.25)]
+    assert {h for h, _, _ in reservas} == {'sapl.a.leg.br'}
+    assert cliente.total_requisicoes == 3
+
+
+# --- Limite por servidor (FR-6, FR-7, TR-1) ----------------------------------
+
+C = 'https://sapl.c.leg.br/'
+SEM_DNS = 'https://sapl.sumiu.leg.br/'
+
+
+def _servidor_de(host):
+    return None if 'sumiu' in host else '10.0.0.1'
+
+
+def _cliente_servidor(sessao, relogio, teto=70, **kw):
+    reservas = []
+    cliente = ClienteSAPL(
+        sessao=sessao,
+        relogio=relogio.agora,
+        dormir=relogio.dormir,
+        servidor_de=_servidor_de,
+        limite_por_servidor=teto,
+        ao_reservar=lambda h, s, t: reservas.append((h, s, t)),
+        **kw,
+    )
+    return cliente, reservas
+
+
+def test_teto_do_servidor_soma_os_sites(sessao, relogio):
+    for url in (A, B, C):
+        sessao.responder(url, texto='ok')
+    cliente, reservas = _cliente_servidor(sessao, relogio)
+    inicio = relogio.agora()
+    for _ in range(23):
+        for url in (A, B, C):
+            cliente.get(url)
+    cliente.get(A)  # 70ª: ainda cabe (A tem 24 de 35)
+    assert relogio.agora() == inicio
+    cliente.get(B)  # 71ª no servidor: espera, embora o site B tenha vaga
+    assert relogio.agora() == pytest.approx(inicio + 61)
+    assert {s for _, s, _ in reservas} == {'10.0.0.1'}
+
+
+def test_vale_o_mais_estrito_dos_dois(sessao, relogio):
+    sessao.responder(A, texto='ok')
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=200)
+    for _ in range(35):
+        cliente.get(A)
+    inicio = relogio.agora()
+    cliente.get(A)  # o servidor tem vaga, o site não
+    assert relogio.agora() == pytest.approx(inicio + 61)
+
+
+def test_site_sem_servidor_so_tem_o_limite_do_site(sessao, relogio):
+    sessao.responder(A, texto='ok').responder(SEM_DNS, texto='ok')
+    cliente, reservas = _cliente_servidor(sessao, relogio, teto=35)
+    for _ in range(35):
+        cliente.get(A)
+    inicio = relogio.agora()
+    for _ in range(35):
+        cliente.get(SEM_DNS)
+    assert relogio.agora() == inicio
+    assert reservas[-1][1] is None
+    assert cliente.servidores() == {'10.0.0.1': ['sapl.a.leg.br']}
+
+
+def test_sem_servidor_de_nao_ha_teto(sessao, relogio, cliente):
+    for url in (A, B, C):
+        sessao.responder(url, texto='ok')
+    for _ in range(35):
+        for url in (A, B, C):
+            cliente.get(url)
+    assert relogio.esperas == [] and cliente.servidores() == {}
+
+
+def test_servidor_consultado_uma_vez_por_site(sessao, relogio):
+    consultas = []
+
+    def servidor_de(host):
+        consultas.append(host)
+        return '10.0.0.1'
+
+    sessao.responder(A, texto='ok').responder(B, texto='ok')
+    cliente = ClienteSAPL(
+        sessao=sessao, relogio=relogio.agora, dormir=relogio.dormir, servidor_de=servidor_de
+    )
+    for _ in range(3):
+        cliente.get(A)
+        cliente.get(B)
+    assert consultas == ['sapl.a.leg.br', 'sapl.b.leg.br']
+    assert cliente.servidores() == {'10.0.0.1': ['sapl.a.leg.br', 'sapl.b.leg.br']}
+
+
+def test_definir_limite_por_servidor(sessao, relogio):
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=70)
+    cliente.definir_limite_por_servidor(50)
+    assert cliente.teto('10.0.0.1') == 50 == cliente.limite_por_servidor
+
+
+def test_resolver_servidor(monkeypatch):
+    import socket
+
+    def falso(host):
+        if host == 'sapl.sumiu.leg.br':
+            raise socket.gaierror(-2, 'Name or service not known')
+        return '201.54.51.178'
+
+    monkeypatch.setattr(socket, 'gethostbyname', falso)
+    assert http_sapl.resolver_servidor('sapl.a.leg.br') == '201.54.51.178'
+    assert http_sapl.resolver_servidor('sapl.sumiu.leg.br') is None
+
+
+def test_historico_guarda_as_janelas_dos_servidores(sessao, relogio, tmp_path):
+    import json
+
+    for url in (A, B, C):
+        sessao.responder(url, texto='ok')
+    kw = {'historico': str(tmp_path / 'h.json'), 'relogio_parede': relogio.agora}
+    primeira, _ = _cliente_servidor(sessao, relogio, teto=40, **kw)
+    inicio = relogio.agora()
+    for _ in range(20):
+        primeira.get(A)
+        primeira.get(B)
+    dados = json.loads((tmp_path / 'h.json').read_text(encoding='utf-8'))
+    assert len(dados['servidores']['10.0.0.1']) == 40
+    # outra execução logo depois: o servidor ainda está cheio
+    segunda, _ = _cliente_servidor(sessao, relogio, teto=40, **kw)
+    segunda.get(C)
+    assert relogio.agora() == pytest.approx(inicio + 61)
+
+
+def test_historico_sem_servidores_ainda_e_lido(sessao, relogio, tmp_path):
+    import json
+
+    caminho = tmp_path / 'h.json'
+    caminho.write_text(
+        json.dumps({'requisicoes': {'sapl.a.leg.br': [relogio.agora()] * 35}, 'bloqueios': {}})
+    )
+    sessao.responder(A, texto='ok')
+    cliente, _ = _cliente_servidor(
+        sessao, relogio, historico=str(caminho), relogio_parede=relogio.agora
+    )
+    inicio = relogio.agora()
+    cliente.get(A)
+    assert relogio.agora() == pytest.approx(inicio + 61)
+
+
+# --- Redução do teto com 429 (FR-8, TR-3) ------------------------------------
+
+
+def _com_429(sessao, *urls):
+    for url in urls:
+        sessao.responder(url, status=429, headers={'Retry-After': '1'}).responder(url, texto='ok')
+
+
+def test_429_de_dois_sites_do_servidor_reduz_o_teto_uma_vez(sessao, relogio, caplog):
+    _com_429(sessao, A, B, C)
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=120)
+    with caplog.at_level(logging.WARNING, logger='sapyl'):
+        cliente.get(A)
+        assert cliente.teto('10.0.0.1') == 120
+        cliente.get(B)
+        assert cliente.teto('10.0.0.1') == 60
+        cliente.get(C)  # mesma leva (menos de 10 min): não reduz de novo
+    assert cliente.teto('10.0.0.1') == 60
+    assert cliente.reducoes == [('10.0.0.1', 120, 60)]
+    avisos = [r.getMessage() for r in caplog.records if 'reduzido' in r.getMessage()]
+    assert len(avisos) == 1 and 'de 120 para 60' in avisos[0]
+
+
+def test_429_de_um_site_so_nao_reduz(sessao, relogio):
+    sessao.responder(A, status=429, headers={'Retry-After': '1'})
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=120, max_tentativas=4)
+    cliente.get(A)
+    assert len(sessao.pedidos) == 4 and cliente.teto('10.0.0.1') == 120
+    assert cliente.reducoes == []
+
+
+def test_429_espalhados_mais_de_10_min_nao_reduzem(sessao, relogio):
+    _com_429(sessao, A, B)
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=120)
+    cliente.get(A)
+    relogio.t += 601
+    cliente.get(B)
+    assert cliente.reducoes == []
+
+
+def test_nova_leva_depois_de_10_min_reduz_de_novo_ate_o_piso(sessao, relogio):
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=150)
+    tetos = []
+    for _ in range(4):
+        sessao.limpar(A).limpar(B)
+        _com_429(sessao, A, B)
+        cliente.get(A)
+        cliente.get(B)
+        tetos.append(cliente.teto('10.0.0.1'))
+        relogio.t += 601
+    assert tetos == [75, 37, 35, 35]
+    assert [n for _, _, n in cliente.reducoes] == [75, 37, 35]
+
+
+def test_429_em_site_sem_servidor_nao_reduz_nada(sessao, relogio):
+    _com_429(sessao, SEM_DNS)
+    cliente, _ = _cliente_servidor(sessao, relogio, teto=120)
+    cliente.get(SEM_DNS)
+    assert cliente.reducoes == []
+
+
+def test_dns_de_site_que_ja_respondeu_e_tentado_de_novo(cliente, sessao, relogio):
+    """Achado V1: a internet caiu no meio da execução; o nome do site existe."""
+    url = A + 'materia/1'
+    sessao.responder(A, texto='ok')
+    sessao.responder(url, erro=_erro_dns()).responder(url, erro=_erro_dns())
+    sessao.responder(url, texto='voltou')
+    assert cliente.get(A).ok
+    r = cliente.get(url)
+    assert r.ok and r.tentativas == 3 and relogio.esperas[:2] == [5, 15]
+
+
+def test_dns_de_site_que_nunca_respondeu_continua_sem_nova_tentativa(cliente, sessao):
+    sessao.responder(A, erro=_erro_dns())
+    sessao.responder(B, texto='ok')
+    cliente.get(B)  # outro site respondeu: não muda nada para este
+    r = cliente.get(A)
+    assert not r.ok and r.erro == 'dns' and r.tentativas == 1

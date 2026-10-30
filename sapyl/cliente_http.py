@@ -10,11 +10,28 @@ Garante, para cada site (host):
   motivo (`HTTP 429`, `HTTP 503`, `timeout`, `conexao`);
 - erros que não passam sozinhos voltam na hora, numa tentativa só:
   certificado inválido (`ssl`) e nome que não existe mais no DNS (`dns`).
+  Exceção: se o site já respondeu nesta execução, uma falha de DNS é da
+  nossa rede (internet caiu), não do site: vira `conexao` e é tentada de novo.
+
+Por servidor (o endereço IP do site, `servidor_de`): quase todas as casas
+ficam no mesmo servidor do Interlegis, então cada requisição também conta na
+janela do servidor, com no máximo `limite_por_servidor` requisições em
+qualquer janela de 60 s (+ a margem), somando todas as casas dele. Uma
+requisição espera até o site **e** o servidor terem vaga. Se sites
+diferentes do mesmo servidor recebem 429 em menos de 10 minutos, o teto desse
+servidor cai pela metade até o fim da execução (nunca abaixo de 35); cada
+redução vai para o log e para `reducoes`.
 
 Com `historico` (um arquivo JSON), os horários das requisições recentes de
-cada site são guardados no disco a cada requisição e lidos quando o cliente
+cada site e de cada servidor são guardados no disco a cada requisição e lidos quando o cliente
 começa. Assim, uma execução retomada logo depois de interrompida (ou outro
 projeto rodado em seguida) não passa do limite somando as duas.
+
+Várias casas podem usar o mesmo cliente ao mesmo tempo (threads): uma trava
+protege as janelas, os bloqueios e o histórico; cada thread tem a sua sessão
+`requests`; as esperas acontecem fora da trava. Com o evento `parar` ligado
+(Ctrl+C), toda espera acaba na hora e a próxima requisição lança
+`Interrompido`.
 
 404 e outros 4xx voltam na hora, sem nova tentativa: quem chamou decide
 (fim da paginação, casa sem API, matéria inexistente).
@@ -28,6 +45,7 @@ linha do log é a da resposta, que pode chegar segundos depois.
 import json
 import os
 import socket
+import threading
 import time
 from collections import defaultdict, deque
 from collections.abc import Callable, Iterator
@@ -41,14 +59,18 @@ import requests
 from urllib3.exceptions import NameResolutionError
 
 from sapyl import __version__, registro
+from sapyl.padroes import (
+    JANELA_LENTIDAO,
+    JANELA_SEGUNDOS,
+    LIMITE_POR_SERVIDOR,
+    LIMITE_POR_SITE,
+    MARGEM_SEGUNDOS,
+    PISO_POR_SERVIDOR,
+)
 
-# Limite observado nos servidores do SAPL (teste de 15/10/2026)
-LIMITE_POR_MINUTO = 35
-JANELA_SEGUNDOS = 60.0
-# Folga além da janela (achado V4): com atraso de rede, requisições enviadas a
-# 60,0 s uma da outra podem chegar ao servidor a menos de 60 s. Assim, a 1ª e a
+# Nomes antigos (os valores ficam em `sapyl.padroes`). Com a margem, a 1ª e a
 # 36ª requisição a um site saem sempre a pelo menos 61 s uma da outra.
-MARGEM_SEGUNDOS = 1.0
+LIMITE_POR_MINUTO = LIMITE_POR_SITE
 JANELA_COM_MARGEM = JANELA_SEGUNDOS + MARGEM_SEGUNDOS
 MAX_TENTATIVAS = 4
 ESPERAS_ERRO = (5, 15, 45)  # segundos, para erro de rede/timeout/5xx
@@ -62,6 +84,13 @@ log = registro.logger('http')
 
 # Quantos níveis de "causado por" seguir ao procurar a causa de um erro de rede
 PROFUNDIDADE_CAUSAS = 8
+
+
+class Interrompido(KeyboardInterrupt):
+    """A execução foi interrompida (Ctrl+C): o cliente não faz mais requisições.
+
+    É um `KeyboardInterrupt`, então quem já trata o Ctrl+C trata isto também.
+    """
 
 
 @dataclass
@@ -131,6 +160,14 @@ def criar_sessao() -> requests.Session:
     return sessao
 
 
+def resolver_servidor(host: str) -> str | None:
+    """Endereço IP de `host` (o servidor), ou None se o nome não existe no DNS."""
+    try:
+        return socket.gethostbyname(host)
+    except (OSError, UnicodeError):
+        return None
+
+
 def ler_retry_after(valor: str | None, agora_epoch: float | None = None) -> float:
     """Segundos de espera a partir do cabeçalho Retry-After (número ou data HTTP)."""
     if valor is None or str(valor).strip() == '':
@@ -149,34 +186,140 @@ def ler_retry_after(valor: str | None, agora_epoch: float | None = None) -> floa
 
 
 class ClienteSAPL:
-    """Faz GETs respeitando o limite por site. Uma instância por execução."""
+    """Faz GETs respeitando o limite por site. Uma instância por execução.
+
+    `sessao`: uma sessão para todas as threads (testes); sem ela, cada thread
+    cria a sua. `dormir`: como esperar (padrão: `parar.wait`, que acorda no
+    Ctrl+C). `janela_segundos` e `margem_segundos` só mudam nos testes com
+    threads de verdade. `ao_reservar(host, servidor, horario)` é chamada, sob
+    a trava, a cada requisição liberada, com o horário que conta para o limite.
+
+    `servidor_de(host)` diz o servidor de cada site (`resolver_servidor` no
+    programa); é chamada uma vez por site. Sem ela (padrão dos testes), não há
+    limite por servidor. Um site sem servidor (None) só tem o limite do site.
+    """
 
     def __init__(
         self,
         sessao: Any = None,
         relogio: Callable[[], float] = time.monotonic,
-        dormir: Callable[[float], None] = time.sleep,
+        dormir: Callable[[float], object] | None = None,
         limite_por_minuto: int = LIMITE_POR_MINUTO,
         max_tentativas: int = MAX_TENTATIVAS,
         timeout: tuple[float, float] = TIMEOUT_PADRAO,
         historico: str | None = None,
         relogio_parede: Callable[[], float] = time.time,
+        parar: threading.Event | None = None,
+        janela_segundos: float = JANELA_SEGUNDOS,
+        margem_segundos: float = MARGEM_SEGUNDOS,
+        ao_reservar: Callable[[str, str | None, float], None] | None = None,
+        servidor_de: Callable[[str], str | None] | None = None,
+        limite_por_servidor: int = LIMITE_POR_SERVIDOR,
     ) -> None:
-        self.sessao = sessao if sessao is not None else criar_sessao()
+        self._sessao_fixa = sessao
+        self._local = threading.local()
+        self._trava = threading.Lock()
+        self.parar = parar if parar is not None else threading.Event()
         self.relogio = relogio
         self.relogio_parede = relogio_parede
-        self.dormir = dormir
+        self.dormir = dormir if dormir is not None else self.parar.wait
         self.limite = limite_por_minuto
         self.max_tentativas = max_tentativas
         self.timeout = timeout
         self.historico = historico
+        self.janela = janela_segundos + margem_segundos
+        self.ao_reservar = ao_reservar
         self._janelas = defaultdict(deque)  # host -> horários das últimas requisições
         self._parede = defaultdict(deque)  # os mesmos horários, no relógio de parede
         self._bloqueado_ate = {}  # host -> horário (após um 429)
         self._bloqueado_parede = {}
+        self.servidor_de = servidor_de
+        self.limite_por_servidor = limite_por_servidor
+        self._servidores: dict[str, str | None] = {}  # host -> servidor
+        self._janelas_srv = defaultdict(deque)  # servidor -> horários
+        self._parede_srv = defaultdict(deque)
+        self._teto: dict[str, int] = {}  # servidor -> teto atual (se mudou)
+        self._429s = defaultdict(list)  # servidor -> [(horário, host)] dos 429 recentes
+        self._ultima_reducao: dict[str, float] = {}
+        self.reducoes: list[tuple[str, int, int]] = []  # (servidor, teto antigo, novo)
         self.total_requisicoes = 0
+        self._responderam: set[str] = set()  # sites que já responderam nesta execução
         if historico:
             self._carregar_historico()
+
+    @property
+    def sessao(self) -> Any:
+        """Sessão HTTP desta thread (ou a sessão dada ao criar o cliente)."""
+        if self._sessao_fixa is not None:
+            return self._sessao_fixa
+        sessao = getattr(self._local, 'sessao', None)
+        if sessao is None:
+            sessao = self._local.sessao = criar_sessao()
+        return sessao
+
+    def servidor(self, host: str) -> str | None:
+        """Servidor do site (consultado uma vez por site), ou None."""
+        if self.servidor_de is None:
+            return None
+        with self._trava:
+            if host in self._servidores:
+                return self._servidores[host]
+        endereco = self.servidor_de(host)  # fora da trava: o DNS pode demorar
+        with self._trava:
+            return self._servidores.setdefault(host, endereco)
+
+    def teto(self, servidor: str) -> int:
+        """Requisições por minuto permitidas agora no servidor."""
+        return self._teto.get(servidor, self.limite_por_servidor)
+
+    def _anotar_429(self, host: str, servidor: str | None) -> None:
+        """Reduz o teto do servidor se sites diferentes dele receberam 429 (sob a trava)."""
+        if servidor is None:
+            return
+        agora = self.relogio()
+        recentes = [(t, h) for t, h in self._429s[servidor] if agora - t < JANELA_LENTIDAO]
+        recentes.append((agora, host))
+        self._429s[servidor] = recentes
+        if len({h for _, h in recentes}) < 2:
+            return
+        ultima = self._ultima_reducao.get(servidor)
+        if ultima is not None and agora - ultima < JANELA_LENTIDAO:
+            return
+        antigo = self.teto(servidor)
+        novo = max(PISO_POR_SERVIDOR, antigo // 2)
+        self._429s[servidor] = []  # a mesma leva de 429 não conta duas vezes
+        self._ultima_reducao[servidor] = agora
+        if novo < antigo:
+            self._teto[servidor] = novo
+            self.reducoes.append((servidor, antigo, novo))
+            log.warning(
+                'Servidor %s sobrecarregado (429 de %d casas): limite reduzido de %d para '
+                '%d requisições por minuto até o fim da execução',
+                servidor,
+                len({h for _, h in recentes}),
+                antigo,
+                novo,
+            )
+
+    def definir_limite_por_servidor(self, limite: int) -> None:
+        """Troca o teto inicial dos servidores (o `paralelo` do config.json)."""
+        with self._trava:
+            self.limite_por_servidor = limite
+            self._teto.clear()
+
+    def servidores(self) -> dict[str, list[str]]:
+        """{servidor: sites} dos sites usados nesta execução (sem os que não têm servidor)."""
+        with self._trava:
+            grupos: dict[str, list[str]] = {}
+            for host, servidor in self._servidores.items():
+                if servidor is not None:
+                    grupos.setdefault(servidor, []).append(host)
+            return grupos
+
+    def verificar_parada(self) -> None:
+        """Lança `Interrompido` se a execução foi interrompida (evento `parar`)."""
+        if self.parar.is_set():
+            raise Interrompido
 
     # --- Histórico em disco (limite entre execuções) -------------------------
 
@@ -192,9 +335,14 @@ class ClienteSAPL:
         agora, parede = self.relogio(), self.relogio_parede()
         for host, horarios in (dados.get('requisicoes') or {}).items():
             for t in sorted(horarios)[-self.limite :]:
-                if parede - t < JANELA_COM_MARGEM:
+                if parede - t < self.janela:
                     self._janelas[host].append(agora - (parede - t))
                     self._parede[host].append(t)
+        for servidor, horarios in (dados.get('servidores') or {}).items():
+            for t in sorted(horarios):
+                if parede - t < self.janela:
+                    self._janelas_srv[servidor].append(agora - (parede - t))
+                    self._parede_srv[servidor].append(t)
         for host, ate in (dados.get('bloqueios') or {}).items():
             if ate > parede:
                 self._bloqueado_ate[host] = agora + (ate - parede)
@@ -204,12 +352,15 @@ class ClienteSAPL:
         parede = self.relogio_parede()
         dados = {
             'requisicoes': {
-                h: [t for t in ts if parede - t < JANELA_COM_MARGEM]
-                for h, ts in self._parede.items()
+                h: [t for t in ts if parede - t < self.janela] for h, ts in self._parede.items()
+            },
+            'servidores': {
+                s: [t for t in ts if parede - t < self.janela] for s, ts in self._parede_srv.items()
             },
             'bloqueios': {h: t for h, t in self._bloqueado_parede.items() if t > parede},
         }
-        dados['requisicoes'] = {h: ts for h, ts in dados['requisicoes'].items() if ts}
+        for parte in ('requisicoes', 'servidores'):
+            dados[parte] = {k: ts for k, ts in dados[parte].items() if ts}
         temporario = f'{self.historico}.tmp'
         try:
             with open(temporario, 'w', encoding='utf-8') as arquivo:
@@ -218,26 +369,56 @@ class ClienteSAPL:
         except OSError as erro:
             log.warning('Não foi possível gravar o histórico de requisições: %s', erro)
 
-    def _aguardar_vez(self, host):
-        """Dorme o necessário para a próxima requisição a `host` respeitar o limite."""
+    def _espera_da_janela(self, janela: deque, limite: int, agora: float) -> float:
+        """Quanto falta para a janela ter vaga (0 se já tem). Descarta os horários velhos."""
+        while janela and agora - janela[0] >= self.janela:
+            janela.popleft()
+        return 0.0 if len(janela) < limite else self.janela - (agora - janela[0])
+
+    def _reservar(self, host: str, servidor: str | None, agora: float) -> None:
+        """Conta a requisição nas janelas do site e do servidor (sob a trava)."""
+        parede_agora = self.relogio_parede()
+        self._janelas[host].append(agora)
+        parede = self._parede[host]
+        parede.append(parede_agora)
+        while len(parede) > self.limite:
+            parede.popleft()
+        if servidor is not None:
+            self._janelas_srv[servidor].append(agora)
+            parede = self._parede_srv[servidor]
+            parede.append(parede_agora)
+            while parede and parede_agora - parede[0] >= self.janela:
+                parede.popleft()
+        self.total_requisicoes += 1
+        if self.ao_reservar is not None:
+            self.ao_reservar(host, servidor, agora)
+        if self.historico:
+            self._salvar_historico()
+
+    def _aguardar_vez(self, host, servidor=None):
+        """Espera o necessário para a próxima requisição a `host` respeitar os limites.
+
+        Espera o mais longo dos dois: o do site e o do servidor.
+        """
         while True:
-            agora = self.relogio()
-            espera = self._bloqueado_ate.get(host, 0) - agora
-            if espera <= 0:
-                janela = self._janelas[host]
-                while janela and agora - janela[0] >= JANELA_COM_MARGEM:
-                    janela.popleft()
-                if len(janela) < self.limite:
-                    janela.append(agora)
-                    parede = self._parede[host]
-                    parede.append(self.relogio_parede())
-                    while len(parede) > self.limite:
-                        parede.popleft()
-                    if self.historico:
-                        self._salvar_historico()
-                    return
-                espera = JANELA_COM_MARGEM - (agora - janela[0])
-            # Espera mínima: evita laço infinito com esperas de 1e-14 s (arredondamento)
+            with self._trava:
+                self.verificar_parada()
+                agora = self.relogio()
+                espera = self._bloqueado_ate.get(host, 0) - agora
+                if espera <= 0:
+                    espera = self._espera_da_janela(self._janelas[host], self.limite, agora)
+                    if servidor is not None:
+                        espera = max(
+                            espera,
+                            self._espera_da_janela(
+                                self._janelas_srv[servidor], self.teto(servidor), agora
+                            ),
+                        )
+                    if espera <= 0:
+                        self._reservar(host, servidor, agora)
+                        return
+            # Fora da trava, para as outras casas seguirem. Espera mínima: evita
+            # laço infinito com esperas de 1e-14 s (arredondamento)
             self.dormir(max(espera, ESPERA_MINIMA))
 
     def get(
@@ -249,11 +430,11 @@ class ClienteSAPL:
     ) -> Resposta:
         """GET respeitando o limite do site, com retentativas. Nunca lança erro de rede."""
         host = urlparse(url).hostname or ''
+        servidor = self.servidor(host)
         tentativas = max_tentativas or self.max_tentativas
         status, erro = None, ''
         for tentativa in range(1, tentativas + 1):
-            self._aguardar_vez(host)
-            self.total_requisicoes += 1
+            self._aguardar_vez(host, servidor)
             enviada = datetime.now().strftime('%H:%M:%S.%f')[:-3]
             bruta = None
             try:
@@ -262,6 +443,9 @@ class ClienteSAPL:
                 status, erro = None, 'timeout'
             except requests.RequestException as falha:
                 status, erro = None, motivo_permanente(falha) or 'conexao'
+                if erro == 'dns' and host in self._responderam:
+                    # o nome existia há pouco: é a nossa rede (achado V1 da validação)
+                    erro = 'conexao'
                 if erro != 'conexao':
                     # certificado inválido ou nome inexistente: tentar de novo não resolve
                     self._registrar(host, url, erro, tentativa, 0, enviada)
@@ -269,6 +453,7 @@ class ClienteSAPL:
                     return Resposta(url, False, None, erro, tentativa, None)
             else:
                 status = bruta.status_code
+                self._responderam.add(host)
                 if status == 200:
                     self._registrar(host, url, status, tentativa, 0, enviada)
                     return Resposta(url, True, status, '', tentativa, bruta)
@@ -280,6 +465,8 @@ class ClienteSAPL:
 
             ultima = tentativa == tentativas
             if status == 429:
+                with self._trava:
+                    self._anotar_429(host, servidor)
                 espera = ler_retry_after(bruta.headers.get('Retry-After'))
             else:
                 espera = ESPERAS_ERRO[min(tentativa - 1, len(ESPERAS_ERRO) - 1)]
@@ -297,12 +484,14 @@ class ClienteSAPL:
                 break
             if status == 429:
                 # O site inteiro fica bloqueado até passar o Retry-After
-                self._bloqueado_ate[host] = self.relogio() + espera
-                self._bloqueado_parede[host] = self.relogio_parede() + espera
-                if self.historico:
-                    self._salvar_historico()
+                with self._trava:
+                    self._bloqueado_ate[host] = self.relogio() + espera
+                    self._bloqueado_parede[host] = self.relogio_parede() + espera
+                    if self.historico:
+                        self._salvar_historico()
             else:
                 self.dormir(espera)
+                self.verificar_parada()
         log.warning('Falha em %s: %s (%d tentativas)', url, erro, tentativas)
         return Resposta(url, False, status, erro, tentativas, None)
 

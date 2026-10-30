@@ -315,6 +315,10 @@ saneamento basico</code></pre>
         <p>Cada site do SAPL aceita no máximo <strong>35 requisições por minuto</strong>, e o
           SAPyL respeita esse limite. Uma casa com 1 000 matérias leva cerca de 30 minutos. Se a
           execução parar, rode de novo, digite o mesmo nome e escolha <em>retomar</em>.</p>
+        <p>O SAPyL trabalha em <strong>até 8 casas ao mesmo tempo</strong>. Como quase todas
+          ficam no mesmo servidor do Interlegis, elas dividem um limite de
+          <strong>120 requisições por minuto</strong> por servidor: uma busca em todas as casas
+          fica cerca de três vezes mais rápida do que uma casa por vez, mas ainda leva horas.</p>
         <div class="ferramenta" data-tempo hidden>
           <label for="qtd-materias">Matérias numa casa</label>
           <input id="qtd-materias" type="number" min="0" step="50" value="1000" inputmode="numeric">

@@ -92,6 +92,9 @@ apertar `Enter`. Uma versão para baixar e abrir com dois cliques está no
   Windows, na primeira tela do instalador, marque **"Add python.exe to
   PATH"**. No Linux, o Python já vem instalado; no Ubuntu e no Debian,
   instale também o pacote do ambiente virtual: `sudo apt install python3-venv`.
+  Se você rodou o `python3 -m venv .venv` antes de instalar esse pacote, ele
+  deixou uma pasta `.venv` pela metade: apague-a (`rm -rf .venv`) e rode o
+  comando de novo.
 - **git** (opcional, facilita atualizar): <https://git-scm.com/downloads>.
 
 **2. Abra o terminal**

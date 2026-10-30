@@ -117,3 +117,37 @@ def test_teste_em_paralelo_da_a_mesma_tabela_na_ordem(cliente, sessao):
     assert paralelo.at[0, 'url_final'] == 'https://novo0.br/'
     assert len(sessao.pedidos) - pedidos == pedidos  # mesmas requisições
     assert sessao.contar(urls[1]) == 2  # nome inexistente: uma tentativa em cada teste
+
+
+def test_planilha_ausente_ou_sem_colunas_vira_entrada_invalida(tmp_path):
+    from sapyl.padroes import EntradaInvalida
+
+    with pytest.raises(EntradaInvalida, match='Não encontrei a planilha'):
+        cl.importar_casas(tmp_path / 'casas_legislativas.xlsx')
+    pd.DataFrame({'Estado': ['AC']}).to_excel(tmp_path / 'c.xlsx', index=False)
+    with pytest.raises(EntradaInvalida, match='UF, URL do serviço'):
+        cl.importar_casas(tmp_path / 'c.xlsx')
+    (tmp_path / 'ruim.xlsx').write_text('x')
+    with pytest.raises(EntradaInvalida, match='Não consegui ler'):
+        cl.importar_casas(tmp_path / 'ruim.xlsx')
+
+
+def test_ufs_e_filtrar_estados():
+    casas = pd.DataFrame(
+        {
+            'url': ['https://a/', 'https://b/', 'https://c/', 'https://d/'],
+            'uf': ['SP', 'AC', 'SP', ''],
+        }
+    )
+    assert cl.ufs(casas) == ['AC', 'SP']
+    assert list(cl.filtrar_estados(casas, ['sp'])['url']) == ['https://a/', 'https://c/']
+    assert len(cl.filtrar_estados(casas, [])) == 4
+    assert list(cl.filtrar_estados(casas, cl.ESTADOS_SUL_SUDESTE)['uf']) == ['SP', 'SP']
+
+
+def test_limite_de_teste_e_limites_antigos():
+    casas = pd.DataFrame({'url': [f'https://{i}/' for i in range(60)], 'uf': ['SP'] * 60})
+    assert len(cl.limitar_casas(casas, cl.LIMITE_TESTE)) == cl.CASAS_NO_TESTE
+    assert len(cl.limitar_casas(casas, cl.LIMITE_TODAS)) == 60
+    assert cl.limitar_casas(casas, '3')['url'].iloc[0] == 'https://10/'
+    assert len(cl.limitar_casas(casas, '2')) == 50

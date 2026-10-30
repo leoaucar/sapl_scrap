@@ -6,6 +6,8 @@ A tabela de casas (`casas_resultado.csv`) tem as colunas
 """
 
 import os
+import zipfile
+from collections.abc import Iterable
 from pathlib import Path
 
 import pandas as pd
@@ -14,10 +16,18 @@ from sapyl import registro
 from sapyl.cliente_http import ClienteSAPL
 from sapyl.colunas import COLUNAS_CASAS
 from sapyl.links import endereco_final, host
-from sapyl.padroes import Mapear, em_sequencia
+from sapyl.padroes import EntradaInvalida, Mapear, em_sequencia
 
 # Estados usados quando a busca é restrita a Sul e Sudeste
 ESTADOS_SUL_SUDESTE = ['RJ', 'SP', 'RS', 'SC', 'MG', 'ES', 'PR']
+
+# Valores de `limite` no config.json: todas as casas, ou um teste com 10.
+# '2' (50 primeiras) e '3' (50 últimas) só existem em projetos antigos.
+LIMITE_TODAS = '1'
+LIMITE_TESTE = '4'
+CASAS_NO_TESTE = 10
+
+COLUNAS_PLANILHA = ('UF', 'URL do serviço')
 
 # Opções do menu de limite de casas (para testes)
 OPCOES_LIMITE = {
@@ -39,8 +49,28 @@ def _com_barra(url: object) -> str:
 
 
 def importar_casas(planilha: str | Path) -> pd.DataFrame:
-    """Lê a planilha de casas e devolve um DataFrame com `url` e `uf`."""
-    df = pd.read_excel(planilha)
+    """Lê a planilha de casas e devolve um DataFrame com `url` e `uf`.
+
+    Planilha ausente, ilegível ou sem as colunas `UF` e `URL do serviço` vira
+    `EntradaInvalida`, com a mensagem para a pessoa.
+    """
+    planilha = Path(planilha)
+    if not planilha.is_file():
+        raise EntradaInvalida(
+            f'Não encontrei a planilha de casas legislativas {planilha.resolve()}. '
+            'Rode o sapyl na pasta que tem a pasta arquivos_csv/ (a do repositório traz '
+            'a planilha casas_legislativas.xlsx).'
+        )
+    try:
+        df = pd.read_excel(planilha)
+    except (OSError, ValueError, zipfile.BadZipFile) as erro:
+        raise EntradaInvalida(f'Não consegui ler a planilha {planilha}: {erro}') from erro
+    faltam = [c for c in COLUNAS_PLANILHA if c not in df.columns]
+    if faltam:
+        raise EntradaInvalida(
+            f'A planilha {planilha} não tem a(s) coluna(s) {", ".join(faltam)}; '
+            'o programa usa as colunas UF e URL do serviço.'
+        )
     df = df[df['URL do serviço'].notna()]
     return pd.DataFrame(
         {
@@ -133,6 +163,19 @@ def filtrar_sul_sudeste(casas: pd.DataFrame) -> pd.DataFrame:
     return casas[casas['uf'].isin(ESTADOS_SUL_SUDESTE)].reset_index(drop=True)
 
 
+def ufs(casas: pd.DataFrame) -> list[str]:
+    """As UFs da tabela, em ordem alfabética, sem repetir nem vazias."""
+    return sorted({str(u) for u in casas['uf'] if str(u).strip()})
+
+
+def filtrar_estados(casas: pd.DataFrame, estados: Iterable[str]) -> pd.DataFrame:
+    """Só as casas dos `estados` (siglas); lista vazia = todas."""
+    estados = {e.strip().upper() for e in estados}
+    if not estados:
+        return casas.reset_index(drop=True)
+    return casas[casas['uf'].isin(estados)].reset_index(drop=True)
+
+
 def limitar_casas(casas: pd.DataFrame, opcao: str) -> pd.DataFrame:
     """Aplica a opção do menu de limite (veja OPCOES_LIMITE)."""
     opcao = str(opcao)
@@ -140,8 +183,8 @@ def limitar_casas(casas: pd.DataFrame, opcao: str) -> pd.DataFrame:
         casas = casas[:50]
     elif opcao == '3':
         casas = casas[-50:]
-    elif opcao == '4':
-        casas = casas[:10]
+    elif opcao == LIMITE_TESTE:
+        casas = casas[:CASAS_NO_TESTE]
     elif opcao != '1':
         raise ValueError(f'Opção de limite inválida: {opcao}')
     return casas.reset_index(drop=True)

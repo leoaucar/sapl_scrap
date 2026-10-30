@@ -23,7 +23,7 @@ Rules for every task (same as earlier specs):
     `questionary` or `prompt_toolkit`.
   - Tests: `test_perguntas.py` (texto forms, menus through pipe input,
     Ctrl+C, mode choice).
-- [ ] **T02 Keywords, spreadsheet and states** (FR-7, FR-10, FR-12, FR-13; plan §6.3)
+- [x] **T02 Keywords, spreadsheet and states** (FR-7, FR-10, FR-12, FR-13; plan §6.3)
   - `palavras.ler_palavras` raising `EntradaInvalida` (no file, no column,
     empty); `palavras.descrever` (query → plain words).
   - `casas`: spreadsheet check with `EntradaInvalida`, `ufs_da_planilha`,

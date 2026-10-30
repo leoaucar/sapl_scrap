@@ -72,6 +72,21 @@ Rules for every task (same as earlier specs):
   - Tests: summaries with/without failures; offer yes/no/not asked;
     each row of the error table.
 
+## Phase C2: Amendment after the first use (spec FR-23, FR-24)
+
+- [ ] **T11 Voltar** (FR-23; plan §10a)
+  - `Voltar` in `perguntas.py` (both modes); step loop in the new-project,
+    resume, update and authors flows; confirmation `Começar / ← Voltar /
+    Cancelar`.
+  - Tests: back and forth through every step; Voltar from the first step;
+    texto `<`; menus via pipe input.
+- [ ] **T12 Organised run output** (FR-24; plan §10a)
+  - Header and stage lines; "Começando" to the log; `✓ <host>: …`; panel in
+    sections; two-line texto block; structured counters.
+  - Tests: recording console render of every section; texto block; terminal
+    lines of a full run.
+- [ ] **T12b Docs** for T11–T12 (README, page).
+
 ## Phase D: Docs and validation
 
 - [x] **T09 Documentation and version**

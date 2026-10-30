@@ -1,7 +1,7 @@
 # Validation: Parallel runs (several houses at once)
 
 - **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Tasks:** [tasks.md](tasks.md)
-- **Status:** In progress
+- **Status:** Passed (2026-10-29)
 - **Run by / date:** Claude Code with the user, 2026-10-29
 
 Checks on the implementation branch after T01–T13, against the real sites.
@@ -134,9 +134,9 @@ matters are done; then resume.
 
 | Check | Expected | Result |
 |---|---|---|
-| Exits within 30 s, with the resume message, no traceback | yes | ___ s |
-| Resume finishes; only in-flight items requested twice (log) | yes | |
-| Same keys as `par_seq` | yes | |
+| Exits within 30 s, with the resume message, no traceback | yes | ✅ 0.14 s (SIGINT at 20:47:33, Rio Branco matter 341 of 1 010, 521 of 1 190 `ok`); "Parando: esperando 1 casa(s)…" then the resume message, no traceback |
+| Resume finishes; only in-flight items requested twice (log) | yes | ✅ 0 of the 521 `ok` matters scraped again, 0 search pages; the one `materialegislativa/21081/` request in the resume log is the title lookup of an attached matter (not yet in the cache), not a re-scrape. 21 min 06 s, 1 timeout retried |
+| Same keys as `par_seq` | yes | ✅ 1 190 = 1 190, same order, same statuses (all `ok`); limits: host ≤ 35, server ≤ 120 over both runs |
 
 ## 5. Update and authors/procedure in parallel — AC 6
 
@@ -144,16 +144,16 @@ On `par_8`: update mode (no `Relevante`), then option 3.
 
 | Check | Expected | Result |
 |---|---|---|
-| Update: same keys, statuses `ok`, limits held | yes | |
-| Option 3: `Autoria`/`Tramite` filled, `fonte_autoria` = `api`, limits held | yes | |
+| Update: same keys, statuses `ok`, limits held | yes | ✅ `par_8_resultado_final_ATUALIZADO_29_10_2026.csv`: 1 190 rows, same keys and order, all `ok`, 28 min 58 s (21:09–21:38); 1 190 requests (names from the cache), host ≤ 35/60 s, server ≤ 70/60 s, 0 × 429 |
+| Option 3: `Autoria`/`Tramite` filled, `fonte_autoria` = `api`, limits held | yes | ✅ on the updated table: 1 190 `ok` / 1 190 `ok`, 0 errors, 1 h 01 min 45 s (21:38–22:40); `fonte_autoria` 1 189 `api`, 1 `api+html` (an isolated 404 on one list, as in spec 2); 2 564 requests, host ≤ 35/60 s, server ≤ 70/60 s, 0 × 429. Empty `Autoria` 62 / `Tramite` 376 (Rio Branco 61/363, AL 1/13): spot-checked RB 27827 and 41321, the API and the HTML page have no procedure entries |
 
 ## 6. Docs
 
 | Check | Expected | Result |
 |---|---|---|
-| README explains the parallel run, `paralelo` and the server ceiling | yes | |
-| ROADMAP Phase 2 ticked, time estimate updated | yes | |
-| Project site "Quanto tempo leva?" updated | yes | |
+| README explains the parallel run, `paralelo` and the server ceiling | yes | ✅ "Várias casas ao mesmo tempo", summary and log, code layout (T12) |
+| ROADMAP Phase 2 ticked, time estimate updated | yes | ✅ 1 404 houses / shared server finding, 3–6 h estimate (T12) |
+| Project site "Quanto tempo leva?" updated | yes | ✅ paragraph on 8 houses and the 120/min server ceiling (T12) |
 
 ## 7. Larger ramp — is a higher server ceiling worth it, and safe?
 
@@ -181,13 +181,17 @@ search pages and matters done in the 30 minutes.
 
 | Check | `ramp_120` | `ramp_175` |
 |---|---|---|
-| Max requests per server per 60 s | | |
-| Minutes at the ceiling (≥ 95 % of it) | | |
-| `HTTP 429` (hosts) / slow-downs | | |
-| Response time median / p95 (s) | | |
-| Timeouts / 5xx | | |
-| Requests in 30 min | | |
-| Exit after Ctrl+C (s) | | |
+| Max requests per server per 60 s (`201.54.51.178`, 40 houses) | 120 | 175 |
+| Minutes at the ceiling (≥ 95 % of it) | 18 (22:41–22:58) | 12 (23:16–23:27) |
+| `HTTP 429` (hosts) / slow-downs | 0 / 0 | 0 / 0 |
+| Response time median / p95 (s) | 0.08 / 0.33 | 0.07 / **0.51** (per minute up to 0.77, 23:22–23:26) |
+| Timeouts / 5xx | 0 / 0 | 0 / 0 |
+| Requests on the shared server (whole run) | 2 223 | 2 224 |
+| Whole run (both finished before 30 min, so no Ctrl+C) | 20 min 31 s | 16 min 40 s |
+| Results | 416 matters `ok`, 966 searches (2 incomplete: site 404 on page 1) | same 416 keys, order and statuses (1 incomplete search, same site quirk) |
+
+Other servers seen: `201.54.51.179` (1 house) and `159.60.67.5` (1 house,
+another provider), each ≤ 35/60 s. 8 of the 50 houses no longer exist in DNS.
 
 **Decision rule.** Raise the default to 175 only if, in `ramp_175`: the
 ceiling was actually reached for several minutes (otherwise inconclusive), 0 ×
@@ -197,25 +201,28 @@ decision here, in `padroes.py` and in the README/ROADMAP if it changes.
 
 | Decision | Why (numbers) |
 |---|---|
-| | |
+| **Keep 120** (defaults unchanged: 8 houses, 120 per server) | The ceiling of 175 was reached for 12 minutes with 0 × 429, no slow-down and no timeouts/5xx, and the median did not change, but the p95 response time rose from 0.33 s to 0.51 s (1.55×, above the 1.5× rule), with per-minute p95 up to 0.77 s: a mild sign of strain on the shared server. The gain was 3 min 51 s (19 %) on this run. Revisit with a full run if speed becomes a problem; 150 would be the next step to try. |
 
 ## 8. Result
 
 | Acceptance criterion (spec §8) | Section | Result |
 |---|---|---|
-| 1. Offline suite, CI, coverage | 0 | |
-| 2. Limits per site and per server | 2 | |
-| 3. Same keys as sequential | 1, 2 | |
-| 4. Ramp and final defaults | 3, 7 | |
-| 5. Ctrl+C and resume | 4 | |
-| 6. Update and option 3 in parallel | 5 | |
+| 1. Offline suite, CI, coverage | 0 | ✅ |
+| 2. Limits per site and per server | 2 | ✅ |
+| 3. Same keys as sequential | 1, 2 | ✅ identical tables |
+| 4. Ramp and final defaults | 3, 7 | ✅ §3 skipped (set too small), §7 run: keep 120 |
+| 5. Ctrl+C and resume | 4 | ✅ |
+| 6. Update and option 3 in parallel | 5 | ✅ |
 
 **Issues found** (each becomes a task in `tasks.md`):
 
 | # | Description | Task | Fixed and re-checked |
 |---|---|---|---|
-| | | | |
+| V1 | A one-minute loss of DNS on this machine (18:40–18:41, first `par_seq` run) made every later request fail at once with `dns`, which is never retried: 9 houses lost in one second | T15 | ✅ `dns` from a site that already answered in the run is now retried as `conexao` (tests); the runs after it (`par_8`, `par_int`, update, option 3, ramps) had no `dns` error on a working house |
+| — | Notes, no fix: (a) on the 10 Acre houses the parallel run is not faster (Rio Branco alone bounds it); the gain shows with many houses with work, as in §7. (b) "Buscando os termos" prints before the `paralelo` error (cosmetic, for Phase 2b). (c) A search interrupted by Ctrl+C restarts from page 1 on resume (per house and keyword); resuming from the last page is a Phase 2b / later idea. | — | — |
 
-**Decision:** ☐ merge into `main` ☐ fix and re-run
+**Decision:** ☒ merge into `main` ☐ fix and re-run
 
-**Notes:**
+**Notes:** runs on 2026-10-29 18:34–23:33, one program at a time, from this
+machine. Validation projects `par_seq`, `par_8`, `par_int`, `ramp_120`,
+`ramp_175` stay untracked on disk.

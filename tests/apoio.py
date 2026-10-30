@@ -352,24 +352,29 @@ def sapl_fase1(falhar=True):
 # Menu: 1 novo, 2 retomar, 3 atualizar, 4 autoria e tramitação, 5 ajuda, 6 sair
 
 
-def respostas_novo_projeto(nome='teste', tabela=None, estados='', quantas='1', pdfs='n'):
-    """Projeto novo até "Começar": nome, [lista de casas], estados, quantas, PDFs.
+def respostas_novo_projeto(
+    nome='teste', tabela=None, estados='', quantas='1', pdfs='n', autoria='n'
+):
+    """Projeto novo: nome, [lista de casas], estados, quantas, PDFs, "Começar", autoria.
+
+    `autoria` responde à oferta do fim (autoria e tramitação do resultado);
+    sobra no roteiro, sem problema, quando a oferta não aparece.
 
     `tabela` ('1' usar a lista testada, '2' testar de novo) só quando já existe
     arquivos_csv/casas_resultado.csv; `estados` '' = todos; `quantas` '1' todas,
     '2' teste com 10.
     """
-    return ['1', nome, *([tabela] if tabela else []), estados, quantas, pdfs, '1']
+    return ['1', nome, *([tabela] if tabela else []), estados, quantas, pdfs, '1', autoria]
 
 
-def respostas_retomar(posicao='1'):
-    """Retomar o projeto na `posicao` da lista e continuar."""
-    return ['2', posicao, '1']
+def respostas_retomar(posicao='1', autoria='n'):
+    """Retomar o projeto na `posicao` da lista, continuar e responder à oferta da autoria."""
+    return ['2', posicao, '1', autoria]
 
 
-def respostas_atualizar(*perguntas, posicao='1'):
-    """Atualizar o projeto da `posicao`: respostas (relevantes?, PDFs?) e continuar."""
-    return ['3', posicao, *perguntas, '1']
+def respostas_atualizar(*perguntas, posicao='1', autoria='n'):
+    """Atualizar o projeto da `posicao`: respostas (relevantes?, PDFs?), continuar, autoria."""
+    return ['3', posicao, *perguntas, '1', autoria]
 
 
 def respostas_autoria(posicao='1'):

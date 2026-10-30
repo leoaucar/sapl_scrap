@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from sapyl.colunas import CAMPOS_ESTADO, ETAPA_BUSCA, ETAPA_MATERIA, ETAPA_PDF
+from sapyl.padroes import ConfiguracaoInvalida
 
 
 class Projeto:
@@ -105,10 +106,16 @@ def salvar_config(projeto: Projeto, config: dict[str, Any]) -> None:
 
 
 def carregar_config(projeto: Projeto) -> dict[str, Any] | None:
-    """Configuração salva do projeto, ou None se não houver (projeto de versão antiga)."""
+    """Configuração salva do projeto, ou None se não houver (projeto de versão antiga).
+
+    Um arquivo estragado vira `ConfiguracaoInvalida`, com o caminho na mensagem.
+    """
     if not projeto.config.exists():
         return None
-    return json.loads(projeto.config.read_text(encoding='utf-8'))
+    try:
+        return json.loads(projeto.config.read_text(encoding='utf-8'))
+    except (json.JSONDecodeError, UnicodeDecodeError) as erro:
+        raise ConfiguracaoInvalida(f'{projeto.config}: não é um JSON válido ({erro})') from erro
 
 
 # Situação de um projeto, lida dos arquivos dele (sem nenhuma requisição)

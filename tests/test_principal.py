@@ -523,7 +523,7 @@ def test_palavras_aparecem_em_texto_simples_e_confirmacao(
 
 
 def test_cancelar_nao_cria_nada(projeto_tmp, cliente, sessao, capsys):
-    respostas = respostas_novo_projeto()[:-1] + ['3']
+    respostas = respostas_novo_projeto()[:-2] + ['3']  # Cancelar em vez de Começar
     assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 0
     assert 'Cancelado. Nada foi feito.' in capsys.readouterr().out
     assert not list(projeto_tmp.glob('*_proj')) and sessao.pedidos == []
@@ -531,7 +531,7 @@ def test_cancelar_nao_cria_nada(projeto_tmp, cliente, sessao, capsys):
 
 def test_mudar_respostas_pergunta_de_novo(projeto_tmp, cliente, sessao, sapl):
     # primeiro: só SP, teste com 10; depois muda para AC e PR, todas
-    respostas = ['1', 'teste', 'SP', '2', 'n', '2', 'AC PR', '1', 'n', '1']
+    respostas = ['1', 'teste', 'SP', '2', 'n', '2', 'AC PR', '1', 'n', '1', 'n']
     assert programa.main(roteiro(*respostas), cliente, projeto_tmp) == 0
     config = json.loads((projeto_tmp / 'teste_proj' / 'config.json').read_text(encoding='utf-8'))
     assert config['estados'] == ['AC', 'PR'] and config['limite'] == '1'
@@ -549,8 +549,8 @@ def test_cancelar_a_retomada(projeto_tmp, cliente, sessao, sapl, capsys):
 
 def test_nome_existente_pode_ser_retomado_pelo_novo(projeto_tmp, cliente, sessao, sapl):
     programa.main(roteiro(*NOVO), cliente, projeto_tmp)
-    # novo, nome que existe, retomar este projeto, continuar
-    assert programa.main(roteiro('1', 'teste', '1', '1'), cliente, projeto_tmp) == 0
+    # novo, nome que existe, retomar este projeto, continuar, sem autoria
+    assert programa.main(roteiro('1', 'teste', '1', '1', 'n'), cliente, projeto_tmp) == 0
     logs = list((projeto_tmp / 'teste_proj' / 'logs').glob('*_retomada.log'))
     assert len(logs) == 1
 
@@ -646,3 +646,89 @@ def test_modo_menus_painel_e_resumo_num_quadro(projeto_tmp, cliente, sessao, sap
     assert '[sapl.a.ac.leg.br] Concluída: 2 buscas, 4 matérias (2 com erro), 2 PDFs' in texto
     assert '╭' in texto and 'Resumo (SAPyL' in texto
     assert 'Matéria 1 de' not in texto
+
+
+# --- Oferta da autoria, próximos passos e erros (FR-17, FR-21, FR-21a, FR-22) --
+
+
+def test_oferta_de_autoria_aceita_roda_no_resultado(projeto_tmp, cliente, sessao, sapl, capsys):
+    for i in ('38415', '43301', '43300', '42263'):
+        _sapl_sem_api_de_autoria(sessao, A, i)
+    ler = roteiro(*respostas_novo_projeto(pdfs='s', autoria='s'))
+    assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert 'Buscar agora a autoria e a tramitação das 4 matérias' in ler.perguntas[-1]
+    pasta = projeto_tmp / 'teste_proj'
+    assert (pasta / 'teste_resultado_final_autoria_tramitacao.csv').exists()
+    assert list((pasta / 'logs').glob('teste_*_autoria.log'))
+    assert capsys.readouterr().err.count('===== Resumo') == 2
+
+
+def test_oferta_recusada_e_nao_oferecida_na_autoria(projeto_tmp, cliente, sessao, sapl):
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    assert not list((projeto_tmp / 'teste_proj').glob('*_autoria_tramitacao.csv'))
+    _sapl_sem_api_de_autoria(sessao, A, '38415', '43301', '43300', '42263')
+    ler = roteiro(*respostas_autoria())
+    assert programa.main(ler, cliente, projeto_tmp) == 0
+    assert not any('Buscar agora' in p for p in ler.perguntas)
+
+
+def test_resumo_com_proximos_passos(projeto_tmp, cliente, sessao, sapl, caplog):
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    resumo = [r.getMessage() for r in caplog.records if 'Resumo' in r.getMessage()][-1]
+    assert 'Próximos passos:\n- Abra o resultado numa planilha: ' in resumo
+    assert 'escolha "Retomar um projeto" e depois "teste".' in resumo
+
+
+def test_config_json_estragado(projeto_tmp, cliente, sessao, sapl, capsys):
+    programa.main(roteiro(*NOVO), cliente, projeto_tmp)
+    (projeto_tmp / 'teste_proj' / 'config.json').write_text('{quebrado', encoding='utf-8')
+    capsys.readouterr()
+    assert programa.main(roteiro('2', '1'), cliente, projeto_tmp) == 2
+    saida = capsys.readouterr().out
+    assert 'config.json: não é um JSON válido' in saida and 'Traceback' not in saida
+
+
+@pytest.mark.parametrize(
+    'erro,codigo,texto',
+    [
+        (
+            PermissionError(13, 'Permission denied', '/sem/acesso'),
+            2,
+            'Sem permissão para gravar ou ler /sem/acesso',
+        ),
+        (OSError(28, 'No space left on device', 'x.csv'), 2, 'O disco encheu ao gravar x.csv'),
+        (RuntimeError('quebrou'), 1, 'Erro inesperado: RuntimeError: quebrou'),
+    ],
+)
+def test_erros_viram_mensagens(
+    projeto_tmp, cliente, sessao, sapl, capsys, monkeypatch, erro, codigo, texto
+):
+    def falhar(*args, **kwargs):
+        raise erro
+
+    monkeypatch.setattr(programa, 'executar_projeto', falhar)
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == codigo
+    saida = capsys.readouterr()
+    assert texto in saida.out and 'Traceback' not in saida.out + saida.err
+
+
+def test_erro_inesperado_traceback_no_log_da_execucao(
+    projeto_tmp, cliente, sessao, sapl, capsys, monkeypatch
+):
+    monkeypatch.setattr(programa, 'executar_projeto', lambda *a, **k: 1 / 0)
+    assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 1
+    [log] = (projeto_tmp / 'teste_proj' / 'logs').iterdir()
+    assert f'Os detalhes estão em {log}' in capsys.readouterr().out
+    texto = log.read_text(encoding='utf-8')
+    assert 'Traceback' in texto and 'ZeroDivisionError' in texto
+
+
+def test_erro_inesperado_antes_do_log_vai_para_um_arquivo(
+    projeto_tmp, cliente, capsys, monkeypatch
+):
+    monkeypatch.setattr(programa, 'ler_palavras', lambda pasta: 1 / 0)
+    assert programa.main(roteiro('1'), cliente, projeto_tmp) == 1
+    [arquivo] = projeto_tmp.glob('sapyl_erro_*.log')
+    assert 'ZeroDivisionError' in arquivo.read_text(encoding='utf-8')
+    assert str(arquivo) in capsys.readouterr().out

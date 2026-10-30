@@ -218,7 +218,7 @@ def test_resumo(execucao):
     assert 'Casas pesquisadas: 2 (0 com alguma busca incompleta; 0 fora do ar' in resumo
     assert '8 únicas, 7 raspadas, 1 com erro' in resumo
     assert 'Downloads: 3 baixados, 2 com erro, 2 sem texto original' in resumo
-    assert 'retomar este projeto' in resumo
+    assert 'escolha "Retomar um projeto" e depois "p"' in resumo
 
 
 def test_limite_de_35_por_minuto_em_cada_site(execucao):

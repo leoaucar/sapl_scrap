@@ -69,7 +69,8 @@ def test_resumo_conta_tudo_e_avisa_falhas(tmp_path):
     assert 'Matérias: 4 encontradas, 3 únicas, 2 raspadas, 1 com erro' in texto
     assert 'Downloads: 1 baixados, 0 com erro, 1 sem texto original' in texto
     assert 'Resultado: p/final.csv' in texto
-    assert 'retomar este projeto' in texto
+    assert 'Próximos passos:\n- Abra o resultado numa planilha: p/final.csv' in texto
+    assert '- Houve falhas' in texto and 'escolha "Retomar um projeto"' in texto
 
 
 def test_resumo_sem_falhas_nao_traz_aviso(tmp_path):
@@ -77,7 +78,7 @@ def test_resumo_sem_falhas_nao_traz_aviso(tmp_path):
     for k in ('h/1', 'h/2', 'h/3'):
         estado.registrar('materia', k, 'ok')
     texto = registro.resumo(estado, _links(), 'f.csv', buscas=[('https://h/', 'completa')])
-    assert 'retomar' not in texto and 'Downloads' not in texto
+    assert 'Houve falhas' not in texto and 'Downloads' not in texto
     # modo atualização: sem buscas
     assert 'Casas' not in registro.resumo(estado, _links(), 'f.csv')
 
@@ -141,7 +142,7 @@ def test_resumo_termina_com_o_log_desta_execucao(tmp_path):
     estado = Estado(tmp_path / 'e.csv')
     texto = registro.resumo(estado, [], 'f.csv')
     estado.fechar()
-    assert texto.splitlines()[-1] == f'Log desta execução: {caminho}'
+    assert texto.splitlines()[-1] == f'- Log desta execução: {caminho}'
 
 
 # --- Tempo, casas ao mesmo tempo e servidores no resumo (FR-14) --------------
@@ -220,3 +221,23 @@ def test_configurar_com_o_terminal_da_interface(tmp_path, capsys):
     registro.configurar(tmp_path, 'p')  # troca: o handler antigo sai
     registro.logger().info('depois')
     assert len(guardar.mensagens) == quantas
+
+
+def test_proximos_passos_com_o_caminho_dado():
+    linhas = registro.proximos_passos('r.csv', True, 'escolha "X" e depois "p"', None)
+    assert linhas == [
+        '',
+        'Próximos passos:',
+        '- Abra o resultado numa planilha: r.csv',
+        '- Houve falhas (veja as colunas de status e o log). Para tentar de novo só o que '
+        'falhou, escolha "X" e depois "p".',
+    ]
+
+
+def test_resumo_da_autoria_com_proximos_passos():
+    from collections import Counter
+
+    texto = registro.resumo_autoria(Counter(ok=2, erro=1), 'a.csv', caminho_log='l.log')
+    assert '- Abra o resultado numa planilha: a.csv' in texto
+    assert '"Autoria e tramitação" e a mesma entrada' in texto
+    assert texto.endswith('- Log desta execução: l.log')

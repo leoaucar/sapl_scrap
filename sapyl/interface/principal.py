@@ -26,8 +26,10 @@ No modo "atualizar", as matérias de um `_resultado_final.csv` existente são
 raspadas de novo, com saída em arquivos `_ATUALIZADO_<data>`.
 """
 
+import errno
 import sys
 import time
+import traceback
 from collections.abc import Callable, Sequence
 from contextlib import ExitStack
 from dataclasses import dataclass, field
@@ -127,7 +129,7 @@ ARQUIVO_HISTORICO = '.sapl_historico.json'
 
 MENSAGEM_CONFIG_INVALIDA = (
     '\nConfiguração inválida em {erro}\n'
-    'Corrija o valor (ou apague a chave "paralelo" para usar os padrões) e rode de novo.'
+    'Corrija o arquivo e rode de novo. Na chave "paralelo", apagá-la volta aos valores padrão.'
 )
 
 
@@ -139,18 +141,27 @@ class Contexto:
     nome: str | None = None
     cancelado: bool = False
     tela: status.Tela = field(default_factory=status.Tela)
+    # resultado final da execução e o projeto dele (para oferecer a autoria, FR-21a)
+    resultado: tuple[Path, gp.Projeto] | None = None
+
+
+def como_retomar(modo: str | None, nome: str) -> str:
+    """`rode o sapyl, escolha "Retomar um projeto" e depois "<nome>"` (conforme o modo)."""
+    if modo == 'autoria':
+        return f'rode o sapyl, escolha "Autoria e tramitação" e de novo "{nome}"'
+    if modo == 'atualizar':
+        return f'rode o sapyl no mesmo dia, escolha "Atualizar um projeto" e depois "{nome}"'
+    return f'rode o sapyl, escolha "Retomar um projeto" e depois "{nome}"'
 
 
 def mensagem_interrompido(contexto: Contexto) -> str:
     """O que fazer para continuar, com o caminho no menu (FR-17)."""
     if contexto.nome is None:
         return '\nInterrompido. Nada foi iniciado.'
-    inicio = '\nExecução interrompida. Para continuar de onde parou, rode o sapyl'
-    if contexto.modo == 'autoria':
-        return f'{inicio}, escolha "Autoria e tramitação" e de novo "{contexto.nome}".'
-    if contexto.modo == 'atualizar':
-        return f'{inicio} no mesmo dia, escolha "Atualizar um projeto" e depois "{contexto.nome}".'
-    return f'{inicio}, escolha "Retomar um projeto" e depois "{contexto.nome}".'
+    return (
+        '\nExecução interrompida. Para continuar de onde parou, '
+        f'{como_retomar(contexto.modo, contexto.nome)}.'
+    )
 
 
 log = registro.logger()
@@ -547,6 +558,7 @@ def executar_projeto(
             casas_inativas=int((~casas['ativa']).sum()),
             downloads=config['downloads'],
             execucao=sobre_a_execucao(cliente, paralelo, inicio),
+            como_retomar=como_retomar('retomar', projeto.nome),
         )
 
 
@@ -635,12 +647,14 @@ def executar_atualizacao(
         if downloads:
             final = preencher_downloads(final, estado, str(projeto.downloads))
         salvar_final(juntar_colunas_extras(final, tabela), projeto.final)
+        contexto.resultado = (projeto.final, base)
         return registro.resumo(
             estado,
             links,
             projeto.final,
             downloads=downloads,
             execucao=sobre_a_execucao(cliente, paralelo, inicio),
+            como_retomar=como_retomar('atualizar', base.nome),
         )
     finally:
         estado.fechar()
@@ -658,35 +672,39 @@ def executar_autoria(
     cliente: ClienteSAPL,
     perguntas: Perguntas,
     contexto: Contexto | None = None,
+    entrada: tuple[Path, gp.Projeto | None] | None = None,
 ) -> str | None:
     """Autoria e tramitação de um projeto (o resultado mais recente) ou de um CSV.
 
     Saída, estado e log ficam ao lado da planilha de entrada (na pasta do
-    projeto, para um projeto). Devolve o texto do resumo, ou None se a pessoa
-    voltou ao menu ou cancelou.
+    projeto, para um projeto). Com `entrada` (planilha, projeto), não pergunta
+    nada: é a oferta do fim de uma execução, já aceita. Devolve o texto do
+    resumo, ou None se a pessoa voltou ao menu ou cancelou.
     """
     contexto = contexto or Contexto('autoria')
-    escolha = escolher_entrada_autoria(raiz, perguntas)
+    escolha = entrada or escolher_entrada_autoria(raiz, perguntas)
     if escolha is None:
         return None
     planilha, projeto = escolha
     paralelo = ler_paralelo(projeto)
-    origem = rotulo_do_projeto(projeto) if projeto is not None else str(planilha)
-    perguntas.mostrar(
-        '\n'.join(
-            [
-                '',
-                f'Entrada: {origem}',
-                f'Planilha: {planilha.name} ({_numero(_linhas_do_csv(planilha))} matérias)',
-                'Cerca de 2 requisições por matéria.',
-                '',
-            ]
-        )
-    )
     contexto.nome = projeto.nome if projeto is not None else str(planilha)
-    if perguntas.escolher('Começar?', OPCOES_CONTINUAR) == CANCELAR:
-        contexto.cancelado = True
-        return None
+    if entrada is None:
+        origem = rotulo_do_projeto(projeto) if projeto is not None else str(planilha)
+        n = _numero(_linhas_do_csv(planilha))
+        perguntas.mostrar(
+            '\n'.join(
+                [
+                    '',
+                    f'Entrada: {origem}',
+                    f'Planilha: {planilha.name} ({n} matérias)',
+                    'Cerca de 2 requisições por matéria.',
+                    '',
+                ]
+            )
+        )
+        if perguntas.escolher('Começar?', OPCOES_CONTINUAR) == CANCELAR:
+            contexto.cancelado = True
+            return None
     inicio = preparar_cliente(cliente, paralelo)
     if projeto is not None:
         registro.configurar(
@@ -707,7 +725,10 @@ def executar_autoria(
         )
         saida, contagens = autoria.processar(planilha, cliente, fontes, mapear)
     return registro.resumo_autoria(
-        contagens, saida, execucao=sobre_a_execucao(cliente, paralelo, inicio)
+        contagens,
+        saida,
+        execucao=sobre_a_execucao(cliente, paralelo, inicio),
+        como_retomar=como_retomar('autoria', contexto.nome),
     )
 
 
@@ -716,10 +737,12 @@ def _executar_e_resumir(
     config: dict[str, Any],
     cliente: ClienteSAPL,
     raiz: str | Path,
-    tela: status.Tela,
+    contexto: Contexto,
 ) -> str:
     log.info('Buscando os termos: %s', '; '.join(descrever(p) for p in config['palavras']))
-    return executar_projeto(projeto, config, cliente, raiz, tela)
+    texto = executar_projeto(projeto, config, cliente, raiz, contexto.tela)
+    contexto.resultado = (projeto.final, projeto)
+    return texto
 
 
 def fluxo_novo(
@@ -757,7 +780,7 @@ def fluxo_novo(
     )
     config = configuracao_nova(palavras, respostas)
     gp.salvar_config(projeto, config)
-    return _executar_e_resumir(projeto, config, cliente, raiz, contexto.tela)
+    return _executar_e_resumir(projeto, config, cliente, raiz, contexto)
 
 
 def fluxo_retomar(
@@ -808,7 +831,79 @@ def fluxo_retomar(
     registro.configurar(projeto.pasta, projeto.nome, 'retomada', terminal=contexto.tela.terminal())
     log.info('Retomando o projeto %s', projeto.nome)
     avisar_palavras_mudadas(raiz, config['palavras'])
-    return _executar_e_resumir(projeto, config, cliente, raiz, contexto.tela)
+    return _executar_e_resumir(projeto, config, cliente, raiz, contexto)
+
+
+PERGUNTA_AUTORIA = (
+    'Buscar agora a autoria e a tramitação das {n} matérias do resultado? '
+    'Cerca de 2 requisições por matéria.'
+)
+
+
+def oferecer_autoria(
+    raiz: Path, cliente: ClienteSAPL, perguntas: Perguntas, feito: Contexto, atual: list[Contexto]
+) -> None:
+    """Depois de um resultado final, oferece a autoria e tramitação dele (FR-21a).
+
+    Não pergunta nada se a execução foi a própria autoria ou se o resultado
+    não tem matérias. `atual[0]` passa a ser o contexto da autoria (para a
+    mensagem de interrupção).
+    """
+    if feito.modo == 'autoria' or feito.resultado is None:
+        return
+    final, projeto = feito.resultado
+    n = _linhas_do_csv(final)
+    if not n or not perguntas.sim_nao(PERGUNTA_AUTORIA.format(n=_numero(n)), padrao=False):
+        return
+    atual[0] = Contexto('autoria', tela=feito.tela)
+    texto = executar_autoria(raiz, cliente, perguntas, atual[0], entrada=(final, projeto))
+    if texto is not None:
+        feito.tela.resumo(texto)
+
+
+def _menu(
+    raiz: Path, cliente: ClienteSAPL, perguntas: Perguntas, tela: status.Tela, atual: list
+) -> int:
+    fluxos = {
+        'novo': fluxo_novo,
+        'retomar': fluxo_retomar,
+        'atualizar': lambda r, c, p, ctx: executar_atualizacao(r, c, p, contexto=ctx),
+        'autoria': lambda r, c, p, ctx: executar_autoria(r, c, p, contexto=ctx),
+    }
+    while True:
+        modo = perguntas.escolher(PERGUNTA_MODO, OPCOES_MODO)
+        if modo == 'sair':
+            return 0
+        if modo == 'ajuda':
+            perguntas.mostrar(ajuda.TEXTO)
+            continue
+        contexto = atual[0] = Contexto(modo, tela=tela)
+        texto = fluxos[modo](raiz, cliente, perguntas, contexto)
+        if texto is not None:
+            tela.resumo(texto)
+            oferecer_autoria(raiz, cliente, perguntas, contexto, atual)
+            return 0
+        if contexto.cancelado:
+            perguntas.mostrar(MENSAGEM_CANCELADO)
+            return 0
+
+
+def _erro_inesperado(erro: Exception, raiz: Path, log_antes: str | None) -> str:
+    """Grava o traceback (no log desta execução, ou num arquivo novo) e devolve a mensagem."""
+    caminho = registro.log_atual()
+    if caminho is not None and caminho != log_antes:
+        log.debug('Erro inesperado', exc_info=erro)  # DEBUG: só no arquivo
+    else:
+        agora = datetime.now().strftime('%Y-%m-%d_%H%M%S')
+        caminho = str(raiz / f'sapyl_erro_{agora}.log')
+        detalhes = ''.join(traceback.format_exception(type(erro), erro, erro.__traceback__))
+        Path(caminho).write_text(f'{registro.NOME} {__version__}\n{detalhes}', encoding='utf-8')
+    return (
+        f'\nErro inesperado: {type(erro).__name__}: {erro}\n'
+        f'Os detalhes estão em {caminho}. O que já foi feito está salvo; se for um '
+        'projeto, ele pode ser retomado. Se o erro se repetir, abra um aviso em '
+        'https://github.com/leoaucar/sapyl/issues com esse arquivo.'
+    )
 
 
 def main(
@@ -817,8 +912,9 @@ def main(
     """Menu principal: projeto novo, retomar, atualizar, autoria e tramitação, ajuda, sair.
 
     Devolve o código de saída: 0 (também ao sair ou cancelar); 1 se a execução
-    foi interrompida (ou uma casa parou por um erro inesperado); 2 se um
-    arquivo de entrada ou o `paralelo` do config.json do projeto está errado.
+    foi interrompida, se uma casa parou por um erro inesperado ou num erro
+    inesperado; 2 se um arquivo de entrada, o config.json do projeto ou uma
+    permissão de pasta está errado, ou se o disco encheu (FR-22).
     """
     raiz = Path(raiz)
     perguntas = criar_perguntas(entrada)
@@ -826,37 +922,19 @@ def main(
     cliente = cliente or ClienteSAPL(
         historico=str(raiz / ARQUIVO_HISTORICO), servidor_de=resolver_servidor
     )
-    fluxos = {
-        'novo': fluxo_novo,
-        'retomar': fluxo_retomar,
-        'atualizar': lambda r, c, p, ctx: executar_atualizacao(r, c, p, contexto=ctx),
-        'autoria': lambda r, c, p, ctx: executar_autoria(r, c, p, contexto=ctx),
-    }
     print(BOAS_VINDAS)
     tela = (
         status.Tela(ao_vivo=True, console=perguntas.console)
         if isinstance(perguntas, PerguntasMenu)
         else status.Tela()
     )
-    contexto = Contexto(tela=tela)
+    atual = [Contexto(tela=tela)]
+    log_antes = registro.log_atual()
     try:
-        while True:
-            modo = perguntas.escolher(PERGUNTA_MODO, OPCOES_MODO)
-            if modo == 'sair':
-                return 0
-            if modo == 'ajuda':
-                perguntas.mostrar(ajuda.TEXTO)
-                continue
-            contexto = Contexto(modo, tela=tela)
-            texto = fluxos[modo](raiz, cliente, perguntas, contexto)
-            if texto is not None:
-                break
-            if contexto.cancelado:
-                perguntas.mostrar(MENSAGEM_CANCELADO)
-                return 0
+        return _menu(raiz, cliente, perguntas, tela, atual)
     except (KeyboardInterrupt, EOFError):
         # Ctrl+C a qualquer momento, ou Ctrl+D / fim da entrada numa pergunta
-        print(mensagem_interrompido(contexto))
+        print(mensagem_interrompido(atual[0]))
         return 1
     except EntradaInvalida as erro:
         print(f'\n{erro}')
@@ -867,10 +945,27 @@ def main(
     except execucao.FalhaNasCasas as erro:
         # As outras casas terminaram e estão no estado; a retomada refaz só estas
         log.error(str(erro))
-        print(mensagem_interrompido(contexto))
+        print(mensagem_interrompido(atual[0]))
         return 1
-    tela.resumo(texto)
-    return 0
+    except PermissionError as erro:
+        onde = erro.filename or 'um arquivo da pasta de trabalho'
+        print(
+            f'\nSem permissão para gravar ou ler {onde}. Confira as permissões da pasta '
+            '(ou rode o sapyl numa pasta sua) e rode de novo.'
+        )
+        return 2
+    except OSError as erro:
+        if erro.errno != errno.ENOSPC:
+            print(_erro_inesperado(erro, raiz, log_antes))
+            return 1
+        print(
+            f'\nO disco encheu ao gravar {erro.filename or "os arquivos do projeto"}. '
+            'Libere espaço e retome o projeto: nada do que já foi gravado se perde.'
+        )
+        return 2
+    except Exception as erro:
+        print(_erro_inesperado(erro, raiz, log_antes))
+        return 1
 
 
 USO = 'Uso: sapyl [--version]\nSem argumentos, o programa faz as perguntas no terminal.'

@@ -65,7 +65,7 @@ Rules for every task (same as earlier specs):
   - `PainelAoVivo` with `rich.live`; rich terminal handler on the same
     console; stopped on Ctrl+C; summary panel in menus mode.
   - Tests: recording console render; panel stopped after an interruption.
-- [ ] **T08 Next steps, authors offer, messages and errors** (FR-17, FR-21, FR-21a, FR-22; plan §6.5, §6.6)
+- [x] **T08 Next steps, authors offer, messages and errors** (FR-17, FR-21, FR-21a, FR-22; plan §6.5, §6.6)
   - `Fim` result; "Próximos passos" in both summaries; FR-21a offer;
     interrupted messages with the menu path; error table in `main`
     (including `sapyl_erro_<data>.log` before a log exists).

@@ -161,6 +161,31 @@ def configurar(
     return caminho
 
 
+def log_atual() -> str | None:
+    """Caminho do log da última `configurar`, ou None se ainda não houve nenhuma."""
+    return _log_atual
+
+
+# Como tentar de novo o que falhou (o resumo usa quando não recebe outro texto)
+COMO_RETOMAR = 'rode o sapyl e escolha "Retomar um projeto"'
+COMO_RETOMAR_AUTORIA = 'rode o sapyl, escolha "Autoria e tramitação" e a mesma entrada'
+
+
+def proximos_passos(
+    resultado: str | Path, falhas: bool, como_retomar: str, caminho_log: str | None
+) -> list[str]:
+    """Linhas "Próximos passos" do fim do resumo (FR-21)."""
+    linhas = ['', 'Próximos passos:', f'- Abra o resultado numa planilha: {resultado}']
+    if falhas:
+        linhas.append(
+            '- Houve falhas (veja as colunas de status e o log). Para tentar de novo só o '
+            f'que falhou, {como_retomar}.'
+        )
+    if caminho_log:
+        linhas.append(f'- Log desta execução: {caminho_log}')
+    return linhas
+
+
 def logger(nome: str | None = None) -> logging.Logger:
     """Logger de um módulo: `sapyl` ou `sapyl.<nome>`."""
     return logging.getLogger(LOGGER if not nome else f'{LOGGER}.{nome}')
@@ -209,6 +234,7 @@ def resumo_autoria(
     saida: str | Path,
     caminho_log: str | None = None,
     execucao: list[str] | None = None,
+    como_retomar: str = COMO_RETOMAR_AUTORIA,
 ) -> str:
     """Texto do resumo da autoria e tramitação (`execucao`: veja `linhas_da_execucao`)."""
     total = sum(contagens.values())
@@ -220,14 +246,8 @@ def resumo_autoria(
         *(execucao or []),
         f'Resultado: {saida}',
     ]
-    if contagens.get('erro', 0):
-        linhas.append(
-            'Houve falhas (veja as colunas status_autoria/status_tramitacao). Para tentar de '
-            'novo só o que falhou, rode o programa outra vez, escolha 3 e a mesma entrada.'
-        )
-    caminho_log = caminho_log or _log_atual
-    if caminho_log:
-        linhas.append(f'Log desta execução: {caminho_log}')
+    falhas = contagens.get('erro', 0) > 0
+    linhas += proximos_passos(saida, falhas, como_retomar, caminho_log or _log_atual)
     return '\n'.join(linhas)
 
 
@@ -240,13 +260,15 @@ def resumo(
     downloads: bool = False,
     caminho_log: str | None = None,
     execucao: list[str] | None = None,
+    como_retomar: str = COMO_RETOMAR,
 ) -> str:
     """Texto do resumo do fim da execução, contado a partir do estado do projeto.
 
     `buscas`: lista de (casa, status) das buscas do projeto (None no modo
     atualização, que não faz buscas). Como tudo vem do estado, o resumo é o
     do projeto inteiro, também depois de uma retomada. A última linha mostra
-    o log desta execução (`caminho_log`, ou o da última `configurar`).
+    o log desta execução (`caminho_log`, ou o da última `configurar`), depois
+    dos próximos passos (`como_retomar` diz como tentar de novo o que falhou).
     `execucao`: linhas sobre tempo e servidores (veja `linhas_da_execucao`).
     """
     chaves = {link['chave'] for link in links}
@@ -279,13 +301,5 @@ def resumo(
         falhas = falhas or pdfs.get('erro', 0) > 0
     linhas += execucao or []
     linhas.append(f'Resultado: {caminho_final}')
-    if falhas:
-        linhas.append(
-            'Houve falhas (veja as colunas status/erro e o log desta execução). '
-            'Para tentar de novo só o que falhou, rode o programa outra vez '
-            'e escolha retomar este projeto.'
-        )
-    caminho_log = caminho_log or _log_atual
-    if caminho_log:
-        linhas.append(f'Log desta execução: {caminho_log}')
+    linhas += proximos_passos(caminho_final, falhas, como_retomar, caminho_log or _log_atual)
     return '\n'.join(linhas)

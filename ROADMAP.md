@@ -57,8 +57,11 @@ que uma casa por vez: algo como **3 a 6 h** para a execução completa, e o
 teste das URLs cai para uns **15 min**. O limite do servidor é o que manda, não
 o número de casas. Na validação (29/10/2026, 50 casas e 23 palavras), 175 por
 minuto deixou a execução 19 % mais rápida sem nenhum 429, mas as respostas
-mais lentas pioraram 1,55 vez; o padrão ficou em 120 (próximo valor a testar:
-150, numa execução completa).
+mais lentas pioraram 1,55 vez; o padrão ficou em 120. Em 30/10/2026, 150 por
+minuto foi validado com as mesmas entradas (sem 429, respostas não mais
+lentas que com 120, 11 % mais rápido) e virou o padrão na versão 0.4.0:
+cerca de **4,3 vezes** uma casa por vez, ou **2,5 a 5 h** para a execução
+completa.
 
 ## 3. Bugs e riscos conhecidos
 
@@ -273,9 +276,11 @@ Spec [`specs/2026-10-30-interface-terminal/`](specs/2026-10-30-interface-termina
       organizada em etapas e painel em seções, listas de projetos do mais
       recente para o mais antigo (com as datas de criação e de atualização)
 
-> **Situação:** implementada e no `main` em 30/10/2026 (versão 0.4.0). A
-> validação nos sites reais com a pessoa (itens V1–V8 do `validation.md` da
-> spec) ainda está pendente; o merge foi feito antes dela, a pedido.
+> **Situação:** implementada, validada nos sites reais e no `main` em
+> 30/10/2026 (versão 0.4.0; veja o `validation.md` da spec). A validação
+> achou e corrigiu três problemas (um travamento depois da oferta da autoria,
+> a lista de estados com Enter sem marcar e a estimativa do tempo restante) e
+> subiu o limite por servidor para 150. Ficou de fora só o Windows (Fase 2c).
 
 ### Fase 2c: Fluxo de trabalho e novas opções
 O que a revisão da Fase 2b encontrou no fluxo de trabalho e ficou para depois

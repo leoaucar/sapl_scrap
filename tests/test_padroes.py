@@ -6,7 +6,7 @@ from sapyl import cliente_http, padroes
 
 
 def test_padroes_iniciais():
-    assert padroes.padroes_paralelo() == {'casas_ao_mesmo_tempo': 8, 'limite_por_servidor': 120}
+    assert padroes.padroes_paralelo() == {'casas_ao_mesmo_tempo': 8, 'limite_por_servidor': 150}
     assert padroes.PISO_POR_SERVIDOR == padroes.LIMITE_POR_SITE == 35
     assert padroes.JANELA_LENTIDAO == 600
 
@@ -24,7 +24,7 @@ def test_sem_valores_usa_os_padroes(dados):
 def test_completa_o_que_falta():
     assert padroes.validar_paralelo({'casas_ao_mesmo_tempo': 3}) == {
         'casas_ao_mesmo_tempo': 3,
-        'limite_por_servidor': 120,
+        'limite_por_servidor': 150,
     }
     assert padroes.validar_paralelo({'casas_ao_mesmo_tempo': 1, 'limite_por_servidor': 35}) == {
         'casas_ao_mesmo_tempo': 1,

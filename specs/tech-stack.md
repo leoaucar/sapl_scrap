@@ -57,7 +57,7 @@ ones below (checked by `tests/test_camadas.py`):
   and the PDF links (`/media/…`).
 - Observed limit: 35 requests/min per site, then `HTTP 429` with
   `Retry-After: 60`. The client keeps 35 requests in a 60 s window plus a 1 s
-  margin per site, and `limite_por_servidor` (default 120) per server in the
+  margin per site, and `limite_por_servidor` (default 150 since v0.4.0; 120 before) per server in the
   same window; both shared across runs through `.sapl_historico.json`. 429s
   from two houses of one server within 10 min halve that server's ceiling for
   the rest of the run (floor 35).

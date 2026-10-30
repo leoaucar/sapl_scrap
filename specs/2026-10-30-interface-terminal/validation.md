@@ -2,8 +2,10 @@
 
 - **Spec:** [spec.md](spec.md) · **Plan:** [plan.md](plan.md) · **Tasks:** [tasks.md](tasks.md)
 - **Branch:** `spec/2026-10-30-interface-terminal` · **Version:** 0.4.0
-- **Status:** Merged into `main` on 2026-10-30 at the user's request, **before** the
-  real-site checks with the user (§3, V1–V8), which remain pending. Offline checks done.
+- **Status:** Passed (2026-10-30), except V5 (Windows, not checked; in the ROADMAP).
+  Merged into `main` before the real-site checks at the user's request; the
+  bugs they found were fixed on `main` the same day (§3). Server ceiling raised
+  to 150 (§4).
 
 ## 1. Automated (offline)
 
@@ -74,5 +76,28 @@ Asked by the user after the 29/10 ramp (`specs/2026-10-27-paralelismo/validation
 keywords, no PDFs, 8 houses at once; a fresh 120 baseline and then 150, 5
 minutes apart, one program at a time. Measures with the same script for both.
 
-RESULTADO_DA_RAMPA
+Tool: `ferramentas/medir_rampa.py <pasta> <teto>` (on the 29/10 projects it
+gives 120 max / 18 min at the ceiling / 20 min 30 s / p95 0.35 s for
+`ramp_120`, matching the recorded values; it reports p95 0.48 s for
+`ramp_175`, recorded as 0.51 s with the earlier script).
+
+| Check | `ramp_120b` (17:59) | `ramp_150` (18:24) |
+|---|---|---|
+| Max requests per server per 60 s (`201.54.51.178`, 40 houses) | 120 | 150 |
+| Minutes at the ceiling (≥ 95 %) | 18 (17:59–18:16) | 14 (18:24–18:37) |
+| `HTTP 429` (hosts) / slow-downs | 0 / 0 | 0 / 0 |
+| Response time median / p95, whole run (s) | 0.08 / 0.51 | 0.07 / 0.44 |
+| Worst per-minute p95 on the shared server, at the ceiling | 0.75 s | 0.78 s |
+| Timeouts / 5xx | 0 / 0 | 0 / 0 |
+| Whole run | 19 min 38 s | 17 min 29 s (11 % faster) |
+| Results | 416 matters `ok`, 966 searches, 0 incomplete | same 416 keys, same order, same statuses |
+
+The server was slower than on 29/10 (p95 0.51 s at 120, against 0.35 s), which
+is why the baseline was run again. The worst per-minute p95 of the 150 run
+(1.23 s at 18:40) was on another provider's server (the state assembly of AM,
+`159.60.67.5`), when only that house was left: not load on the shared server.
+
+| Decision | Why (numbers) |
+|---|---|
+| **Raise the default to 150** (`padroes.LIMITE_POR_SERVIDOR`) | The ceiling of 150 was held for 14 minutes with 0 × 429, no slow-down, no timeouts/5xx; median and p95 were not higher than the same-day 120 run (0.07/0.44 s against 0.08/0.51 s; per-minute p95 at the ceiling 0.78 s against 0.75 s), well inside the 1.5× rule; same results; 11 % faster. README, page, ROADMAP and tech-stack updated. Projects created before keep the value in their `config.json` (120); edit it to use 150. |
 

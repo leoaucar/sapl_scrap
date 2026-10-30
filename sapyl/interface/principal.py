@@ -27,6 +27,9 @@ raspadas de novo, com saída em arquivos `_ATUALIZADO_<data>`.
 """
 
 import errno
+import faulthandler
+import io
+import signal
 import sys
 import time
 import traceback
@@ -1051,6 +1054,21 @@ def _erro_inesperado(erro: Exception, raiz: Path, log_antes: str | None) -> str:
     )
 
 
+def ligar_diagnostico() -> bool:
+    """Linux e macOS: `kill -USR1 <pid>` mostra no terminal o que cada thread está fazendo.
+
+    Serve para investigar um programa que parece travado. Devolve False onde não
+    há o sinal (Windows) ou o terminal não aceita (testes).
+    """
+    if not hasattr(signal, 'SIGUSR1'):
+        return False
+    try:
+        faulthandler.register(signal.SIGUSR1, all_threads=True)
+    except (ValueError, OSError, AttributeError, io.UnsupportedOperation):
+        return False
+    return True
+
+
 def main(
     entrada: Leitor = input, cliente: ClienteSAPL | None = None, raiz: str | Path = '.'
 ) -> int:
@@ -1062,6 +1080,7 @@ def main(
     permissão de pasta está errado, ou se o disco encheu (FR-22).
     """
     raiz = Path(raiz)
+    ligar_diagnostico()
     perguntas = criar_perguntas(entrada)
     # O servidor (IP) de cada site, para o limite por servidor (veja cliente_http)
     cliente = cliente or ClienteSAPL(

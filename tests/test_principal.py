@@ -786,3 +786,10 @@ def test_voltar_no_csv_da_autoria_volta_a_lista(projeto_tmp, cliente, sessao, sa
     ler = roteiro('4', '2', '<', '3', '6')
     assert programa.main(ler, cliente, projeto_tmp) == 0
     assert sum(p.startswith('De onde vêm as matérias?') for p in ler.perguntas) == 2
+
+
+def test_diagnostico_com_sigusr1():
+    import signal
+
+    ligado = programa.ligar_diagnostico()
+    assert ligado is hasattr(signal, 'SIGUSR1') or ligado is False

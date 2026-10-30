@@ -29,7 +29,7 @@ Rules for every task (same as earlier specs):
   - `casas`: spreadsheet check with `EntradaInvalida`, `ufs_da_planilha`,
     `filtrar_estados`; old `sul_sudeste` and `limite` `'2'`/`'3'` still work.
   - Tests: `test_palavras.py`, `test_casas.py`.
-- [ ] **T03 Project status and lazy creation** (FR-4a, FR-15; plan §6.2)
+- [x] **T03 Project status and lazy creation** (FR-4a, FR-15; plan §6.2)
   - `projeto.Situacao`, `projeto.situacao(projeto)` (read-only); project
     folder created only by an explicit call.
   - Tests: `test_projeto.py` (each status, old project, state file untouched).

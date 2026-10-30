@@ -15,7 +15,7 @@ Current stack, and what is planned for later specs. Changing anything in
 | Tables / output | `pandas` (≥ 2.1, works with 3.x), CSV    | `openpyxl` for reading `.xlsx` inputs      |
 | Project storage | CSV (append-only state), JSON (`config.json`, `cache.json`) | Atomic writes for JSON (temp file + rename) |
 | Logging         | `logging` (standard library)             | Terminal + one file per run in `<projeto>/logs/` |
-| Interface       | Interactive terminal (`input()`), 3-option menu | Replaced by config/CLI in a later spec; only `--version` today |
+| Interface       | Interactive terminal: arrow-key menus with `questionary` (MIT, on `prompt_toolkit`, BSD-3); live status and panels with `rich` (MIT) | Numbered prompts (`input()`) when not a TTY or with `SAPYL_MENUS=0`; only `interface/` imports them (checked in `test_camadas.py`); config/CLI in Phase 7; only `--version` today |
 | Tests           | `pytest` (dev extra)                     | Offline; fixtures under `tests/fixtures/`; AST checks for layers, column lists and type hints |
 | Coverage        | `pytest-cov` (dev extra)                 | Report only, no threshold (≥ 95 % expected) |
 | Lint / format   | `ruff` (dev extra)                       | `line-length = 100`, single quotes; enforced in CI |
@@ -36,7 +36,8 @@ ones below (checked by `tests/test_camadas.py`):
 5. `tabela` (final table, extra columns, `Relevante`), `downloads`
 6. `projeto` (paths of `<nome>_proj/`), `execucao` (`por_casa`: worker pool,
    Ctrl+C, progress line)
-7. `interface/` (`entrada`: prompts; `principal`: menu, flows, `executar()`)
+7. `interface/` (`perguntas`: menus and numbered prompts; `entrada`: project choosers;
+   `principal`: menu, flows, `executar()`)
 
 ## Target system
 

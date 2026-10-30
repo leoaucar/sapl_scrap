@@ -62,14 +62,16 @@ module below `interface` imports `rich` or `questionary`; a new check in
 
 ```python
 class Opcao(NamedTuple):
-    rotulo: str           # text shown
-    valor: str            # value returned
+    rotulo: str  # text shown
+    valor: str  # value returned
+
 
 class Perguntas(Protocol):
     def escolher(self, texto: str, opcoes: Sequence[Opcao]) -> str: ...
     def sim_nao(self, texto: str, padrao: bool = False) -> bool: ...
-    def marcar(self, texto: str, opcoes: Sequence[Opcao],
-               atalhos: Mapping[str, Sequence[str]]) -> list[str]: ...
+    def marcar(
+        self, texto: str, opcoes: Sequence[Opcao], atalhos: Mapping[str, Sequence[str]]
+    ) -> list[str]: ...
     def texto(self, texto: str, validar: Callable[[str], str | None]) -> str: ...
     def mostrar(self, texto: str) -> None: ...
 ```

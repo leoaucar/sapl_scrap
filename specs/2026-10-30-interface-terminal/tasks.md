@@ -13,7 +13,7 @@ Rules for every task (same as earlier specs):
 
 ## Phase A: Foundations
 
-- [ ] **T01 Dependencies and prompts** (FR-1, FR-2, NFR-1; plan §4)
+- [x] **T01 Dependencies and prompts** (FR-1, FR-2, NFR-1; plan §4)
   - `questionary>=2.0` and `rich>=13.7` in `pyproject.toml`;
     `tech-stack.md` (Interface row, dependencies).
   - `sapyl/interface/perguntas.py`: `Opcao`, `Perguntas`, `PerguntasTexto`,

@@ -591,3 +591,23 @@ def test_terminal_so_com_comeco_e_fim_das_casas(projeto_tmp, cliente, sessao, sa
     [log] = (projeto_tmp / 'teste_proj' / 'logs').iterdir()
     texto = log.read_text(encoding='utf-8')
     assert 'Matéria 1 de' in texto and 'Download 1 de' in texto and 'Testando casa 1 de 3' in texto
+
+
+def test_linha_de_progresso_com_tempo_restante(
+    projeto_tmp, cliente, sessao, sapl, monkeypatch, caplog
+):
+    from sapyl import execucao
+
+    monkeypatch.setattr(execucao, 'PROGRESSO_A_CADA', 0.0)
+    original = execucao.por_casa
+
+    def a_cada_instante(*args, **kwargs):
+        kwargs['a_cada'] = 0.0
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(execucao, 'por_casa', a_cada_instante)
+    with caplog.at_level(logging.INFO, logger='sapyl'):
+        assert programa.main(roteiro(*NOVO), cliente, projeto_tmp) == 0
+    linhas = [r.getMessage() for r in caplog.records if r.getMessage().startswith('Progresso')]
+    assert linhas and 'buscas: ' in linhas[-1] and 'PDFs: ' in linhas[-1]
+    assert linhas[-1].endswith('tempo restante: calculando')

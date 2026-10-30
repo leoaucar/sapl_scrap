@@ -29,6 +29,7 @@ raspadas de novo, com saída em arquivos `_ATUALIZADO_<data>`.
 import sys
 import time
 from collections.abc import Callable, Sequence
+from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -47,11 +48,12 @@ from sapyl.colunas import (
     COLUNAS_PAGINAS,
     ETAPA_BUSCA,
     ETAPA_MATERIA,
+    ETAPA_PDF,
     Linha,
 )
 from sapyl.downloads import baixar_da_casa, preencher_downloads
 from sapyl.estado import ArquivoCSV, Cache, Estado
-from sapyl.interface import ajuda
+from sapyl.interface import ajuda, status
 from sapyl.interface.entrada import (
     abrir_ou_criar,
     escolher_entrada_autoria,
@@ -433,6 +435,18 @@ def progresso_das_materias(estado: Estado) -> str:
     return f'matérias: {contagem.get("ok", 0)} raspadas, {contagem.get("erro", 0)} com erro'
 
 
+def contagens_do_projeto(estado: Estado, buscas: bool = True, downloads: bool = False) -> str:
+    """Contagens do projeto todo (do estado), para o progresso: buscas, matérias, PDFs."""
+    partes = []
+    if buscas:
+        partes.append(f'buscas: {estado.contagens(ETAPA_BUSCA).get("completa", 0)} completas')
+    partes.append(progresso_das_materias(estado))
+    if downloads:
+        pdfs = estado.contagens(ETAPA_PDF)
+        partes.append(f'PDFs: {pdfs.get("ok", 0)} baixados, {pdfs.get("erro", 0)} com erro')
+    return '; '.join(partes)
+
+
 def executar_projeto(
     projeto: gp.Projeto, config: dict[str, Any], cliente: ClienteSAPL, raiz: str | Path
 ) -> str:
@@ -445,10 +459,15 @@ def executar_projeto(
     paralelo = ler_paralelo(projeto, config)
     inicio = preparar_cliente(cliente, paralelo)
     estado = Estado(projeto.estado)
-    try:
-        casas = preparar_casas(
-            projeto, config, cliente, raiz, mapeador(cliente, paralelo, anunciar=False)
-        )
+
+    def contagens() -> str:
+        return contagens_do_projeto(estado, downloads=config['downloads'])
+
+    with ExitStack() as pilha:
+        pilha.callback(estado.fechar)
+        andamento = pilha.enter_context(status.acompanhar(contagens))
+        teste = mapeador(cliente, paralelo, andamento.progresso, anunciar=False)
+        casas = preparar_casas(projeto, config, cliente, raiz, teste)
         palavras = config['palavras']
         ativas = list(casas[casas['ativa']]['url'])
         refazer_links = bool(buscas_pendentes(casas, palavras, estado))
@@ -481,8 +500,12 @@ def executar_projeto(
             len(fila),
             paralelo['casas_ao_mesmo_tempo'],
         )
+        andamento.comecar(len(fila))
+        mapear = mapeador(
+            cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
+        )
         try:
-            mapeador(cliente, paralelo, lambda: progresso_das_materias(estado))(pipeline, fila)
+            mapear(pipeline, fila)
         finally:
             raspagem.fechar()
             if paginas is not None:
@@ -512,8 +535,6 @@ def executar_projeto(
             downloads=config['downloads'],
             execucao=sobre_a_execucao(cliente, paralelo, inicio),
         )
-    finally:
-        estado.fechar()
 
 
 def executar_atualizacao(
@@ -582,11 +603,19 @@ def executar_atualizacao(
         raspagem = Raspagem(cliente, estado, projeto.materias, fontes, pasta)
         grupos = agrupar_por_casa(links)
         fila = [g[0]['Link Casa'] for g in grupos.values()]
-        mapear = mapeador(cliente, paralelo, lambda: progresso_das_materias(estado))
-        try:
-            mapear(lambda casa: raspagem.da_casa(grupos[host(casa)]), fila)
-        finally:
-            raspagem.fechar()
+
+        def contagens() -> str:
+            return contagens_do_projeto(estado, buscas=False, downloads=downloads)
+
+        with status.acompanhar(contagens) as andamento:
+            andamento.comecar(len(fila))
+            mapear = mapeador(
+                cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
+            )
+            try:
+                mapear(lambda casa: raspagem.da_casa(grupos[host(casa)]), fila)
+            finally:
+                raspagem.fechar()
         final = montar_final(projeto.materias, links)
         if downloads:
             final = preencher_downloads(final, estado, str(projeto.downloads))
@@ -653,7 +682,11 @@ def executar_autoria(
         registro.configurar(planilha.parent, planilha.stem, 'autoria')
         fontes = Fontes()
     log.info('Autoria e tramitação de %s', planilha)
-    saida, contagens = autoria.processar(planilha, cliente, fontes, mapeador(cliente, paralelo))
+    with status.acompanhar() as andamento:
+        mapear = mapeador(
+            cliente, paralelo, andamento.progresso, ao_terminar=andamento.resumo_da_casa
+        )
+        saida, contagens = autoria.processar(planilha, cliente, fontes, mapear)
     return registro.resumo_autoria(
         contagens, saida, execucao=sobre_a_execucao(cliente, paralelo, inicio)
     )

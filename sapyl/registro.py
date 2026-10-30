@@ -73,6 +73,11 @@ def casa_atual(host: str) -> Iterator[None]:
         _contexto.casa = anterior
 
 
+def casa_desta_thread() -> str:
+    """Host da casa em que a thread atual está trabalhando, ou '' (veja `casa_atual`)."""
+    return getattr(_contexto, 'casa', '')
+
+
 class _PrefixoCasa(logging.Filter):
     """Preenche `%(casa)s` com `[<host>] ` (ou vazio) para os formatos daqui."""
 

@@ -57,7 +57,7 @@ Rules for every task (same as earlier specs):
     `registro.configurar(..., terminal=None)`.
   - Tests: per-item lines only in the file; start/finish lines in the
     terminal; log file content unchanged otherwise.
-- [ ] **T06 Status model and texto-mode line** (FR-18 model, FR-20; plan §5.2)
+- [x] **T06 Status model and texto-mode line** (FR-18 model, FR-20; plan §5.2)
   - `interface/status.py`: `Andamento`, `HandlerAndamento`, time-left
     estimate, `linha()`; counters from the state callback.
   - Tests: `test_status.py` (records, threads, fake-clock estimate).

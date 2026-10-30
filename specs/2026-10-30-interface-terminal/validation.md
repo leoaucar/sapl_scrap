@@ -8,7 +8,7 @@
 
 | Check | Result |
 |---|---|
-| `pytest` (3.12, pandas 3) | 450 passed, coverage 98 % (2026-10-30) |
+| `pytest` (3.12, pandas 3) | 468 passed (2026-10-30, after T11–T13) |
 | `ruff check`, `ruff format --check` | pass |
 | Layers: nothing outside `interface/` imports `rich`, `questionary`, `prompt_toolkit` | pass (`test_camadas.py`) |
 | CI on 3.10/pandas 2 and 3.12/pandas 3 | pending: branch not pushed yet |
@@ -53,3 +53,9 @@ Run in a real terminal on Linux, in the repository folder:
 - [ ] **V5 Windows terminal** (if available): menus, accents, panel. Otherwise
       noted as not checked.
 - [ ] **V6 CI green** on the branch (needs a push).
+- [ ] **V7 Amendment (FR-23 to FR-25):** `← Voltar` through every question of a
+      new project (and `<` with `SAPYL_MENUS=0`); the run output in sections
+      (header, stages, `✓` lines, sectioned panel); the project lists newest
+      first with creation and update dates.
+- [ ] **V8 Docs for beginners:** someone new follows the README install
+      (ZIP download, venv, activation) on Windows or Linux without help.
